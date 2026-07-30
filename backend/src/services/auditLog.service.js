@@ -8,6 +8,9 @@ const writeAuditLog = async (
     entityType,
     entityId,
     description,
+    actorName,
+    reason,
+    metadata,
   },
   database = prisma,
 ) => {
@@ -23,6 +26,9 @@ const writeAuditLog = async (
       entityType,
       entityId: String(entityId),
       description,
+      actorName: actorName || null,
+      reason: reason || null,
+      metadata: metadata || undefined,
     },
   })
 }

@@ -15,14 +15,25 @@ const businessUpgradeMigrationPath = new URL(
   '../prisma/migrations/20260730000100_full_business_upgrade/migration.sql',
   import.meta.url,
 )
+const customerPhase2MigrationPath = new URL(
+  '../prisma/migrations/20260730000200_customer_profiles_phase2/migration.sql',
+  import.meta.url,
+)
 
-const [schema, seed, migration, adminMigration, businessUpgradeMigration] =
-  await Promise.all([
+const [
+  schema,
+  seed,
+  migration,
+  adminMigration,
+  businessUpgradeMigration,
+  customerPhase2Migration,
+] = await Promise.all([
   readFile(schemaPath, 'utf8'),
   readFile(seedPath, 'utf8'),
   readFile(migrationPath, 'utf8'),
   readFile(adminMigrationPath, 'utf8'),
   readFile(businessUpgradeMigrationPath, 'utf8'),
+  readFile(customerPhase2MigrationPath, 'utf8'),
 ])
 
 const tables = [
@@ -104,6 +115,24 @@ describe('Supabase SQL assets', () => {
     )
     expect(businessUpgradeMigration).not.toMatch(
       /drop\s+(table|type|schema)|truncate/i,
+    )
+  })
+
+  test('prepares a non-destructive Customer normalization and backfill migration', () => {
+    expect(customerPhase2Migration).toContain(
+      'on conflict (phone) do nothing',
+    )
+    expect(customerPhase2Migration).toContain(
+      'and booking.customer_id is null',
+    )
+    expect(customerPhase2Migration).toContain(
+      'create index if not exists bookings_customer_status_idx',
+    )
+    expect(customerPhase2Migration).not.toMatch(
+      /drop\s+(table|type|schema|index)|truncate|delete\s+from/i,
+    )
+    expect(customerPhase2Migration).not.toMatch(
+      /update\s+public\.bookings[\s\S]*set\s+(passenger_full_name|passenger_phone|passenger_email)/i,
     )
   })
 })

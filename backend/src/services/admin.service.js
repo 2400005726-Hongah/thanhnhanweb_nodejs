@@ -3,11 +3,16 @@ import HttpError from '../utils/HttpError.js'
 import {
   isVietnamesePhone,
   normalizeEmail,
+  normalizeFullName,
   normalizePhone,
 } from '../utils/normalize.js'
 import { hashPassword } from '../utils/password.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { writeAuditLog } from './auditLog.service.js'
+import {
+  VIOLATION_STATUSES,
+  buildViolationSummary,
+} from './customer.service.js'
 
 const safeMoney = (value) => Number(value || 0)
 
@@ -40,7 +45,7 @@ const getDashboardSummary = async (role, now = new Date()) => {
     }),
     prisma.tripSeat.count({ where: { status: 'BOOKED' } }),
     prisma.bus.count({ where: { status: 'ACTIVE' } }),
-    prisma.user.count({ where: { role: 'CUSTOMER', status: 'ACTIVE' } }),
+    prisma.customer.count({ where: { status: 'ACTIVE' } }),
   ])
 
   const summary = {
@@ -339,6 +344,75 @@ const listUsers = async (query, roles = ['CUSTOMER', 'ADMIN', 'STAFF']) => {
   return { users, pagination: buildPagination(total, page, limit) }
 }
 
+const publicCustomerSelect = {
+  id: true,
+  fullName: true,
+  email: true,
+  phone: true,
+  status: true,
+  blockedReason: true,
+  blockedAt: true,
+  createdAt: true,
+  updatedAt: true,
+}
+
+const listCustomers = async (query) => {
+  const { page, limit, skip } = parsePagination(query)
+  const where = {
+    ...(query.status && { status: query.status }),
+    ...(query.keyword && {
+      OR: ['fullName', 'email', 'phone'].map((field) => ({
+        [field]: { contains: query.keyword.trim(), mode: 'insensitive' },
+      })),
+    }),
+  }
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      select: {
+        ...publicCustomerSelect,
+        _count: { select: { bookings: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.customer.count({ where }),
+  ])
+
+  const customerIds = customers.map((customer) => customer.id)
+  const violationRows = customerIds.length
+    ? await prisma.booking.groupBy({
+        by: ['customerId', 'status'],
+        where: {
+          customerId: { in: customerIds },
+          status: { in: VIOLATION_STATUSES },
+        },
+        _count: { _all: true },
+      })
+    : []
+  const countsByCustomer = new Map()
+
+  for (const row of violationRows) {
+    if (!row.customerId) continue
+    countsByCustomer.set(
+      row.customerId,
+      (countsByCustomer.get(row.customerId) || 0) + row._count._all,
+    )
+  }
+
+  return {
+    customers: customers.map(({ _count, ...customer }) => ({
+      ...customer,
+      totalBookings: _count.bookings,
+      violations: buildViolationSummary(
+        countsByCustomer.get(customer.id) || 0,
+      ),
+    })),
+    pagination: buildPagination(total, page, limit),
+  }
+}
+
 const ensureUniqueAccount = async (email, phone, excludeId = null) => {
   const duplicate = await prisma.user.findFirst({
     where: {
@@ -432,33 +506,46 @@ const changeUserRole = async (userId, role, actor) => {
 }
 
 const updateCustomer = async (customerId, payload, actor) => {
-  const customer = await prisma.user.findFirst({
-    where: { id: customerId, role: 'CUSTOMER' },
-    select: publicUserSelect,
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: publicCustomerSelect,
   })
   if (!customer) throw new HttpError('Không tìm thấy khách hàng', 404)
 
-  const email = payload.email ? normalizeEmail(payload.email) : customer.email
+  const email =
+    payload.email !== undefined
+      ? payload.email
+        ? normalizeEmail(payload.email)
+        : null
+      : customer.email
   const phone = payload.phone ? normalizePhone(payload.phone) : customer.phone
   if (!isVietnamesePhone(phone)) {
     throw new HttpError('Số điện thoại không hợp lệ', 400)
   }
-  await ensureUniqueAccount(email, phone, customerId)
+  const duplicatePhone = await prisma.customer.findFirst({
+    where: { phone, id: { not: customerId } },
+    select: { id: true },
+  })
+  if (duplicatePhone) {
+    throw new HttpError('Số điện thoại khách hàng đã được sử dụng', 409)
+  }
 
-  const updated = await prisma.user.update({
+  const updated = await prisma.customer.update({
     where: { id: customerId },
     data: {
-      ...(payload.fullName && { fullName: payload.fullName.trim() }),
+      ...(payload.fullName && {
+        fullName: normalizeFullName(payload.fullName),
+      }),
       email,
       phone,
     },
-    select: publicUserSelect,
+    select: publicCustomerSelect,
   })
   await writeAuditLog({
     userId: actor.id,
     role: actor.role,
     action: 'UPDATE_CUSTOMER',
-    entityType: 'USER',
+    entityType: 'CUSTOMER',
     entityId: customerId,
     description: 'Cập nhật thông tin liên hệ khách hàng',
   })
@@ -498,6 +585,7 @@ export {
   getRevenueSummary,
   listAuditLogs,
   listManagedBookings,
+  listCustomers,
   listUsers,
   markBookingNoShow,
   updateBookingContact,

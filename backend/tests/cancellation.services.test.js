@@ -137,6 +137,9 @@ jest.unstable_mockModule('../src/config/prisma.js', () => ({ default: prisma }))
 const { cancelBooking, getCancellationState } = await import(
   '../src/services/cancellation.service.js'
 )
+const cancellationReason = 'Khách thay đổi kế hoạch di chuyển'
+const cancelWithReason = (payload) =>
+  cancelBooking({ ...payload, reason: cancellationReason })
 
 beforeEach(() => {
   booking = {
@@ -186,7 +189,7 @@ beforeEach(() => {
 
 describe('Booking cancellation transaction service', () => {
   test('customer cancels their own paid booking and receives a simulated refund', async () => {
-    const result = await cancelBooking({ bookingCode, userId, now })
+    const result = await cancelWithReason({ bookingCode, userId, now })
 
     expect(result).toEqual({
       bookingCode,
@@ -195,15 +198,18 @@ describe('Booking cancellation transaction service', () => {
       releasedSeatCount: 2,
       refunded: true,
       refundAmount: 640000,
+      cancellationReason,
     })
     expect(booking.status).toBe('CANCELLED')
     expect(booking.paymentStatus).toBe('REFUNDED')
+    expect(booking.cancellationReason).toBe(cancellationReason)
+    expect(booking.cancelledAt).toEqual(now)
     expect(payments[0].status).toBe('REFUNDED')
     expect(payments[1].status).toBe('FAILED')
   })
 
   test('guest cancels with matching normalized booking code and phone', async () => {
-    const result = await cancelBooking({
+    const result = await cancelWithReason({
       bookingCode: bookingCode.toLowerCase(),
       phone: '+84987654321',
       now,
@@ -217,9 +223,16 @@ describe('Booking cancellation transaction service', () => {
     )
   })
 
+  test('requires a cancellation reason before starting a transaction', async () => {
+    await expect(
+      cancelBooking({ bookingCode, userId, now }),
+    ).rejects.toMatchObject({ statusCode: 400 })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
   test('customer cannot cancel another customer booking', async () => {
     await expect(
-      cancelBooking({ bookingCode, userId: otherUserId, now }),
+      cancelWithReason({ bookingCode, userId: otherUserId, now }),
     ).rejects.toMatchObject({
       statusCode: 404,
       message: 'Không tìm thấy booking phù hợp',
@@ -231,7 +244,7 @@ describe('Booking cancellation transaction service', () => {
     ['wrong phone', bookingCode, '0900000000'],
   ])('guest receives the same not-found response for %s', async (_label, code, suppliedPhone) => {
     await expect(
-      cancelBooking({ bookingCode: code, phone: suppliedPhone, now }),
+      cancelWithReason({ bookingCode: code, phone: suppliedPhone, now }),
     ).rejects.toMatchObject({
       statusCode: 404,
       message: 'Không thể hủy vé với thông tin đã cung cấp',
@@ -244,7 +257,7 @@ describe('Booking cancellation transaction service', () => {
       booking.status = status
 
       await expect(
-        cancelBooking({ bookingCode, userId, now }),
+        cancelWithReason({ bookingCode, userId, now }),
       ).rejects.toMatchObject({ statusCode: 409 })
     },
   )
@@ -253,7 +266,7 @@ describe('Booking cancellation transaction service', () => {
     booking.trip.departureTime = new Date('2099-07-20T09:30:00.000Z')
 
     await expect(
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toMatchObject({
       statusCode: 409,
       message: 'Đã quá thời hạn cho phép hủy vé',
@@ -264,7 +277,7 @@ describe('Booking cancellation transaction service', () => {
     booking.trip.departureTime = new Date('2099-07-20T07:30:00.000Z')
 
     await expect(
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toMatchObject({
       statusCode: 409,
       message: 'Không thể hủy vé sau khi chuyến đã khởi hành',
@@ -276,7 +289,7 @@ describe('Booking cancellation transaction service', () => {
     booking.paymentStatus = 'PENDING'
     payments = []
 
-    const result = await cancelBooking({ bookingCode, userId, now })
+    const result = await cancelWithReason({ bookingCode, userId, now })
 
     expect(result.refunded).toBe(false)
     expect(result.refundAmount).toBe(0)
@@ -286,7 +299,7 @@ describe('Booking cancellation transaction service', () => {
   })
 
   test('only releases TripSeat rows referenced by BookingItem', async () => {
-    await cancelBooking({ bookingCode, userId, now })
+    await cancelWithReason({ bookingCode, userId, now })
 
     expect(tripSeats.filter((seat) => seat.id !== otherSeatId))
       .toEqual(expect.arrayContaining([
@@ -300,7 +313,7 @@ describe('Booking cancellation transaction service', () => {
   test('keeps BookingItem history unchanged', async () => {
     const snapshot = structuredClone(bookingItems)
 
-    await cancelBooking({ bookingCode, userId, now })
+    await cancelWithReason({ bookingCode, userId, now })
 
     expect(bookingItems).toEqual(snapshot)
   })
@@ -309,7 +322,7 @@ describe('Booking cancellation transaction service', () => {
     failSeatUpdate = true
 
     await expect(
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toThrow('trip seat update failure')
     expect(booking.status).toBe('CONFIRMED')
     expect(booking.paymentStatus).toBe('SUCCESS')
@@ -320,7 +333,7 @@ describe('Booking cancellation transaction service', () => {
     failPaymentUpdate = true
 
     await expect(
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toThrow('payment update failure')
     expect(booking.status).toBe('CONFIRMED')
     expect(tripSeats.slice(0, 2).every((seat) => seat.status === 'BOOKED'))
@@ -330,8 +343,8 @@ describe('Booking cancellation transaction service', () => {
 
   test('allows only one of two concurrent cancellation requests to succeed', async () => {
     const results = await Promise.allSettled([
-      cancelBooking({ bookingCode, userId, now }),
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ])
 
     expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1)
@@ -340,17 +353,17 @@ describe('Booking cancellation transaction service', () => {
   })
 
   test('rejects a second cancellation request', async () => {
-    await cancelBooking({ bookingCode, userId, now })
+    await cancelWithReason({ bookingCode, userId, now })
 
     await expect(
-      cancelBooking({ bookingCode, userId, now }),
+      cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toMatchObject({ statusCode: 409 })
   })
 
   test('retries a Serializable transaction conflict', async () => {
     transactionConflicts = 1
 
-    const result = await cancelBooking({ bookingCode, userId, now })
+    const result = await cancelWithReason({ bookingCode, userId, now })
 
     expect(result.status).toBe('CANCELLED')
     expect(prisma.$transaction).toHaveBeenCalledTimes(2)

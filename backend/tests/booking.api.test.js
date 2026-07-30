@@ -96,7 +96,12 @@ describe('Seat hold and booking API validation', () => {
   })
 
   test('creates a guest booking with validated passenger data', async () => {
-    const payload = { tripId, holdToken, passenger }
+    const payload = {
+      tripId,
+      holdToken,
+      passenger,
+      customerNote: 'Đón tại cổng chính',
+    }
     const response = await request(app)
       .post('/api/v1/public/bookings')
       .send(payload)
@@ -138,6 +143,15 @@ describe('Seat hold and booking API validation', () => {
     const response = await request(app)
       .post('/api/v1/public/bookings')
       .send({ tripId, holdToken, passenger, totalAmount: 1, status: 'CONFIRMED' })
+
+    expect(response.statusCode).toBe(400)
+    expect(createBooking).not.toHaveBeenCalled()
+  })
+
+  test('does not allow a public client to choose HOTLINE or COUNTER source', async () => {
+    const response = await request(app)
+      .post('/api/v1/public/bookings')
+      .send({ tripId, holdToken, passenger, source: 'HOTLINE' })
 
     expect(response.statusCode).toBe(400)
     expect(createBooking).not.toHaveBeenCalled()

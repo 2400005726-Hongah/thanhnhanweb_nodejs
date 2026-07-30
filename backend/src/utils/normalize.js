@@ -1,5 +1,10 @@
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase()
 
+const normalizeFullName = (fullName) =>
+  String(fullName || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+
 const normalizePhone = (phone) => {
   let normalized = String(phone || '')
     .trim()
@@ -26,6 +31,7 @@ const normalizeLicensePlate = (licensePlate) =>
 export {
   isVietnamesePhone,
   normalizeEmail,
+  normalizeFullName,
   normalizeLicensePlate,
   normalizePhone,
 }

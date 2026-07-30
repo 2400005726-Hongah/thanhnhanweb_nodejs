@@ -15,6 +15,19 @@ const MAX_SERIALIZABLE_RETRIES = 3
 const normalizeBookingCode = (bookingCode) =>
   String(bookingCode || '').trim().toUpperCase()
 
+const normalizeCancellationReason = (reason) => {
+  if (typeof reason !== 'string') {
+    throw new HttpError('Lý do hủy vé là bắt buộc', 400)
+  }
+
+  const normalized = reason.trim()
+  if (normalized.length < 5 || normalized.length > 500) {
+    throw new HttpError('Lý do hủy vé phải có từ 5 đến 500 ký tự', 400)
+  }
+
+  return normalized
+}
+
 const toSafeNumber = (value, fieldName) => {
   const number = Number(value)
 
@@ -120,6 +133,7 @@ const runCancellationTransaction = ({
   mode,
   now,
   actor,
+  reason,
 }) =>
   prisma.$transaction(async (transaction) => {
     await lockBooking(transaction, bookingCode)
@@ -182,6 +196,9 @@ const runCancellationTransaction = ({
       },
       data: {
         status: 'CANCELLED',
+        cancellationReason: reason,
+        cancelledAt: now,
+        cancelledById: actor?.id || null,
         ...(refunded && { paymentStatus: 'REFUNDED' }),
       },
     })
@@ -227,6 +244,7 @@ const runCancellationTransaction = ({
           entityType: 'BOOKING',
           entityId: booking.id,
           description: `Hủy booking ${booking.bookingCode}`,
+          reason,
         },
         transaction,
       )
@@ -239,6 +257,7 @@ const runCancellationTransaction = ({
       releasedSeatCount: releasedSeats.count,
       refunded,
       refundAmount,
+      cancellationReason: reason,
     }
   }, TRANSACTION_OPTIONS)
 
@@ -248,8 +267,10 @@ const cancelBooking = async ({
   phone = null,
   now = new Date(),
   actor = null,
+  reason,
 }) => {
   const normalizedCode = normalizeBookingCode(bookingCode)
+  const normalizedReason = normalizeCancellationReason(reason)
   const mode = actor ? 'manager' : userId ? 'customer' : 'guest'
   const normalizedPhone = mode === 'guest' ? normalizePhone(phone) : null
 
@@ -262,6 +283,7 @@ const cancelBooking = async ({
         mode,
         now,
         actor,
+        reason: normalizedReason,
       })
     } catch (error) {
       if (error.code !== 'P2034') {
@@ -280,8 +302,12 @@ const cancelBooking = async ({
   throw new HttpError('Không thể xử lý yêu cầu hủy vé', 409)
 }
 
-const cancelManagedBooking = ({ bookingCode, actor, now = new Date() }) =>
-  cancelBooking({ bookingCode, actor, now })
+const cancelManagedBooking = ({
+  bookingCode,
+  actor,
+  reason,
+  now = new Date(),
+}) => cancelBooking({ bookingCode, actor, reason, now })
 
 export {
   CANCELLABLE_BOOKING_STATUSES,
@@ -289,4 +315,5 @@ export {
   cancelManagedBooking,
   getCancellationState,
   normalizeBookingCode,
+  normalizeCancellationReason,
 }

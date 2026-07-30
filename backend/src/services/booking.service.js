@@ -3,13 +3,48 @@ import { randomBytes } from 'node:crypto'
 import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
-import { normalizeEmail, normalizePhone } from '../utils/normalize.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
+import { findOrCreateBookableCustomer } from './customer.service.js'
 
 const TRANSACTION_OPTIONS = {
   isolationLevel: 'Serializable',
   maxWait: 5000,
   timeout: 15000,
+}
+const BOOKING_SOURCES = ['ONLINE', 'HOTLINE', 'COUNTER']
+const MAX_SERIALIZABLE_RETRIES = 3
+
+const normalizeNote = (value, fieldName, maxLength) => {
+  if (value === undefined || value === null || value === '') return null
+
+  const normalized = String(value).trim()
+  if (normalized.length > maxLength) {
+    throw new HttpError(`${fieldName} không được vượt quá ${maxLength} ký tự`, 400)
+  }
+
+  return normalized || null
+}
+
+const normalizeBookingContext = (context = {}) => {
+  const source = context.source || 'ONLINE'
+  if (!BOOKING_SOURCES.includes(source)) {
+    throw new HttpError('Nguồn đặt vé không hợp lệ', 400)
+  }
+  if (source !== 'ONLINE' && !context.createdById) {
+    throw new HttpError(
+      'Booking Hotline hoặc Tại quầy phải có người tạo',
+      400,
+    )
+  }
+
+  return {
+    source,
+    createdById: source === 'ONLINE' ? null : context.createdById,
+    staffNote:
+      source === 'ONLINE'
+        ? null
+        : normalizeNote(context.staffNote, 'Ghi chú nhân viên', 1000),
+  }
 }
 
 const toSafeNumber = (value, fieldName) => {
@@ -32,11 +67,13 @@ const serializeSeat = (seat) => ({
 const serializeBooking = (booking) => ({
   id: booking.id,
   bookingCode: booking.bookingCode,
+  source: booking.source,
   status: booking.status,
   paymentStatus: booking.paymentStatus,
   totalAmount: toSafeNumber(booking.totalAmount, 'tổng tiền'),
   expiresAt: booking.expiresAt,
   createdAt: booking.createdAt,
+  customerNote: booking.customerNote,
   passenger: {
     fullName: booking.passengerFullName,
     phone: booking.passengerPhone,
@@ -257,7 +294,7 @@ const bookingInclude = {
   },
 }
 
-const createBookingAttempt = (payload, userId, bookingCode) =>
+const createBookingAttempt = (payload, userId, bookingCode, context) =>
   prisma.$transaction(async (transaction) => {
     const now = new Date()
     await lockTrip(transaction, payload.tripId)
@@ -307,17 +344,27 @@ const createBookingAttempt = (payload, userId, bookingCode) =>
     }
 
     const totalAmount = calculateTotal(seats)
-    const passengerEmail = payload.passenger.email
-      ? normalizeEmail(payload.passenger.email)
-      : null
+    const { customer, violations } = await findOrCreateBookableCustomer(
+      transaction,
+      payload.passenger,
+    )
     const booking = await transaction.booking.create({
       data: {
         bookingCode,
         userId: userId || null,
+        customerId: customer.id,
         tripId: payload.tripId,
-        passengerFullName: payload.passenger.fullName.trim(),
-        passengerPhone: normalizePhone(payload.passenger.phone),
-        passengerEmail,
+        source: context.source,
+        passengerFullName: customer.fullName,
+        passengerPhone: customer.phone,
+        passengerEmail: customer.email,
+        customerNote: normalizeNote(
+          payload.customerNote,
+          'Ghi chú khách hàng',
+          500,
+        ),
+        staffNote: context.staffNote,
+        createdById: context.createdById,
         totalAmount,
         status: 'PENDING',
         paymentStatus: 'PENDING',
@@ -355,16 +402,24 @@ const createBookingAttempt = (payload, userId, bookingCode) =>
       include: bookingInclude,
     })
 
-    return { booking: serializeBooking(result) }
+    return {
+      booking: serializeBooking(result),
+      customerWarning: violations.warning
+        ? 'Khách hàng đã có 2 lần vi phạm; booking tiếp theo có thể bị chặn'
+        : null,
+    }
   }, TRANSACTION_OPTIONS)
 
-const createBooking = async (payload, userId = null) => {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+const createBooking = async (payload, userId = null, bookingContext = {}) => {
+  const context = normalizeBookingContext(bookingContext)
+
+  for (let attempt = 0; attempt < MAX_SERIALIZABLE_RETRIES; attempt += 1) {
     try {
       return await createBookingAttempt(
         payload,
         userId,
         generateBookingCode(),
+        context,
       )
     } catch (error) {
       const target = Array.isArray(error.meta?.target)
@@ -373,12 +428,24 @@ const createBooking = async (payload, userId = null) => {
       const duplicatedBookingCode =
         error.code === 'P2002' &&
         target.some((field) => String(field).includes('bookingCode'))
+      const retryableConflict = error.code === 'P2034'
 
-      if (!duplicatedBookingCode || attempt === 2) throw error
+      if (
+        (!duplicatedBookingCode && !retryableConflict) ||
+        attempt === MAX_SERIALIZABLE_RETRIES - 1
+      ) {
+        throw error
+      }
     }
   }
 
   throw new HttpError('Không thể tạo mã đặt vé duy nhất', 500)
 }
 
-export { createBooking, holdSeats, releaseSeatHold }
+export {
+  BOOKING_SOURCES,
+  createBooking,
+  holdSeats,
+  normalizeBookingContext,
+  releaseSeatHold,
+}

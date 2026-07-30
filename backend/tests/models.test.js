@@ -83,6 +83,9 @@ describe('Prisma PostgreSQL schema', () => {
     )
     expect(schema).toContain('@@unique([bookingId, tripSeatId])')
     expect(schema).toContain('@@index([tripSeatId])')
+    expect(schema).toContain(
+      '@@index([customerId, status], map: "bookings_customer_status_idx")',
+    )
     expect(schema).not.toMatch(/tripSeatId\s+String\s+@unique/)
     expect(schema).toMatch(/bookingItems\s+BookingItem\[\]/)
     expect(schema).toMatch(/bookingCode\s+String\s+@unique/)

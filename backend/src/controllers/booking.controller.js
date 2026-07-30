@@ -77,6 +77,7 @@ const cancelMyBooking = async (request, response, next) => {
     const data = await cancelBookingService({
       bookingCode: request.params.bookingCode,
       userId: request.user.id,
+      reason: request.body.reason,
     })
     response.status(200).json({
       success: true,
@@ -93,6 +94,7 @@ const cancelGuestBooking = async (request, response, next) => {
     const data = await cancelBookingService({
       bookingCode: request.params.bookingCode,
       phone: request.body.phone,
+      reason: request.body.reason,
     })
     response.status(200).json({
       success: true,

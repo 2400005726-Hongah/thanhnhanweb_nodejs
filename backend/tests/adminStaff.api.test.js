@@ -94,6 +94,7 @@ const adminService = {
   getManagedBooking: jest.fn(async () => ({ bookingCode: 'TN-ABC12345' })),
   updateBookingContact: jest.fn(),
   markBookingNoShow: jest.fn(),
+  listCustomers: jest.fn(async () => ({ customers: [], pagination: {} })),
   listUsers: jest.fn(async () => ({ users: [], pagination: {} })),
   createManagedUser: jest.fn(async () => ({ id: randomUUID() })),
   changeUserStatus: jest.fn(),
@@ -101,6 +102,11 @@ const adminService = {
   updateCustomer: jest.fn(),
   listAuditLogs: jest.fn(async () => ({ logs: [], pagination: {} })),
 }
+const cancelManagedBooking = jest.fn(async ({ bookingCode, reason }) => ({
+  bookingCode,
+  reason,
+  status: 'CANCELLED',
+}))
 
 jest.unstable_mockModule('../src/config/prisma.js', () => ({ default: prisma }))
 jest.unstable_mockModule('../src/services/trip.service.js', () => tripService)
@@ -109,7 +115,7 @@ jest.unstable_mockModule('../src/services/news.service.js', () => newsService)
 jest.unstable_mockModule('../src/services/bus.service.js', () => busService)
 jest.unstable_mockModule('../src/services/admin.service.js', () => adminService)
 jest.unstable_mockModule('../src/services/cancellation.service.js', () => ({
-  cancelManagedBooking: jest.fn(),
+  cancelManagedBooking,
   cancelBooking: jest.fn(),
   getCancellationState: jest.fn(() => ({ canCancel: false })),
 }))
@@ -130,6 +136,40 @@ beforeEach(() => {
 })
 
 describe('STAFF operation permissions', () => {
+  test('STAFF lists separate Customer profiles instead of CUSTOMER accounts', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/customers?status=ACTIVE')
+      .set('Authorization', `Bearer ${staffToken}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(adminService.listCustomers).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ACTIVE' }),
+    )
+    expect(adminService.listUsers).not.toHaveBeenCalled()
+  })
+
+  test('STAFF cancellation requires and forwards a reason', async () => {
+    const bookingCode = 'TNABCDEF1234567890'
+    const missingReason = await request(app)
+      .post(`/api/v1/admin/bookings/${bookingCode}/cancel`)
+      .set('Authorization', `Bearer ${staffToken}`)
+
+    expect(missingReason.statusCode).toBe(400)
+    expect(cancelManagedBooking).not.toHaveBeenCalled()
+
+    const response = await request(app)
+      .post(`/api/v1/admin/bookings/${bookingCode}/cancel`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ reason: 'Khách thay đổi kế hoạch' })
+
+    expect(response.statusCode).toBe(200)
+    expect(cancelManagedBooking).toHaveBeenCalledWith({
+      bookingCode,
+      actor: expect.objectContaining({ id: staff.id, role: 'STAFF' }),
+      reason: 'Khách thay đổi kế hoạch',
+    })
+  })
+
   test('STAFF views and edits trips, but cannot create or delete trips', async () => {
     const [list, edit, create, remove] = await Promise.all([
       request(app)

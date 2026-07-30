@@ -55,7 +55,26 @@ const createBookingValidator = [
     .withMessage('Email không hợp lệ')
     .isLength({ max: 255 })
     .withMessage('Email không được vượt quá 255 ký tự'),
-  ...['userId', 'bookingCode', 'totalAmount', 'status', 'paymentStatus'].map(
+  body('customerNote')
+    .optional({ values: 'falsy' })
+    .isString()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Ghi chú khách hàng không được vượt quá 500 ký tự'),
+  ...[
+    'userId',
+    'customerId',
+    'bookingCode',
+    'source',
+    'staffNote',
+    'createdById',
+    'totalAmount',
+    'status',
+    'paymentStatus',
+    'deletedReason',
+    'deletedAt',
+    'deletedById',
+  ].map(
     (field) =>
       body(field)
         .not()
@@ -110,7 +129,17 @@ const listMyBookingsValidator = [
     .withMessage('Không được chỉ định userId'),
 ]
 
-const cancelMyBookingValidator = [bookingCodeParamValidator]
+const cancellationReasonBodyValidator = body('reason')
+  .isString()
+  .withMessage('Lý do hủy vé là bắt buộc')
+  .trim()
+  .isLength({ min: 5, max: 500 })
+  .withMessage('Lý do hủy vé phải có từ 5 đến 500 ký tự')
+
+const cancelMyBookingValidator = [
+  bookingCodeParamValidator,
+  cancellationReasonBodyValidator,
+]
 
 const cancelGuestBookingValidator = [
   bookingCodeParamValidator,
@@ -119,6 +148,7 @@ const cancelGuestBookingValidator = [
     .withMessage('Số điện thoại là bắt buộc')
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại Việt Nam không hợp lệ'),
+  cancellationReasonBodyValidator,
 ]
 
 export {
@@ -126,6 +156,7 @@ export {
   MAX_SEATS_PER_BOOKING,
   cancelGuestBookingValidator,
   cancelMyBookingValidator,
+  cancellationReasonBodyValidator,
   createBookingValidator,
   holdSeatsValidator,
   listMyBookingsValidator,

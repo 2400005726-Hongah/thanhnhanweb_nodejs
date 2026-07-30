@@ -37,6 +37,16 @@ const listManagedBookingsValidator = [
 
 const bookingCodeValidator = [bookingCodeRule]
 
+const cancelManagedBookingValidator = [
+  bookingCodeRule,
+  body('reason')
+    .isString()
+    .withMessage('Lý do hủy vé là bắt buộc')
+    .trim()
+    .isLength({ min: 5, max: 500 })
+    .withMessage('Lý do hủy vé phải có từ 5 đến 500 ký tự'),
+]
+
 const updateBookingContactValidator = [
   bookingCodeRule,
   body('passengerFullName')
@@ -72,6 +82,12 @@ const markNoShowValidator = [
 const listUsersValidator = [
   query('role').optional().isIn(['CUSTOMER', 'ADMIN', 'STAFF']),
   query('status').optional().isIn(['ACTIVE', 'INACTIVE']),
+  query('keyword').optional().trim().isLength({ max: 150 }),
+  ...paginationRules,
+]
+
+const listCustomersValidator = [
+  query('status').optional().isIn(['ACTIVE', 'BLOCKED']),
   query('keyword').optional().trim().isLength({ max: 150 }),
   ...paginationRules,
 ]
@@ -132,9 +148,11 @@ const auditLogValidator = [
 export {
   auditLogValidator,
   bookingCodeValidator,
+  cancelManagedBookingValidator,
   changeUserRoleValidator,
   changeUserStatusValidator,
   createManagedUserValidator,
+  listCustomersValidator,
   listManagedBookingsValidator,
   listUsersValidator,
   markNoShowValidator,

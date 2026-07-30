@@ -27,6 +27,7 @@ function BookingPage() {
   const [hold] = useState(() => getSeatHold(tripId))
   const [detail, setDetail] = useState(null)
   const [passenger, setPassenger] = useState(emptyPassenger)
+  const [customerNote, setCustomerNote] = useState('')
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
     hold ? getRemainingSeconds(hold.holdExpiresAt) : 0,
   )
@@ -123,6 +124,7 @@ function BookingPage() {
           phone: passenger.phone.trim(),
           email: passenger.email.trim() || undefined,
         },
+        customerNote: customerNote.trim() || undefined,
       })
       releaseOnExit.current = false
       clearSeatHold(tripId)
@@ -274,6 +276,19 @@ function BookingPage() {
                   />
                 </div>
               </div>
+
+              <label className="form-label mt-3" htmlFor="customerNote">
+                Ghi chú chuyến đi{' '}
+                <span className="text-muted">(không bắt buộc)</span>
+              </label>
+              <textarea
+                className="form-control"
+                id="customerNote"
+                maxLength="500"
+                onChange={(event) => setCustomerNote(event.target.value)}
+                rows="3"
+                value={customerNote}
+              />
 
               <div className="booking-form-actions">
                 <button

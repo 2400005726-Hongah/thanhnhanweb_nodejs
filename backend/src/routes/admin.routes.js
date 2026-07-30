@@ -25,9 +25,11 @@ import validate from '../middlewares/validate.middleware.js'
 import {
   auditLogValidator,
   bookingCodeValidator,
+  cancelManagedBookingValidator,
   changeUserRoleValidator,
   changeUserStatusValidator,
   createManagedUserValidator,
+  listCustomersValidator,
   listManagedBookingsValidator,
   listUsersValidator,
   markNoShowValidator,
@@ -77,7 +79,7 @@ router.patch(
 router.post(
   '/bookings/:bookingCode/cancel',
   authorizePermissions(PERMISSIONS.MANAGE_BOOKINGS),
-  bookingCodeValidator,
+  cancelManagedBookingValidator,
   validate,
   cancelBooking,
 )
@@ -92,7 +94,7 @@ router.post(
 router.get(
   '/customers',
   authorizePermissions(PERMISSIONS.VIEW_CUSTOMERS),
-  listUsersValidator,
+  listCustomersValidator,
   validate,
   listCustomers,
 )

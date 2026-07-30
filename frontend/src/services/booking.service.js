@@ -17,7 +17,7 @@ const releaseSeatHold = async (tripId, holdToken) =>
     }),
   )
 
-const createBooking = async ({ tripId, holdToken, passenger }) => {
+const createBooking = async ({ tripId, holdToken, passenger, customerNote }) => {
   const client = getAuthSession()?.token ? authApiClient : apiClient
 
   return unwrap(
@@ -25,6 +25,7 @@ const createBooking = async ({ tripId, holdToken, passenger }) => {
       tripId,
       holdToken,
       passenger,
+      customerNote: customerNote || undefined,
     }),
   )
 }
@@ -47,12 +48,17 @@ const lookupBooking = async (bookingCode, phone) =>
 const getMyBookings = async (params) =>
   unwrap(await authApiClient.get('/bookings/me', { params }))
 
-const cancelMyBooking = async (bookingCode) =>
-  unwrap(await authApiClient.post(`/bookings/${bookingCode}/cancel`))
-
-const cancelGuestBooking = async (bookingCode, phone) =>
+const cancelMyBooking = async (bookingCode, reason) =>
   unwrap(
-    await apiClient.post(`/public/bookings/${bookingCode}/cancel`, { phone }),
+    await authApiClient.post(`/bookings/${bookingCode}/cancel`, { reason }),
+  )
+
+const cancelGuestBooking = async (bookingCode, phone, reason) =>
+  unwrap(
+    await apiClient.post(`/public/bookings/${bookingCode}/cancel`, {
+      phone,
+      reason,
+    }),
   )
 
 export {

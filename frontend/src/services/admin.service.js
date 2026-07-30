@@ -44,9 +44,11 @@ const deleteBus = async (id) =>
 const getBookings = async (params = {}) =>
   unwrap(await authApiClient.get('/admin/bookings', { params }))
 
-const cancelBooking = async (bookingCode) =>
+const cancelBooking = async (bookingCode, reason) =>
   unwrap(
-    await authApiClient.post(`/admin/bookings/${bookingCode}/cancel`),
+    await authApiClient.post(`/admin/bookings/${bookingCode}/cancel`, {
+      reason,
+    }),
   )
 
 const markNoShow = async (bookingCode, reason) =>

@@ -6,6 +6,7 @@ import {
   getManagedBooking,
   getRevenueSummary,
   listAuditLogs,
+  listCustomers as listCustomersService,
   listManagedBookings,
   listUsers,
   markBookingNoShow,
@@ -88,6 +89,7 @@ const cancelBooking = async (request, response, next) => {
     const cancellation = await cancellationService.cancelManagedBooking({
       bookingCode: request.params.bookingCode,
       actor: request.user,
+      reason: request.body.reason,
     })
     response.status(200).json({
       success: true,
@@ -118,7 +120,7 @@ const markNoShow = async (request, response, next) => {
 
 const listCustomers = async (request, response, next) => {
   try {
-    const data = await listUsers(request.query, ['CUSTOMER'])
+    const data = await listCustomersService(request.query)
     response.status(200).json({
       success: true,
       message: 'Lấy danh sách khách hàng thành công',

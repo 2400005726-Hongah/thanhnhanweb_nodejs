@@ -34,6 +34,7 @@ const trip = {
 let seats
 let bookings
 let bookingItems
+let customers
 let currentTrip
 let failBookingItems
 
@@ -41,12 +42,14 @@ const cloneState = () => ({
   seats: seats.map((seat) => ({ ...seat })),
   bookings: bookings.map((booking) => ({ ...booking })),
   bookingItems: bookingItems.map((item) => ({ ...item })),
+  customers: customers.map((customer) => ({ ...customer })),
 })
 
 const restoreState = (snapshot) => {
   seats = snapshot.seats
   bookings = snapshot.bookings
   bookingItems = snapshot.bookingItems
+  customers = snapshot.customers
 }
 
 const updateSeats = (where, data) => {
@@ -94,6 +97,13 @@ const transaction = {
     ),
   },
   booking: {
+    count: jest.fn(async ({ where }) =>
+      bookings.filter(
+        (booking) =>
+          booking.customerId === where.customerId &&
+          where.status.in.includes(booking.status),
+      ).length,
+    ),
     create: jest.fn(async ({ data }) => {
       const booking = {
         id: randomUUID(),
@@ -113,6 +123,22 @@ const transaction = {
           .filter((item) => item.bookingId === booking.id)
           .sort((left, right) => left.seatCode.localeCompare(right.seatCode)),
       }
+    }),
+  },
+  customer: {
+    upsert: jest.fn(async ({ where, create, update }) => {
+      let customer = customers.find((item) => item.phone === where.phone)
+      if (customer) {
+        Object.assign(customer, update)
+      } else {
+        customer = {
+          id: randomUUID(),
+          status: 'ACTIVE',
+          ...create,
+        }
+        customers.push(customer)
+      }
+      return { ...customer }
     }),
   },
   bookingItem: {
@@ -172,6 +198,7 @@ beforeEach(() => {
   seats = resetSeats()
   bookings = []
   bookingItems = []
+  customers = []
   currentTrip = { ...trip }
   failBookingItems = false
   jest.clearAllMocks()
@@ -350,4 +377,90 @@ describe('Booking transaction service', () => {
       bookingItems.some((item) => item.bookingId === historicalBookingId),
     ).toBe(true)
   })
+
+  test('reuses one Customer for two bookings using +84 and local phone formats', async () => {
+    const firstHold = await holdSeats(tripId, [seatIdA])
+    await createBooking({
+      tripId,
+      holdToken: firstHold.holdToken,
+      passenger,
+    })
+
+    const secondHold = await holdSeats(tripId, [seatIdB])
+    await createBooking({
+      tripId,
+      holdToken: secondHold.holdToken,
+      passenger: { ...passenger, phone: '0987654321' },
+    })
+
+    expect(customers).toHaveLength(1)
+    expect(bookings).toHaveLength(2)
+    expect(bookings[0].customerId).toBe(bookings[1].customerId)
+  })
+
+  test.each(['ONLINE', 'HOTLINE', 'COUNTER'])(
+    'stores source %s, customerNote and permitted staffNote',
+    async (source) => {
+      const actorId = source === 'ONLINE' ? null : randomUUID()
+      const hold = await holdSeats(tripId, [seatIdA])
+      const result = await createBooking(
+        {
+          tripId,
+          holdToken: hold.holdToken,
+          passenger,
+          customerNote: ' Đón tại cổng chính ',
+        },
+        null,
+        {
+          source,
+          createdById: actorId,
+          staffNote: source === 'ONLINE' ? null : ' Khách gọi qua tổng đài ',
+        },
+      )
+
+      expect(result.booking.source).toBe(source)
+      expect(result.booking.customerNote).toBe('Đón tại cổng chính')
+      expect(bookings[0]).toMatchObject({
+        source,
+        customerNote: 'Đón tại cổng chính',
+        staffNote:
+          source === 'ONLINE' ? null : 'Khách gọi qua tổng đài',
+        createdById: actorId,
+      })
+    },
+  )
+
+  test.each(['ONLINE', 'HOTLINE', 'COUNTER'])(
+    'blocks source %s when the Customer has three violations',
+    async (source) => {
+      const customerId = randomUUID()
+      customers.push({
+        id: customerId,
+        fullName: 'Nguyễn Văn A',
+        phone: '0987654321',
+        email: 'a@example.com',
+        status: 'ACTIVE',
+      })
+      bookings.push(
+        { id: randomUUID(), customerId, status: 'CANCELLED' },
+        { id: randomUUID(), customerId, status: 'NO_SHOW' },
+        { id: randomUUID(), customerId, status: 'CANCELLED' },
+      )
+      const hold = await holdSeats(tripId, [seatIdA])
+
+      await expect(
+        createBooking(
+          { tripId, holdToken: hold.holdToken, passenger },
+          null,
+          {
+            source,
+            createdById: source === 'ONLINE' ? null : randomUUID(),
+          },
+        ),
+      ).rejects.toMatchObject({ statusCode: 403 })
+      expect(
+        bookings.filter((booking) => booking.status === 'PENDING'),
+      ).toHaveLength(0)
+    },
+  )
 })

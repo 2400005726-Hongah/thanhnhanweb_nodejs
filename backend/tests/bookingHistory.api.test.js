@@ -22,6 +22,7 @@ const admin = {
   role: 'ADMIN',
 }
 const bookingCode = 'TNABCDEF1234567890'
+const cancellationReason = 'Khách thay đổi kế hoạch di chuyển'
 
 const prisma = {
   user: {
@@ -176,12 +177,14 @@ describe('Booking cancellation API', () => {
     const response = await request(app)
       .post(`/api/v1/bookings/${bookingCode}/cancel`)
       .set('Authorization', `Bearer ${customerToken}`)
+      .send({ reason: cancellationReason })
 
     expect(response.statusCode).toBe(200)
     expect(response.body.data.status).toBe('CANCELLED')
     expect(cancelBooking).toHaveBeenCalledWith({
       bookingCode,
       userId: customer.id,
+      reason: cancellationReason,
     })
   })
 
@@ -189,6 +192,7 @@ describe('Booking cancellation API', () => {
     const response = await request(app)
       .post('/api/v1/bookings/TN0000000000000000/cancel')
       .set('Authorization', `Bearer ${customerToken}`)
+      .send({ reason: cancellationReason })
 
     expect(response.statusCode).toBe(404)
     expect(response.body.message).toBe('Không tìm thấy booking phù hợp')
@@ -197,13 +201,14 @@ describe('Booking cancellation API', () => {
   test('Guest cancels with booking code and phone', async () => {
     const response = await request(app)
       .post(`/api/v1/public/bookings/${bookingCode}/cancel`)
-      .send({ phone: '0987654321' })
+      .send({ phone: '0987654321', reason: cancellationReason })
 
     expect(response.statusCode).toBe(200)
     expect(response.body.data.refunded).toBe(true)
     expect(cancelBooking).toHaveBeenCalledWith({
       bookingCode,
       phone: '0987654321',
+      reason: cancellationReason,
     })
   })
 
@@ -213,7 +218,7 @@ describe('Booking cancellation API', () => {
   ])('Guest gets the same safe 404 for %s', async (_label, code, phone) => {
     const response = await request(app)
       .post(`/api/v1/public/bookings/${code}/cancel`)
-      .send({ phone })
+      .send({ phone, reason: cancellationReason })
 
     expect(response.statusCode).toBe(404)
     expect(response.body).toMatchObject({
@@ -227,6 +232,15 @@ describe('Booking cancellation API', () => {
     const response = await request(app)
       .post('/api/v1/public/bookings/BAD/cancel')
       .send({ phone: '123' })
+
+    expect(response.statusCode).toBe(400)
+    expect(cancelBooking).not.toHaveBeenCalled()
+  })
+
+  test('rejects cancellation without a reason', async () => {
+    const response = await request(app)
+      .post(`/api/v1/public/bookings/${bookingCode}/cancel`)
+      .send({ phone: '0987654321' })
 
     expect(response.statusCode).toBe(400)
     expect(cancelBooking).not.toHaveBeenCalled()

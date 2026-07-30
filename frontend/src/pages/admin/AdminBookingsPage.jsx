@@ -45,9 +45,15 @@ function AdminBookingsPage() {
   }
 
   const cancel = async (booking) => {
-    if (!window.confirm(`Hủy vé ${booking.bookingCode}?`)) return
+    const reason = window.prompt(
+      `Nhập lý do hủy vé ${booking.bookingCode} (bắt buộc):`,
+    )
+    if (!reason || reason.trim().length < 5) {
+      window.alert('Lý do hủy vé phải có ít nhất 5 ký tự.')
+      return
+    }
     try {
-      await cancelBooking(booking.bookingCode)
+      await cancelBooking(booking.bookingCode, reason.trim())
       await load(filters)
     } catch (requestError) {
       window.alert(getApiErrorMessage(requestError))

@@ -88,12 +88,20 @@ function MyBookingsPage() {
     ].filter(Boolean).join('\n')
 
     if (!window.confirm(message)) return
+    const reason = window.prompt('Nhập lý do hủy vé (bắt buộc):')
+    if (!reason || reason.trim().length < 5) {
+      setError('Lý do hủy vé phải có ít nhất 5 ký tự.')
+      return
+    }
 
     setCancellingCode(booking.bookingCode)
     setError('')
     setNotice('')
     try {
-      const cancellation = await cancelMyBooking(booking.bookingCode)
+      const cancellation = await cancelMyBooking(
+        booking.bookingCode,
+        reason.trim(),
+      )
       setResult((current) => ({
         ...current,
         bookings: current.bookings.map((item) =>

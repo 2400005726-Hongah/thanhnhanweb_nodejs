@@ -64,6 +64,11 @@ function TicketLookupPage() {
     ].filter(Boolean).join('\n')
 
     if (!window.confirm(message)) return
+    const reason = window.prompt('Nhập lý do hủy vé (bắt buộc):')
+    if (!reason || reason.trim().length < 5) {
+      setError('Lý do hủy vé phải có ít nhất 5 ký tự.')
+      return
+    }
 
     setCancelling(true)
     setError('')
@@ -72,6 +77,7 @@ function TicketLookupPage() {
       const cancellation = await cancelGuestBooking(
         booking.bookingCode,
         form.phone.trim(),
+        reason.trim(),
       )
       setResult((current) => ({
         ...current,
