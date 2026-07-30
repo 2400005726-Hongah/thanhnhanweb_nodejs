@@ -374,10 +374,6 @@ export type LocationScalarRelationFilter = {
   isNot?: Prisma.LocationWhereInput
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type EnumRecordStatusFieldUpdateOperationsInput = {
   set?: $Enums.RecordStatus
 }

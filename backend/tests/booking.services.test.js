@@ -321,4 +321,33 @@ describe('Booking transaction service', () => {
     ).rejects.toMatchObject({ statusCode: 409 })
     expect(bookings).toHaveLength(1)
   })
+
+  test('allows an AVAILABLE seat to be booked again while preserving its historical BookingItem', async () => {
+    const historicalBookingId = randomUUID()
+    bookingItems.push({
+      id: randomUUID(),
+      bookingId: historicalBookingId,
+      tripSeatId: seatIdA,
+      seatCode: 'A01',
+      seatType: 'NORMAL',
+      price: 300000,
+    })
+
+    const hold = await holdSeats(tripId, [seatIdA])
+    const result = await createBooking({
+      tripId,
+      holdToken: hold.holdToken,
+      passenger,
+    })
+
+    expect(result.booking.seats).toHaveLength(1)
+    expect(seats[0].status).toBe('BOOKED')
+    expect(bookingItems).toHaveLength(2)
+    expect(
+      bookingItems.filter((item) => item.tripSeatId === seatIdA),
+    ).toHaveLength(2)
+    expect(
+      bookingItems.some((item) => item.bookingId === historicalBookingId),
+    ).toBe(true)
+  })
 })

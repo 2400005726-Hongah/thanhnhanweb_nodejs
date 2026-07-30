@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
 const schemaPath = new URL('../../database/supabase_schema.sql', import.meta.url)
@@ -10,12 +11,18 @@ const adminMigrationPath = new URL(
   '../prisma/migrations/20260729000100_admin_staff_permissions/migration.sql',
   import.meta.url,
 )
+const businessUpgradeMigrationPath = new URL(
+  '../prisma/migrations/20260730000100_full_business_upgrade/migration.sql',
+  import.meta.url,
+)
 
-const [schema, seed, migration, adminMigration] = await Promise.all([
+const [schema, seed, migration, adminMigration, businessUpgradeMigration] =
+  await Promise.all([
   readFile(schemaPath, 'utf8'),
   readFile(seedPath, 'utf8'),
   readFile(migrationPath, 'utf8'),
   readFile(adminMigrationPath, 'utf8'),
+  readFile(businessUpgradeMigrationPath, 'utf8'),
 ])
 
 const tables = [
@@ -76,5 +83,27 @@ describe('Supabase SQL assets', () => {
       'alter table public.news enable row level security',
     )
     expect(adminMigration).not.toMatch(/drop\s+(table|type|schema)/i)
+  })
+
+  test('tracks the applied business upgrade migration without losing booking history', () => {
+    const checksum = createHash('sha256')
+      .update(businessUpgradeMigration)
+      .digest('hex')
+
+    expect(checksum).toBe(
+      '1739aee3350d1b6d80f73bda13860fc4049303093f265e3e649682d9edfbdbb3',
+    )
+    expect(businessUpgradeMigration).toContain(
+      'alter table public.booking_items drop constraint if exists booking_items_trip_seat_id_key',
+    )
+    expect(businessUpgradeMigration).toContain(
+      'create index if not exists booking_items_trip_seat_id_idx',
+    )
+    expect(businessUpgradeMigration).toContain(
+      'create unique index if not exists booking_items_booking_id_trip_seat_id_key',
+    )
+    expect(businessUpgradeMigration).not.toMatch(
+      /drop\s+(table|type|schema)|truncate/i,
+    )
   })
 })

@@ -6,7 +6,11 @@ import HttpError from '../utils/HttpError.js'
 import { normalizeEmail, normalizePhone } from '../utils/normalize.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
 
-const TRANSACTION_OPTIONS = { maxWait: 5000, timeout: 15000 }
+const TRANSACTION_OPTIONS = {
+  isolationLevel: 'Serializable',
+  maxWait: 5000,
+  timeout: 15000,
+}
 
 const toSafeNumber = (value, fieldName) => {
   const number = Number(value)

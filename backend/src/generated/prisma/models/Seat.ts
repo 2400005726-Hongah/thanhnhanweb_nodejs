@@ -307,7 +307,7 @@ export type SeatScalarWhereWithAggregatesInput = {
 export type SeatCreateInput = {
   id?: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -320,7 +320,7 @@ export type SeatUncheckedCreateInput = {
   id?: string
   busId: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -356,7 +356,7 @@ export type SeatCreateManyInput = {
   id?: string
   busId: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -508,7 +508,7 @@ export type SeatUpdateOneRequiredWithoutTripSeatsNestedInput = {
 export type SeatCreateWithoutBusInput = {
   id?: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -519,7 +519,7 @@ export type SeatCreateWithoutBusInput = {
 export type SeatUncheckedCreateWithoutBusInput = {
   id?: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -570,7 +570,7 @@ export type SeatScalarWhereInput = {
 export type SeatCreateWithoutTripSeatsInput = {
   id?: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -582,7 +582,7 @@ export type SeatUncheckedCreateWithoutTripSeatsInput = {
   id?: string
   busId: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string
@@ -630,7 +630,7 @@ export type SeatUncheckedUpdateWithoutTripSeatsInput = {
 export type SeatCreateManyBusInput = {
   id?: string
   seatCode: string
-  floor: number
+  floor?: number
   seatType?: $Enums.SeatType
   status?: $Enums.RecordStatus
   createdAt?: Date | string

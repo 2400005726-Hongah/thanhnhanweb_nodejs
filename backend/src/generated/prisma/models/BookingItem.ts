@@ -250,19 +250,19 @@ export type BookingItemOrderByWithRelationInput = {
 
 export type BookingItemWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  tripSeatId?: string
   bookingId_tripSeatId?: Prisma.BookingItemBookingIdTripSeatIdCompoundUniqueInput
   AND?: Prisma.BookingItemWhereInput | Prisma.BookingItemWhereInput[]
   OR?: Prisma.BookingItemWhereInput[]
   NOT?: Prisma.BookingItemWhereInput | Prisma.BookingItemWhereInput[]
   bookingId?: Prisma.UuidFilter<"BookingItem"> | string
+  tripSeatId?: Prisma.UuidFilter<"BookingItem"> | string
   seatCode?: Prisma.StringFilter<"BookingItem"> | string
   seatType?: Prisma.EnumSeatTypeFilter<"BookingItem"> | $Enums.SeatType
   price?: Prisma.DecimalFilter<"BookingItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
   booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
   tripSeat?: Prisma.XOR<Prisma.TripSeatScalarRelationFilter, Prisma.TripSeatWhereInput>
-}, "id" | "tripSeatId" | "bookingId_tripSeatId">
+}, "id" | "bookingId_tripSeatId" | "bookingId_tripSeatId">
 
 export type BookingItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -299,7 +299,7 @@ export type BookingItemCreateInput = {
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   booking: Prisma.BookingCreateNestedOneWithoutItemsInput
-  tripSeat: Prisma.TripSeatCreateNestedOneWithoutBookingItemInput
+  tripSeat: Prisma.TripSeatCreateNestedOneWithoutBookingItemsInput
 }
 
 export type BookingItemUncheckedCreateInput = {
@@ -319,7 +319,7 @@ export type BookingItemUpdateInput = {
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   booking?: Prisma.BookingUpdateOneRequiredWithoutItemsNestedInput
-  tripSeat?: Prisma.TripSeatUpdateOneRequiredWithoutBookingItemNestedInput
+  tripSeat?: Prisma.TripSeatUpdateOneRequiredWithoutBookingItemsNestedInput
 }
 
 export type BookingItemUncheckedUpdateInput = {
@@ -358,11 +358,6 @@ export type BookingItemUncheckedUpdateManyInput = {
   seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type BookingItemNullableScalarRelationFilter = {
-  is?: Prisma.BookingItemWhereInput | null
-  isNot?: Prisma.BookingItemWhereInput | null
 }
 
 export type BookingItemListRelationFilter = {
@@ -418,36 +413,46 @@ export type BookingItemSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
 }
 
-export type BookingItemCreateNestedOneWithoutTripSeatInput = {
-  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
-  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput
-  connect?: Prisma.BookingItemWhereUniqueInput
+export type BookingItemCreateNestedManyWithoutTripSeatInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput> | Prisma.BookingItemCreateWithoutTripSeatInput[] | Prisma.BookingItemUncheckedCreateWithoutTripSeatInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput | Prisma.BookingItemCreateOrConnectWithoutTripSeatInput[]
+  createMany?: Prisma.BookingItemCreateManyTripSeatInputEnvelope
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
 }
 
-export type BookingItemUncheckedCreateNestedOneWithoutTripSeatInput = {
-  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
-  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput
-  connect?: Prisma.BookingItemWhereUniqueInput
+export type BookingItemUncheckedCreateNestedManyWithoutTripSeatInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput> | Prisma.BookingItemCreateWithoutTripSeatInput[] | Prisma.BookingItemUncheckedCreateWithoutTripSeatInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput | Prisma.BookingItemCreateOrConnectWithoutTripSeatInput[]
+  createMany?: Prisma.BookingItemCreateManyTripSeatInputEnvelope
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
 }
 
-export type BookingItemUpdateOneWithoutTripSeatNestedInput = {
-  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
-  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput
-  upsert?: Prisma.BookingItemUpsertWithoutTripSeatInput
-  disconnect?: Prisma.BookingItemWhereInput | boolean
-  delete?: Prisma.BookingItemWhereInput | boolean
-  connect?: Prisma.BookingItemWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingItemUpdateToOneWithWhereWithoutTripSeatInput, Prisma.BookingItemUpdateWithoutTripSeatInput>, Prisma.BookingItemUncheckedUpdateWithoutTripSeatInput>
+export type BookingItemUpdateManyWithoutTripSeatNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput> | Prisma.BookingItemCreateWithoutTripSeatInput[] | Prisma.BookingItemUncheckedCreateWithoutTripSeatInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput | Prisma.BookingItemCreateOrConnectWithoutTripSeatInput[]
+  upsert?: Prisma.BookingItemUpsertWithWhereUniqueWithoutTripSeatInput | Prisma.BookingItemUpsertWithWhereUniqueWithoutTripSeatInput[]
+  createMany?: Prisma.BookingItemCreateManyTripSeatInputEnvelope
+  set?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  disconnect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  delete?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  update?: Prisma.BookingItemUpdateWithWhereUniqueWithoutTripSeatInput | Prisma.BookingItemUpdateWithWhereUniqueWithoutTripSeatInput[]
+  updateMany?: Prisma.BookingItemUpdateManyWithWhereWithoutTripSeatInput | Prisma.BookingItemUpdateManyWithWhereWithoutTripSeatInput[]
+  deleteMany?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
 }
 
-export type BookingItemUncheckedUpdateOneWithoutTripSeatNestedInput = {
-  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
-  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput
-  upsert?: Prisma.BookingItemUpsertWithoutTripSeatInput
-  disconnect?: Prisma.BookingItemWhereInput | boolean
-  delete?: Prisma.BookingItemWhereInput | boolean
-  connect?: Prisma.BookingItemWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingItemUpdateToOneWithWhereWithoutTripSeatInput, Prisma.BookingItemUpdateWithoutTripSeatInput>, Prisma.BookingItemUncheckedUpdateWithoutTripSeatInput>
+export type BookingItemUncheckedUpdateManyWithoutTripSeatNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput> | Prisma.BookingItemCreateWithoutTripSeatInput[] | Prisma.BookingItemUncheckedCreateWithoutTripSeatInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutTripSeatInput | Prisma.BookingItemCreateOrConnectWithoutTripSeatInput[]
+  upsert?: Prisma.BookingItemUpsertWithWhereUniqueWithoutTripSeatInput | Prisma.BookingItemUpsertWithWhereUniqueWithoutTripSeatInput[]
+  createMany?: Prisma.BookingItemCreateManyTripSeatInputEnvelope
+  set?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  disconnect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  delete?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  update?: Prisma.BookingItemUpdateWithWhereUniqueWithoutTripSeatInput | Prisma.BookingItemUpdateWithWhereUniqueWithoutTripSeatInput[]
+  updateMany?: Prisma.BookingItemUpdateManyWithWhereWithoutTripSeatInput | Prisma.BookingItemUpdateManyWithWhereWithoutTripSeatInput[]
+  deleteMany?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
 }
 
 export type BookingItemCreateNestedManyWithoutBookingInput = {
@@ -515,33 +520,38 @@ export type BookingItemCreateOrConnectWithoutTripSeatInput = {
   create: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
 }
 
-export type BookingItemUpsertWithoutTripSeatInput = {
-  update: Prisma.XOR<Prisma.BookingItemUpdateWithoutTripSeatInput, Prisma.BookingItemUncheckedUpdateWithoutTripSeatInput>
-  create: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
-  where?: Prisma.BookingItemWhereInput
+export type BookingItemCreateManyTripSeatInputEnvelope = {
+  data: Prisma.BookingItemCreateManyTripSeatInput | Prisma.BookingItemCreateManyTripSeatInput[]
+  skipDuplicates?: boolean
 }
 
-export type BookingItemUpdateToOneWithWhereWithoutTripSeatInput = {
-  where?: Prisma.BookingItemWhereInput
+export type BookingItemUpsertWithWhereUniqueWithoutTripSeatInput = {
+  where: Prisma.BookingItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingItemUpdateWithoutTripSeatInput, Prisma.BookingItemUncheckedUpdateWithoutTripSeatInput>
+  create: Prisma.XOR<Prisma.BookingItemCreateWithoutTripSeatInput, Prisma.BookingItemUncheckedCreateWithoutTripSeatInput>
+}
+
+export type BookingItemUpdateWithWhereUniqueWithoutTripSeatInput = {
+  where: Prisma.BookingItemWhereUniqueInput
   data: Prisma.XOR<Prisma.BookingItemUpdateWithoutTripSeatInput, Prisma.BookingItemUncheckedUpdateWithoutTripSeatInput>
 }
 
-export type BookingItemUpdateWithoutTripSeatInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  seatCode?: Prisma.StringFieldUpdateOperationsInput | string
-  seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  booking?: Prisma.BookingUpdateOneRequiredWithoutItemsNestedInput
+export type BookingItemUpdateManyWithWhereWithoutTripSeatInput = {
+  where: Prisma.BookingItemScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingItemUpdateManyMutationInput, Prisma.BookingItemUncheckedUpdateManyWithoutTripSeatInput>
 }
 
-export type BookingItemUncheckedUpdateWithoutTripSeatInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
-  seatCode?: Prisma.StringFieldUpdateOperationsInput | string
-  seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+export type BookingItemScalarWhereInput = {
+  AND?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+  OR?: Prisma.BookingItemScalarWhereInput[]
+  NOT?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+  id?: Prisma.UuidFilter<"BookingItem"> | string
+  bookingId?: Prisma.UuidFilter<"BookingItem"> | string
+  tripSeatId?: Prisma.UuidFilter<"BookingItem"> | string
+  seatCode?: Prisma.StringFilter<"BookingItem"> | string
+  seatType?: Prisma.EnumSeatTypeFilter<"BookingItem"> | $Enums.SeatType
+  price?: Prisma.DecimalFilter<"BookingItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
 }
 
 export type BookingItemCreateWithoutBookingInput = {
@@ -550,7 +560,7 @@ export type BookingItemCreateWithoutBookingInput = {
   seatType: $Enums.SeatType
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  tripSeat: Prisma.TripSeatCreateNestedOneWithoutBookingItemInput
+  tripSeat: Prisma.TripSeatCreateNestedOneWithoutBookingItemsInput
 }
 
 export type BookingItemUncheckedCreateWithoutBookingInput = {
@@ -588,17 +598,40 @@ export type BookingItemUpdateManyWithWhereWithoutBookingInput = {
   data: Prisma.XOR<Prisma.BookingItemUpdateManyMutationInput, Prisma.BookingItemUncheckedUpdateManyWithoutBookingInput>
 }
 
-export type BookingItemScalarWhereInput = {
-  AND?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
-  OR?: Prisma.BookingItemScalarWhereInput[]
-  NOT?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
-  id?: Prisma.UuidFilter<"BookingItem"> | string
-  bookingId?: Prisma.UuidFilter<"BookingItem"> | string
-  tripSeatId?: Prisma.UuidFilter<"BookingItem"> | string
-  seatCode?: Prisma.StringFilter<"BookingItem"> | string
-  seatType?: Prisma.EnumSeatTypeFilter<"BookingItem"> | $Enums.SeatType
-  price?: Prisma.DecimalFilter<"BookingItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+export type BookingItemCreateManyTripSeatInput = {
+  id?: string
+  bookingId: string
+  seatCode: string
+  seatType: $Enums.SeatType
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+}
+
+export type BookingItemUpdateWithoutTripSeatInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  seatCode?: Prisma.StringFieldUpdateOperationsInput | string
+  seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutItemsNestedInput
+}
+
+export type BookingItemUncheckedUpdateWithoutTripSeatInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  seatCode?: Prisma.StringFieldUpdateOperationsInput | string
+  seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingItemUncheckedUpdateManyWithoutTripSeatInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  seatCode?: Prisma.StringFieldUpdateOperationsInput | string
+  seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BookingItemCreateManyBookingInput = {
@@ -616,7 +649,7 @@ export type BookingItemUpdateWithoutBookingInput = {
   seatType?: Prisma.EnumSeatTypeFieldUpdateOperationsInput | $Enums.SeatType
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  tripSeat?: Prisma.TripSeatUpdateOneRequiredWithoutBookingItemNestedInput
+  tripSeat?: Prisma.TripSeatUpdateOneRequiredWithoutBookingItemsNestedInput
 }
 
 export type BookingItemUncheckedUpdateWithoutBookingInput = {

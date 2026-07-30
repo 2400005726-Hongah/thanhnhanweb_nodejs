@@ -278,7 +278,7 @@ export type TripSeatWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"TripSeat"> | Date | string
   trip?: Prisma.XOR<Prisma.TripScalarRelationFilter, Prisma.TripWhereInput>
   seat?: Prisma.XOR<Prisma.SeatScalarRelationFilter, Prisma.SeatWhereInput>
-  bookingItem?: Prisma.XOR<Prisma.BookingItemNullableScalarRelationFilter, Prisma.BookingItemWhereInput> | null
+  bookingItems?: Prisma.BookingItemListRelationFilter
 }
 
 export type TripSeatOrderByWithRelationInput = {
@@ -296,7 +296,7 @@ export type TripSeatOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   trip?: Prisma.TripOrderByWithRelationInput
   seat?: Prisma.SeatOrderByWithRelationInput
-  bookingItem?: Prisma.BookingItemOrderByWithRelationInput
+  bookingItems?: Prisma.BookingItemOrderByRelationAggregateInput
 }
 
 export type TripSeatWhereUniqueInput = Prisma.AtLeast<{
@@ -319,7 +319,7 @@ export type TripSeatWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"TripSeat"> | Date | string
   trip?: Prisma.XOR<Prisma.TripScalarRelationFilter, Prisma.TripWhereInput>
   seat?: Prisma.XOR<Prisma.SeatScalarRelationFilter, Prisma.SeatWhereInput>
-  bookingItem?: Prisma.XOR<Prisma.BookingItemNullableScalarRelationFilter, Prisma.BookingItemWhereInput> | null
+  bookingItems?: Prisma.BookingItemListRelationFilter
 }, "id" | "tripId_seatId" | "tripId_seatCode">
 
 export type TripSeatOrderByWithAggregationInput = {
@@ -373,7 +373,7 @@ export type TripSeatCreateInput = {
   updatedAt?: Date | string
   trip: Prisma.TripCreateNestedOneWithoutTripSeatsInput
   seat: Prisma.SeatCreateNestedOneWithoutTripSeatsInput
-  bookingItem?: Prisma.BookingItemCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatUncheckedCreateInput = {
@@ -389,7 +389,7 @@ export type TripSeatUncheckedCreateInput = {
   holdExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  bookingItem?: Prisma.BookingItemUncheckedCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemUncheckedCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatUpdateInput = {
@@ -405,7 +405,7 @@ export type TripSeatUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trip?: Prisma.TripUpdateOneRequiredWithoutTripSeatsNestedInput
   seat?: Prisma.SeatUpdateOneRequiredWithoutTripSeatsNestedInput
-  bookingItem?: Prisma.BookingItemUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatUncheckedUpdateInput = {
@@ -421,7 +421,7 @@ export type TripSeatUncheckedUpdateInput = {
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  bookingItem?: Prisma.BookingItemUncheckedUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUncheckedUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatCreateManyInput = {
@@ -635,18 +635,18 @@ export type EnumTripSeatStatusFieldUpdateOperationsInput = {
   set?: $Enums.TripSeatStatus
 }
 
-export type TripSeatCreateNestedOneWithoutBookingItemInput = {
-  create?: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemInput>
-  connectOrCreate?: Prisma.TripSeatCreateOrConnectWithoutBookingItemInput
+export type TripSeatCreateNestedOneWithoutBookingItemsInput = {
+  create?: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemsInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemsInput>
+  connectOrCreate?: Prisma.TripSeatCreateOrConnectWithoutBookingItemsInput
   connect?: Prisma.TripSeatWhereUniqueInput
 }
 
-export type TripSeatUpdateOneRequiredWithoutBookingItemNestedInput = {
-  create?: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemInput>
-  connectOrCreate?: Prisma.TripSeatCreateOrConnectWithoutBookingItemInput
-  upsert?: Prisma.TripSeatUpsertWithoutBookingItemInput
+export type TripSeatUpdateOneRequiredWithoutBookingItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemsInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemsInput>
+  connectOrCreate?: Prisma.TripSeatCreateOrConnectWithoutBookingItemsInput
+  upsert?: Prisma.TripSeatUpsertWithoutBookingItemsInput
   connect?: Prisma.TripSeatWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TripSeatUpdateToOneWithWhereWithoutBookingItemInput, Prisma.TripSeatUpdateWithoutBookingItemInput>, Prisma.TripSeatUncheckedUpdateWithoutBookingItemInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TripSeatUpdateToOneWithWhereWithoutBookingItemsInput, Prisma.TripSeatUpdateWithoutBookingItemsInput>, Prisma.TripSeatUncheckedUpdateWithoutBookingItemsInput>
 }
 
 export type TripSeatCreateWithoutSeatInput = {
@@ -661,7 +661,7 @@ export type TripSeatCreateWithoutSeatInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trip: Prisma.TripCreateNestedOneWithoutTripSeatsInput
-  bookingItem?: Prisma.BookingItemCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatUncheckedCreateWithoutSeatInput = {
@@ -676,7 +676,7 @@ export type TripSeatUncheckedCreateWithoutSeatInput = {
   holdExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  bookingItem?: Prisma.BookingItemUncheckedCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemUncheckedCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatCreateOrConnectWithoutSeatInput = {
@@ -735,7 +735,7 @@ export type TripSeatCreateWithoutTripInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   seat: Prisma.SeatCreateNestedOneWithoutTripSeatsInput
-  bookingItem?: Prisma.BookingItemCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatUncheckedCreateWithoutTripInput = {
@@ -750,7 +750,7 @@ export type TripSeatUncheckedCreateWithoutTripInput = {
   holdExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  bookingItem?: Prisma.BookingItemUncheckedCreateNestedOneWithoutTripSeatInput
+  bookingItems?: Prisma.BookingItemUncheckedCreateNestedManyWithoutTripSeatInput
 }
 
 export type TripSeatCreateOrConnectWithoutTripInput = {
@@ -779,7 +779,7 @@ export type TripSeatUpdateManyWithWhereWithoutTripInput = {
   data: Prisma.XOR<Prisma.TripSeatUpdateManyMutationInput, Prisma.TripSeatUncheckedUpdateManyWithoutTripInput>
 }
 
-export type TripSeatCreateWithoutBookingItemInput = {
+export type TripSeatCreateWithoutBookingItemsInput = {
   id?: string
   seatCode: string
   floor: number
@@ -794,7 +794,7 @@ export type TripSeatCreateWithoutBookingItemInput = {
   seat: Prisma.SeatCreateNestedOneWithoutTripSeatsInput
 }
 
-export type TripSeatUncheckedCreateWithoutBookingItemInput = {
+export type TripSeatUncheckedCreateWithoutBookingItemsInput = {
   id?: string
   tripId: string
   seatId: string
@@ -809,23 +809,23 @@ export type TripSeatUncheckedCreateWithoutBookingItemInput = {
   updatedAt?: Date | string
 }
 
-export type TripSeatCreateOrConnectWithoutBookingItemInput = {
+export type TripSeatCreateOrConnectWithoutBookingItemsInput = {
   where: Prisma.TripSeatWhereUniqueInput
-  create: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemInput>
+  create: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemsInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemsInput>
 }
 
-export type TripSeatUpsertWithoutBookingItemInput = {
-  update: Prisma.XOR<Prisma.TripSeatUpdateWithoutBookingItemInput, Prisma.TripSeatUncheckedUpdateWithoutBookingItemInput>
-  create: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemInput>
+export type TripSeatUpsertWithoutBookingItemsInput = {
+  update: Prisma.XOR<Prisma.TripSeatUpdateWithoutBookingItemsInput, Prisma.TripSeatUncheckedUpdateWithoutBookingItemsInput>
+  create: Prisma.XOR<Prisma.TripSeatCreateWithoutBookingItemsInput, Prisma.TripSeatUncheckedCreateWithoutBookingItemsInput>
   where?: Prisma.TripSeatWhereInput
 }
 
-export type TripSeatUpdateToOneWithWhereWithoutBookingItemInput = {
+export type TripSeatUpdateToOneWithWhereWithoutBookingItemsInput = {
   where?: Prisma.TripSeatWhereInput
-  data: Prisma.XOR<Prisma.TripSeatUpdateWithoutBookingItemInput, Prisma.TripSeatUncheckedUpdateWithoutBookingItemInput>
+  data: Prisma.XOR<Prisma.TripSeatUpdateWithoutBookingItemsInput, Prisma.TripSeatUncheckedUpdateWithoutBookingItemsInput>
 }
 
-export type TripSeatUpdateWithoutBookingItemInput = {
+export type TripSeatUpdateWithoutBookingItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   seatCode?: Prisma.StringFieldUpdateOperationsInput | string
   floor?: Prisma.IntFieldUpdateOperationsInput | number
@@ -840,7 +840,7 @@ export type TripSeatUpdateWithoutBookingItemInput = {
   seat?: Prisma.SeatUpdateOneRequiredWithoutTripSeatsNestedInput
 }
 
-export type TripSeatUncheckedUpdateWithoutBookingItemInput = {
+export type TripSeatUncheckedUpdateWithoutBookingItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tripId?: Prisma.StringFieldUpdateOperationsInput | string
   seatId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -881,7 +881,7 @@ export type TripSeatUpdateWithoutSeatInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trip?: Prisma.TripUpdateOneRequiredWithoutTripSeatsNestedInput
-  bookingItem?: Prisma.BookingItemUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatUncheckedUpdateWithoutSeatInput = {
@@ -896,7 +896,7 @@ export type TripSeatUncheckedUpdateWithoutSeatInput = {
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  bookingItem?: Prisma.BookingItemUncheckedUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUncheckedUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatUncheckedUpdateManyWithoutSeatInput = {
@@ -939,7 +939,7 @@ export type TripSeatUpdateWithoutTripInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   seat?: Prisma.SeatUpdateOneRequiredWithoutTripSeatsNestedInput
-  bookingItem?: Prisma.BookingItemUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatUncheckedUpdateWithoutTripInput = {
@@ -954,7 +954,7 @@ export type TripSeatUncheckedUpdateWithoutTripInput = {
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  bookingItem?: Prisma.BookingItemUncheckedUpdateOneWithoutTripSeatNestedInput
+  bookingItems?: Prisma.BookingItemUncheckedUpdateManyWithoutTripSeatNestedInput
 }
 
 export type TripSeatUncheckedUpdateManyWithoutTripInput = {
@@ -972,6 +972,35 @@ export type TripSeatUncheckedUpdateManyWithoutTripInput = {
 }
 
 
+/**
+ * Count Type TripSeatCountOutputType
+ */
+
+export type TripSeatCountOutputType = {
+  bookingItems: number
+}
+
+export type TripSeatCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  bookingItems?: boolean | TripSeatCountOutputTypeCountBookingItemsArgs
+}
+
+/**
+ * TripSeatCountOutputType without action
+ */
+export type TripSeatCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TripSeatCountOutputType
+   */
+  select?: Prisma.TripSeatCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * TripSeatCountOutputType without action
+ */
+export type TripSeatCountOutputTypeCountBookingItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingItemWhereInput
+}
+
 
 export type TripSeatSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -988,7 +1017,8 @@ export type TripSeatSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
   seat?: boolean | Prisma.SeatDefaultArgs<ExtArgs>
-  bookingItem?: boolean | Prisma.TripSeat$bookingItemArgs<ExtArgs>
+  bookingItems?: boolean | Prisma.TripSeat$bookingItemsArgs<ExtArgs>
+  _count?: boolean | Prisma.TripSeatCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tripSeat"]>
 
 export type TripSeatSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1044,7 +1074,8 @@ export type TripSeatOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type TripSeatInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
   seat?: boolean | Prisma.SeatDefaultArgs<ExtArgs>
-  bookingItem?: boolean | Prisma.TripSeat$bookingItemArgs<ExtArgs>
+  bookingItems?: boolean | Prisma.TripSeat$bookingItemsArgs<ExtArgs>
+  _count?: boolean | Prisma.TripSeatCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TripSeatIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   trip?: boolean | Prisma.TripDefaultArgs<ExtArgs>
@@ -1060,7 +1091,7 @@ export type $TripSeatPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     trip: Prisma.$TripPayload<ExtArgs>
     seat: Prisma.$SeatPayload<ExtArgs>
-    bookingItem: Prisma.$BookingItemPayload<ExtArgs> | null
+    bookingItems: Prisma.$BookingItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1471,7 +1502,7 @@ export interface Prisma__TripSeatClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   trip<T extends Prisma.TripDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TripDefaultArgs<ExtArgs>>): Prisma.Prisma__TripClient<runtime.Types.Result.GetResult<Prisma.$TripPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   seat<T extends Prisma.SeatDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeatDefaultArgs<ExtArgs>>): Prisma.Prisma__SeatClient<runtime.Types.Result.GetResult<Prisma.$SeatPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  bookingItem<T extends Prisma.TripSeat$bookingItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TripSeat$bookingItemArgs<ExtArgs>>): Prisma.Prisma__BookingItemClient<runtime.Types.Result.GetResult<Prisma.$BookingItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  bookingItems<T extends Prisma.TripSeat$bookingItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TripSeat$bookingItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1914,9 +1945,9 @@ export type TripSeatDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
- * TripSeat.bookingItem
+ * TripSeat.bookingItems
  */
-export type TripSeat$bookingItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type TripSeat$bookingItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the BookingItem
    */
@@ -1930,6 +1961,11 @@ export type TripSeat$bookingItemArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.BookingItemInclude<ExtArgs> | null
   where?: Prisma.BookingItemWhereInput
+  orderBy?: Prisma.BookingItemOrderByWithRelationInput | Prisma.BookingItemOrderByWithRelationInput[]
+  cursor?: Prisma.BookingItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingItemScalarFieldEnum | Prisma.BookingItemScalarFieldEnum[]
 }
 
 /**

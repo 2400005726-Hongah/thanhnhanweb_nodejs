@@ -22,6 +22,13 @@ enum UserStatus {
   @@map("user_status")
 }
 
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+
+  @@map("customer_status")
+}
+
 enum RecordStatus {
   ACTIVE
   INACTIVE
@@ -40,6 +47,8 @@ enum BusStatus {
 enum SeatType {
   NORMAL
   VIP
+  SINGLE_ROOM
+  DOUBLE_ROOM
 
   @@map("seat_type")
 }
@@ -69,8 +78,17 @@ enum BookingStatus {
   EXPIRED
   COMPLETED
   NO_SHOW
+  DELETED
 
   @@map("booking_status")
+}
+
+enum BookingSource {
+  ONLINE
+  HOTLINE
+  COUNTER
+
+  @@map("booking_source")
 }
 
 enum NewsStatus {
@@ -93,52 +111,84 @@ enum PaymentStatus {
 
 enum PaymentMethod {
   CASH
+  COUNTER_CASH
   BANK_TRANSFER
+  BANK_QR
+  MOMO
+  ZALOPAY
+  VNPAY
+  POS
+  PAY_AT_BUS
   SIMULATED
 
   @@map("payment_method")
 }
 
 model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  fullName       String     @map("full_name")
-  email          String     @unique
-  phone          String     @unique
-  passwordHash   String     @map("password_hash")
-  role           UserRole   @default(CUSTOMER)
-  status         UserStatus @default(ACTIVE)
-  lastLoginAt    DateTime?  @map("last_login_at") @db.Timestamptz(3)
-  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdTrips   Trip[]     @relation("TripCreatedBy")
-  bookings       Booking[]
-  noShowBookings Booking[]  @relation("BookingNoShowBy")
-  createdNews    News[]     @relation("NewsCreatedBy")
-  updatedNews    News[]     @relation("NewsUpdatedBy")
-  auditLogs      AuditLog[]
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName          String     @map("full_name")
+  email             String     @unique
+  phone             String     @unique
+  passwordHash      String     @map("password_hash")
+  role              UserRole   @default(CUSTOMER)
+  status            UserStatus @default(ACTIVE)
+  lastLoginAt       DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdTrips      Trip[]     @relation("TripCreatedBy")
+  bookings          Booking[]  @relation("BookingUser")
+  createdBookings   Booking[]  @relation("BookingCreatedBy")
+  cancelledBookings Booking[]  @relation("BookingCancelledBy")
+  deletedBookings   Booking[]  @relation("BookingDeletedBy")
+  noShowBookings    Booking[]  @relation("BookingNoShowBy")
+  blockedCustomers  Customer[] @relation("CustomerBlockedBy")
+  createdNews       News[]     @relation("NewsCreatedBy")
+  updatedNews       News[]     @relation("NewsUpdatedBy")
+  auditLogs         AuditLog[]
 
-  @@index([status, role])
+  @@index([email])
+  @@index([phone])
+  @@index([role, status])
   @@map("users")
 }
 
+model Customer {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName      String         @map("full_name")
+  phone         String         @unique
+  email         String?
+  status        CustomerStatus @default(ACTIVE)
+  blockedReason String?        @map("blocked_reason")
+  blockedAt     DateTime?      @map("blocked_at") @db.Timestamptz(6)
+  blockedById   String?        @map("blocked_by_id") @db.Uuid
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  blockedBy     User?          @relation("CustomerBlockedBy", fields: [blockedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  bookings      Booking[]
+
+  @@index([status, fullName], map: "customers_status_name_idx")
+  @@index([email])
+  @@map("customers")
+}
+
 model Location {
-  id              String       @id @default(uuid()) @db.Uuid
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
   province        String
   address         String?
   status          RecordStatus @default(ACTIVE)
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   departureRoutes Route[]      @relation("RouteDepartureLocation")
   arrivalRoutes   Route[]      @relation("RouteArrivalLocation")
 
   @@unique([name, province])
-  @@index([status, province, name])
+  @@index([province, status])
   @@map("locations")
 }
 
 model Route {
-  id                       String       @id @default(uuid()) @db.Uuid
+  id                       String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   routeName                String       @map("route_name")
   departureLocationId      String       @map("departure_location_id") @db.Uuid
   arrivalLocationId        String       @map("arrival_location_id") @db.Uuid
@@ -146,26 +196,26 @@ model Route {
   estimatedDurationMinutes Int          @map("estimated_duration_minutes")
   defaultTicketPrice       Decimal?     @map("default_ticket_price") @db.Decimal(12, 2)
   status                   RecordStatus @default(ACTIVE)
-  createdAt                DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
-  departureLocation        Location     @relation("RouteDepartureLocation", fields: [departureLocationId], references: [id], onDelete: Restrict)
-  arrivalLocation          Location     @relation("RouteArrivalLocation", fields: [arrivalLocationId], references: [id], onDelete: Restrict)
+  createdAt                DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  departureLocation        Location     @relation("RouteDepartureLocation", fields: [departureLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  arrivalLocation          Location     @relation("RouteArrivalLocation", fields: [arrivalLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   trips                    Trip[]
 
-  @@unique([departureLocationId, arrivalLocationId])
-  @@index([status, routeName])
+  @@unique([departureLocationId, arrivalLocationId], map: "routes_departure_arrival_key")
+  @@index([status, routeName], map: "routes_status_name_idx")
   @@map("routes")
 }
 
 model Bus {
-  id           String    @id @default(uuid()) @db.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   busName      String    @map("bus_name")
   licensePlate String    @unique @map("license_plate")
   busType      String    @map("bus_type")
   capacity     Int
   status       BusStatus @default(ACTIVE)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   seats        Seat[]
   trips        Trip[]
 
@@ -174,46 +224,48 @@ model Bus {
 }
 
 model Seat {
-  id        String       @id @default(uuid()) @db.Uuid
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   busId     String       @map("bus_id") @db.Uuid
   seatCode  String       @map("seat_code")
-  floor     Int
+  floor     Int          @default(1)
   seatType  SeatType     @default(NORMAL) @map("seat_type")
   status    RecordStatus @default(ACTIVE)
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
-  bus       Bus          @relation(fields: [busId], references: [id], onDelete: Restrict)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  bus       Bus          @relation(fields: [busId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   tripSeats TripSeat[]
 
-  @@unique([busId, seatCode])
-  @@index([busId, status])
+  @@unique([busId, seatCode], map: "seats_bus_seat_code_key")
+  @@index([busId, status, seatType], map: "seats_bus_status_seat_type_idx")
   @@map("seats")
 }
 
 model Trip {
-  id                  String     @id @default(uuid()) @db.Uuid
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   routeId             String     @map("route_id") @db.Uuid
   busId               String     @map("bus_id") @db.Uuid
-  departureTime       DateTime   @map("departure_time") @db.Timestamptz(3)
-  expectedArrivalTime DateTime   @map("expected_arrival_time") @db.Timestamptz(3)
+  departureTime       DateTime   @map("departure_time") @db.Timestamptz(6)
+  expectedArrivalTime DateTime   @map("expected_arrival_time") @db.Timestamptz(6)
   ticketPrice         Decimal    @map("ticket_price") @db.Decimal(12, 2)
+  singleRoomPrice     Decimal?   @map("single_room_price") @db.Decimal(12, 2)
+  doubleRoomPrice     Decimal?   @map("double_room_price") @db.Decimal(12, 2)
   status              TripStatus @default(OPEN)
   createdById         String?    @map("created_by_id") @db.Uuid
-  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
-  route               Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
-  bus                 Bus        @relation(fields: [busId], references: [id], onDelete: Restrict)
-  createdBy           User?      @relation("TripCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  route               Route      @relation(fields: [routeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  bus                 Bus        @relation(fields: [busId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  createdBy           User?      @relation("TripCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   tripSeats           TripSeat[]
   bookings            Booking[]
 
-  @@index([routeId, departureTime, status])
-  @@index([busId, departureTime, expectedArrivalTime])
+  @@index([routeId, departureTime, status], map: "trips_route_departure_status_idx")
+  @@index([busId, departureTime, expectedArrivalTime], map: "trips_bus_departure_arrival_idx")
   @@map("trips")
 }
 
 model TripSeat {
-  id            String         @id @default(uuid()) @db.Uuid
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tripId        String         @map("trip_id") @db.Uuid
   seatId        String         @map("seat_id") @db.Uuid
   seatCode      String         @map("seat_code")
@@ -222,117 +274,144 @@ model TripSeat {
   price         Decimal        @db.Decimal(12, 2)
   status        TripSeatStatus @default(AVAILABLE)
   heldBy        String?        @map("held_by")
-  holdExpiresAt DateTime?      @map("hold_expires_at") @db.Timestamptz(3)
-  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
-  trip          Trip           @relation(fields: [tripId], references: [id], onDelete: Restrict)
-  seat          Seat           @relation(fields: [seatId], references: [id], onDelete: Restrict)
-  bookingItem   BookingItem?
+  holdExpiresAt DateTime?      @map("hold_expires_at") @db.Timestamptz(6)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  trip          Trip           @relation(fields: [tripId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  seat          Seat           @relation(fields: [seatId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  bookingItems  BookingItem[]
 
-  @@unique([tripId, seatId])
-  @@unique([tripId, seatCode])
-  @@index([tripId, status])
-  @@index([status, holdExpiresAt])
+  @@unique([tripId, seatId], map: "trip_seats_trip_seat_key")
+  @@unique([tripId, seatCode], map: "trip_seats_trip_code_key")
+  @@index([tripId, status], map: "trip_seats_trip_status_idx")
+  @@index([holdExpiresAt])
   @@map("trip_seats")
 }
 
 model Booking {
-  id                String        @id @default(uuid()) @db.Uuid
-  bookingCode       String        @unique @map("booking_code")
-  userId            String?       @map("user_id") @db.Uuid
-  tripId            String        @map("trip_id") @db.Uuid
-  passengerFullName String        @map("passenger_full_name")
-  passengerPhone    String        @map("passenger_phone")
-  passengerEmail    String?       @map("passenger_email")
-  totalAmount       Decimal       @map("total_amount") @db.Decimal(12, 2)
-  status            BookingStatus @default(PENDING)
-  paymentStatus     PaymentStatus @default(PENDING) @map("payment_status")
-  expiresAt         DateTime?     @map("expires_at") @db.Timestamptz(3)
-  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  trip              Trip          @relation(fields: [tripId], references: [id], onDelete: Restrict)
-  items             BookingItem[]
-  payments          Payment[]
-  noShowReason      String?       @map("no_show_reason")
-  noShowAt          DateTime?     @map("no_show_at") @db.Timestamptz(3)
-  noShowById        String?       @map("no_show_by_id") @db.Uuid
-  noShowBy          User?         @relation("BookingNoShowBy", fields: [noShowById], references: [id], onDelete: SetNull)
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingCode        String        @unique @map("booking_code")
+  userId             String?       @map("user_id") @db.Uuid
+  customerId         String?       @map("customer_id") @db.Uuid
+  tripId             String        @map("trip_id") @db.Uuid
+  source             BookingSource @default(ONLINE)
+  passengerFullName  String        @map("passenger_full_name")
+  passengerPhone     String        @map("passenger_phone")
+  passengerEmail     String?       @map("passenger_email")
+  customerNote       String?       @map("customer_note")
+  staffNote          String?       @map("staff_note")
+  totalAmount        Decimal       @map("total_amount") @db.Decimal(12, 2)
+  status             BookingStatus @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING) @map("payment_status")
+  expiresAt          DateTime?     @map("expires_at") @db.Timestamptz(6)
+  cancellationReason String?       @map("cancellation_reason")
+  cancelledAt        DateTime?     @map("cancelled_at") @db.Timestamptz(6)
+  cancelledById      String?       @map("cancelled_by_id") @db.Uuid
+  noShowReason       String?       @map("no_show_reason")
+  noShowAt           DateTime?     @map("no_show_at") @db.Timestamptz(6)
+  noShowById         String?       @map("no_show_by_id") @db.Uuid
+  deletedReason      String?       @map("deleted_reason")
+  deletedAt          DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  deletedById        String?       @map("deleted_by_id") @db.Uuid
+  createdById        String?       @map("created_by_id") @db.Uuid
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user               User?         @relation("BookingUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  customer           Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  trip               Trip          @relation(fields: [tripId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  createdBy          User?         @relation("BookingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  cancelledBy        User?         @relation("BookingCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  noShowBy           User?         @relation("BookingNoShowBy", fields: [noShowById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedBy          User?         @relation("BookingDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  items              BookingItem[]
+  payments           Payment[]
 
-  @@index([userId, createdAt])
-  @@index([tripId, status])
-  @@index([passengerPhone, bookingCode])
+  @@index([userId, createdAt], map: "bookings_user_created_idx")
+  @@index([customerId, createdAt], map: "bookings_customer_created_idx")
+  @@index([tripId, status], map: "bookings_trip_status_idx")
+  @@index([source, createdAt], map: "bookings_source_created_idx")
+  @@index([passengerPhone, bookingCode], map: "bookings_phone_code_idx")
+  @@index([cancelledById])
   @@index([noShowById])
+  @@index([deletedById])
+  @@index([createdById])
+  @@index([createdAt])
   @@map("bookings")
 }
 
 model BookingItem {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   bookingId  String   @map("booking_id") @db.Uuid
-  tripSeatId String   @unique @map("trip_seat_id") @db.Uuid
+  tripSeatId String   @map("trip_seat_id") @db.Uuid
   seatCode   String   @map("seat_code")
   seatType   SeatType @map("seat_type")
   price      Decimal  @db.Decimal(12, 2)
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
-  tripSeat   TripSeat @relation(fields: [tripSeatId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  tripSeat   TripSeat @relation(fields: [tripSeatId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   @@unique([bookingId, tripSeatId])
+  @@unique([bookingId, tripSeatId], map: "booking_items_booking_trip_seat_key")
   @@index([bookingId])
+  @@index([tripSeatId])
   @@map("booking_items")
 }
 
 model Payment {
-  id              String        @id @default(uuid()) @db.Uuid
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   bookingId       String        @map("booking_id") @db.Uuid
   paymentMethod   PaymentMethod @map("payment_method")
   amount          Decimal       @db.Decimal(12, 2)
   transactionCode String?       @unique @map("transaction_code")
   status          PaymentStatus @default(PENDING)
-  paidAt          DateTime?     @map("paid_at") @db.Timestamptz(3)
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
-  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  paidAt          DateTime?     @map("paid_at") @db.Timestamptz(6)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
-  @@index([bookingId, status])
+  @@index([bookingId, status, createdAt], map: "payments_booking_status_created_idx")
+  @@index([paymentMethod, status, createdAt], map: "payments_method_status_created_idx")
   @@map("payments")
 }
 
 model News {
-  id           String     @id @default(uuid()) @db.Uuid
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title        String
   slug         String     @unique
   summary      String
   content      String
   thumbnailUrl String?    @map("thumbnail_url")
   status       NewsStatus @default(DRAFT)
-  publishedAt  DateTime?  @map("published_at") @db.Timestamptz(3)
+  publishedAt  DateTime?  @map("published_at") @db.Timestamptz(6)
   createdById  String     @map("created_by_id") @db.Uuid
   updatedById  String?    @map("updated_by_id") @db.Uuid
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdBy    User       @relation("NewsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy    User?      @relation("NewsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy    User       @relation("NewsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  updatedBy    User?      @relation("NewsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([status, publishedAt])
-  @@index([createdById, createdAt])
+  @@index([createdById, createdAt], map: "news_created_by_created_at_idx")
   @@index([updatedById])
   @@map("news")
 }
 
 model AuditLog {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  role        UserRole
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  role        UserRole?
+  actorName   String?   @map("actor_name")
   action      String
-  entityType  String   @map("entity_type")
-  entityId    String   @map("entity_id")
+  entityType  String    @map("entity_type")
+  entityId    String    @map("entity_id")
   description String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  reason      String?
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
-  @@index([userId, createdAt])
-  @@index([entityType, entityId, createdAt])
+  @@index([userId, createdAt], map: "audit_logs_user_created_at_idx")
+  @@index([entityType, entityId, createdAt], map: "audit_logs_entity_created_at_idx")
   @@index([createdAt])
   @@map("audit_logs")
 }

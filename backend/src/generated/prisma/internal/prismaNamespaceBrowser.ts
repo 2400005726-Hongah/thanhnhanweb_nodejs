@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Customer: 'Customer',
   Location: 'Location',
   Route: 'Route',
   Bus: 'Bus',
@@ -95,6 +96,22 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const CustomerScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  phone: 'phone',
+  email: 'email',
+  status: 'status',
+  blockedReason: 'blockedReason',
+  blockedAt: 'blockedAt',
+  blockedById: 'blockedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
 
 
 export const LocationScalarFieldEnum = {
@@ -161,6 +178,8 @@ export const TripScalarFieldEnum = {
   departureTime: 'departureTime',
   expectedArrivalTime: 'expectedArrivalTime',
   ticketPrice: 'ticketPrice',
+  singleRoomPrice: 'singleRoomPrice',
+  doubleRoomPrice: 'doubleRoomPrice',
   status: 'status',
   createdById: 'createdById',
   createdAt: 'createdAt',
@@ -192,19 +211,30 @@ export const BookingScalarFieldEnum = {
   id: 'id',
   bookingCode: 'bookingCode',
   userId: 'userId',
+  customerId: 'customerId',
   tripId: 'tripId',
+  source: 'source',
   passengerFullName: 'passengerFullName',
   passengerPhone: 'passengerPhone',
   passengerEmail: 'passengerEmail',
+  customerNote: 'customerNote',
+  staffNote: 'staffNote',
   totalAmount: 'totalAmount',
   status: 'status',
   paymentStatus: 'paymentStatus',
   expiresAt: 'expiresAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  cancellationReason: 'cancellationReason',
+  cancelledAt: 'cancelledAt',
+  cancelledById: 'cancelledById',
   noShowReason: 'noShowReason',
   noShowAt: 'noShowAt',
-  noShowById: 'noShowById'
+  noShowById: 'noShowById',
+  deletedReason: 'deletedReason',
+  deletedAt: 'deletedAt',
+  deletedById: 'deletedById',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
@@ -260,10 +290,13 @@ export const AuditLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   role: 'role',
+  actorName: 'actorName',
   action: 'action',
   entityType: 'entityType',
   entityId: 'entityId',
   description: 'description',
+  reason: 'reason',
+  metadata: 'metadata',
   createdAt: 'createdAt'
 } as const
 
@@ -276,6 +309,14 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -292,4 +333,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -26,6 +26,14 @@ export const UserStatus = {
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
 
 
+export const CustomerStatus = {
+  ACTIVE: 'ACTIVE',
+  BLOCKED: 'BLOCKED'
+} as const
+
+export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus]
+
+
 export const RecordStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE'
@@ -45,7 +53,9 @@ export type BusStatus = (typeof BusStatus)[keyof typeof BusStatus]
 
 export const SeatType = {
   NORMAL: 'NORMAL',
-  VIP: 'VIP'
+  VIP: 'VIP',
+  SINGLE_ROOM: 'SINGLE_ROOM',
+  DOUBLE_ROOM: 'DOUBLE_ROOM'
 } as const
 
 export type SeatType = (typeof SeatType)[keyof typeof SeatType]
@@ -77,10 +87,20 @@ export const BookingStatus = {
   CANCELLED: 'CANCELLED',
   EXPIRED: 'EXPIRED',
   COMPLETED: 'COMPLETED',
-  NO_SHOW: 'NO_SHOW'
+  NO_SHOW: 'NO_SHOW',
+  DELETED: 'DELETED'
 } as const
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
+
+
+export const BookingSource = {
+  ONLINE: 'ONLINE',
+  HOTLINE: 'HOTLINE',
+  COUNTER: 'COUNTER'
+} as const
+
+export type BookingSource = (typeof BookingSource)[keyof typeof BookingSource]
 
 
 export const NewsStatus = {
@@ -105,7 +125,14 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 export const PaymentMethod = {
   CASH: 'CASH',
+  COUNTER_CASH: 'COUNTER_CASH',
   BANK_TRANSFER: 'BANK_TRANSFER',
+  BANK_QR: 'BANK_QR',
+  MOMO: 'MOMO',
+  ZALOPAY: 'ZALOPAY',
+  VNPAY: 'VNPAY',
+  POS: 'POS',
+  PAY_AT_BUS: 'PAY_AT_BUS',
   SIMULATED: 'SIMULATED'
 } as const
 

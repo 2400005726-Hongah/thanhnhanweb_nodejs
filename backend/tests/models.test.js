@@ -11,6 +11,7 @@ describe('Prisma PostgreSQL schema', () => {
   test('defines all required models including Task 10 administration', () => {
     for (const model of [
       'User',
+      'Customer',
       'Location',
       'Route',
       'Bus',
@@ -33,20 +34,24 @@ describe('Prisma PostgreSQL schema', () => {
   })
 
   test('uses UUID primary keys for every model', () => {
-    const ids = schema.match(/id\s+String\s+@id\s+@default\(uuid\(\)\)\s+@db\.Uuid/g)
-    expect(ids).toHaveLength(12)
+    const ids = schema.match(
+      /id\s+String\s+@id\s+@default\(dbgenerated\("gen_random_uuid\(\)"\)\)\s+@db\.Uuid/g,
+    )
+    expect(ids).toHaveLength(13)
   })
 
   test('defines required enums', () => {
     for (const enumName of [
       'UserRole',
       'UserStatus',
+      'CustomerStatus',
       'RecordStatus',
       'BusStatus',
       'SeatType',
       'TripStatus',
       'TripSeatStatus',
       'BookingStatus',
+      'BookingSource',
       'PaymentStatus',
       'PaymentMethod',
       'NewsStatus',
@@ -64,13 +69,22 @@ describe('Prisma PostgreSQL schema', () => {
 
   test('defines required unique constraints', () => {
     expect(schema).toContain('@@unique([name, province])')
-    expect(schema).toContain(
-      '@@unique([departureLocationId, arrivalLocationId])',
+    expect(schema).toMatch(
+      /@@unique\(\[departureLocationId, arrivalLocationId\](?:,\s*map:\s*"[^"]+")?\)/,
     )
-    expect(schema).toContain('@@unique([busId, seatCode])')
-    expect(schema).toContain('@@unique([tripId, seatId])')
-    expect(schema).toContain('@@unique([tripId, seatCode])')
-    expect(schema).toContain('tripSeatId String   @unique')
+    expect(schema).toMatch(
+      /@@unique\(\[busId, seatCode\](?:,\s*map:\s*"[^"]+")?\)/,
+    )
+    expect(schema).toMatch(
+      /@@unique\(\[tripId, seatId\](?:,\s*map:\s*"[^"]+")?\)/,
+    )
+    expect(schema).toMatch(
+      /@@unique\(\[tripId, seatCode\](?:,\s*map:\s*"[^"]+")?\)/,
+    )
+    expect(schema).toContain('@@unique([bookingId, tripSeatId])')
+    expect(schema).toContain('@@index([tripSeatId])')
+    expect(schema).not.toMatch(/tripSeatId\s+String\s+@unique/)
+    expect(schema).toMatch(/bookingItems\s+BookingItem\[\]/)
     expect(schema).toMatch(/bookingCode\s+String\s+@unique/)
     expect(schema).toMatch(/transactionCode\s+String\?\s+@unique/)
   })

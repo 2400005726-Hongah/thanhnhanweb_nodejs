@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User.ts'
+export type * from './models/Customer.ts'
 export type * from './models/Location.ts'
 export type * from './models/Route.ts'
 export type * from './models/Bus.ts'
