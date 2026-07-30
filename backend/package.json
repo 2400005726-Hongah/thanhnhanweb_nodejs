@@ -1,0 +1,50 @@
+{
+  "name": "nha-xe-thanh-nhan-backend",
+  "version": "1.0.0",
+  "description": "Backend cho hệ thống quản lý và đặt vé Nhà Xe Thành Nhân",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "db:format": "prisma format",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:baseline": "prisma migrate resolve --applied 20260721000100_init_supabase",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "seed:admin": "node src/jobs/seedAdmin.js",
+    "seed:data": "node src/jobs/seedData.js"
+  },
+  "keywords": [
+    "express",
+    "postgresql",
+    "prisma",
+    "supabase",
+    "booking"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "pg": "^8.22.0",
+    "sanitize-html": "2.17.6"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "prisma": "7.9.1",
+    "supertest": "^7.2.2"
+  }
+}

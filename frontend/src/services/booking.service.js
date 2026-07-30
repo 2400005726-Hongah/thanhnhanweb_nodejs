@@ -1,0 +1,67 @@
+import { getAuthSession } from '../utils/authStorage.js'
+import apiClient, { authApiClient } from './apiClient.js'
+
+const unwrap = (response) => response.data.data
+
+const holdSeats = async (tripId, tripSeatIds) =>
+  unwrap(
+    await apiClient.post(`/public/trips/${tripId}/seats/hold`, {
+      tripSeatIds,
+    }),
+  )
+
+const releaseSeatHold = async (tripId, holdToken) =>
+  unwrap(
+    await apiClient.delete(`/public/trips/${tripId}/seats/hold`, {
+      data: { holdToken },
+    }),
+  )
+
+const createBooking = async ({ tripId, holdToken, passenger }) => {
+  const client = getAuthSession()?.token ? authApiClient : apiClient
+
+  return unwrap(
+    await client.post('/public/bookings', {
+      tripId,
+      holdToken,
+      passenger,
+    }),
+  )
+}
+
+const simulatePayment = async (bookingCode, phone) =>
+  unwrap(
+    await apiClient.post(
+      `/public/bookings/${bookingCode}/payments/simulate`,
+      { phone, paymentMethod: 'SIMULATED' },
+    ),
+  )
+
+const lookupBooking = async (bookingCode, phone) =>
+  unwrap(
+    await apiClient.get('/public/bookings/lookup', {
+      params: { bookingCode, phone },
+    }),
+  )
+
+const getMyBookings = async (params) =>
+  unwrap(await authApiClient.get('/bookings/me', { params }))
+
+const cancelMyBooking = async (bookingCode) =>
+  unwrap(await authApiClient.post(`/bookings/${bookingCode}/cancel`))
+
+const cancelGuestBooking = async (bookingCode, phone) =>
+  unwrap(
+    await apiClient.post(`/public/bookings/${bookingCode}/cancel`, { phone }),
+  )
+
+export {
+  cancelGuestBooking,
+  cancelMyBooking,
+  createBooking,
+  getMyBookings,
+  holdSeats,
+  lookupBooking,
+  releaseSeatHold,
+  simulatePayment,
+}
