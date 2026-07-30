@@ -39,3 +39,16 @@ pnpm-debug.log*
 Thumbs.db
 Desktop.ini
 
+# Biến môi trường
+.env
+**/.env
+
+# Node.js
+node_modules/
+**/node_modules/
+
+# Log
+*.log
+
+# VS Code
+.vscode/
