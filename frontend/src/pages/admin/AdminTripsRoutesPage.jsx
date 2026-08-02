@@ -21,6 +21,10 @@ import {
   hasPermission,
   PERMISSIONS,
 } from '../../utils/adminPermissions.js'
+import {
+  getBusTypeLabel,
+  isRoomBusType,
+} from '../../utils/busTypes.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
 
@@ -41,6 +45,8 @@ function AdminTripsRoutesPage() {
     departureTime: '',
     expectedArrivalTime: '',
     ticketPrice: '',
+    singleRoomPrice: '',
+    doubleRoomPrice: '',
   })
   const [routeForm, setRouteForm] = useState({
     routeName: '',
@@ -49,6 +55,8 @@ function AdminTripsRoutesPage() {
     distanceKm: '',
     estimatedDurationMinutes: '',
     defaultTicketPrice: '',
+    defaultSingleRoomPrice: '',
+    defaultDoubleRoomPrice: '',
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -57,6 +65,7 @@ function AdminTripsRoutesPage() {
   const canDeleteTrips = hasPermission(user, PERMISSIONS.DELETE_TRIPS)
   const canCreateRoutes = hasPermission(user, PERMISSIONS.CREATE_ROUTES)
   const canDeleteRoutes = hasPermission(user, PERMISSIONS.DELETE_ROUTES)
+  const selectedTripBus = buses.find((bus) => bus.id === tripForm.bus)
 
   const load = async () => {
     setLoading(true)
@@ -87,12 +96,21 @@ function AdminTripsRoutesPage() {
     event.preventDefault()
     try {
       await createTrip({
-        ...tripForm,
+        route: tripForm.route,
+        bus: tripForm.bus,
         departureTime: new Date(tripForm.departureTime).toISOString(),
         expectedArrivalTime: new Date(
           tripForm.expectedArrivalTime,
         ).toISOString(),
-        ticketPrice: Number(tripForm.ticketPrice),
+        ...(tripForm.ticketPrice && {
+          ticketPrice: Number(tripForm.ticketPrice),
+        }),
+        ...(tripForm.singleRoomPrice && {
+          singleRoomPrice: Number(tripForm.singleRoomPrice),
+        }),
+        ...(tripForm.doubleRoomPrice && {
+          doubleRoomPrice: Number(tripForm.doubleRoomPrice),
+        }),
       })
       setShowTripForm(false)
       setTripForm({
@@ -101,6 +119,8 @@ function AdminTripsRoutesPage() {
         departureTime: '',
         expectedArrivalTime: '',
         ticketPrice: '',
+        singleRoomPrice: '',
+        doubleRoomPrice: '',
       })
       await load()
     } catch (requestError) {
@@ -120,6 +140,12 @@ function AdminTripsRoutesPage() {
         defaultTicketPrice: routeForm.defaultTicketPrice
           ? Number(routeForm.defaultTicketPrice)
           : null,
+        defaultSingleRoomPrice: routeForm.defaultSingleRoomPrice
+          ? Number(routeForm.defaultSingleRoomPrice)
+          : null,
+        defaultDoubleRoomPrice: routeForm.defaultDoubleRoomPrice
+          ? Number(routeForm.defaultDoubleRoomPrice)
+          : null,
       })
       setShowRouteForm(false)
       setRouteForm({
@@ -129,6 +155,8 @@ function AdminTripsRoutesPage() {
         distanceKm: '',
         estimatedDurationMinutes: '',
         defaultTicketPrice: '',
+        defaultSingleRoomPrice: '',
+        defaultDoubleRoomPrice: '',
       })
       await load()
     } catch (requestError) {
@@ -137,16 +165,34 @@ function AdminTripsRoutesPage() {
   }
 
   const editTrip = async (trip) => {
-    const value = window.prompt(
-      'Nhập giá vé mới:',
-      String(Number(trip.ticketPrice)),
-    )
-    if (value === null) return
-    try {
-      const data = await updateTrip(trip.id, { ticketPrice: Number(value) })
-      setTrips((current) =>
-        current.map((item) => (item.id === trip.id ? data.trip : item)),
+    let payload
+    if (isRoomBusType(trip.bus?.busType)) {
+      const singleRoomPrice = window.prompt(
+        'Nhập giá phòng đơn mới:',
+        String(Number(trip.singleRoomPrice)),
       )
+      if (singleRoomPrice === null) return
+      const doubleRoomPrice = window.prompt(
+        'Nhập giá phòng đôi mới:',
+        String(Number(trip.doubleRoomPrice)),
+      )
+      if (doubleRoomPrice === null) return
+      payload = {
+        singleRoomPrice: Number(singleRoomPrice),
+        doubleRoomPrice: Number(doubleRoomPrice),
+      }
+    } else {
+      const ticketPrice = window.prompt(
+        'Nhập giá vé mới:',
+        String(Number(trip.ticketPrice)),
+      )
+      if (ticketPrice === null) return
+      payload = { ticketPrice: Number(ticketPrice) }
+    }
+
+    try {
+      await updateTrip(trip.id, payload)
+      await load()
     } catch (requestError) {
       window.alert(getApiErrorMessage(requestError))
     }
@@ -167,8 +213,49 @@ function AdminTripsRoutesPage() {
   const editRoute = async (route) => {
     const routeName = window.prompt('Tên tuyến đường:', route.routeName)
     if (!routeName?.trim()) return
+
+    const defaultTicketPrice = window.prompt(
+      'Giá vé 34 giường mặc định (để trống nếu chưa cấu hình):',
+      route.defaultTicketPrice == null
+        ? ''
+        : String(Number(route.defaultTicketPrice)),
+    )
+    if (defaultTicketPrice === null) return
+    const defaultSingleRoomPrice = window.prompt(
+      'Giá phòng đơn mặc định (để trống nếu chưa cấu hình):',
+      route.defaultSingleRoomPrice == null
+        ? ''
+        : String(Number(route.defaultSingleRoomPrice)),
+    )
+    if (defaultSingleRoomPrice === null) return
+    const defaultDoubleRoomPrice = window.prompt(
+      'Giá phòng đôi mặc định (để trống nếu chưa cấu hình):',
+      route.defaultDoubleRoomPrice == null
+        ? ''
+        : String(Number(route.defaultDoubleRoomPrice)),
+    )
+    if (defaultDoubleRoomPrice === null) return
+
+    const toNullablePrice = (value) => {
+      if (!value.trim()) return null
+      const price = Number(value)
+      return Number.isFinite(price) && price >= 0 ? price : Number.NaN
+    }
+    const prices = {
+      defaultTicketPrice: toNullablePrice(defaultTicketPrice),
+      defaultSingleRoomPrice: toNullablePrice(defaultSingleRoomPrice),
+      defaultDoubleRoomPrice: toNullablePrice(defaultDoubleRoomPrice),
+    }
+    if (Object.values(prices).some(Number.isNaN)) {
+      window.alert('Giá mặc định phải là số không âm hoặc để trống.')
+      return
+    }
+
     try {
-      const data = await updateRoute(route.id, { routeName })
+      const data = await updateRoute(route.id, {
+        routeName,
+        ...prices,
+      })
       setRoutes((current) =>
         current.map((item) => (item.id === route.id ? data.route : item)),
       )
@@ -218,10 +305,17 @@ function AdminTripsRoutesPage() {
           <div className="admin-panel-heading"><div><span>CHỈ CHỦ XE</span><h2>Thêm chuyến mới</h2></div></div>
           <form className="admin-form-grid" onSubmit={submitTrip}>
             <label className="admin-field"><span>Tuyến đường</span><select className="form-select" onChange={(event) => setTripForm((current) => ({ ...current, route: event.target.value }))} required value={tripForm.route}><option value="">Chọn tuyến</option>{routes.filter((route) => route.status === 'ACTIVE').map((route) => <option key={route.id} value={route.id}>{route.routeName}</option>)}</select></label>
-            <label className="admin-field"><span>Xe</span><select className="form-select" onChange={(event) => setTripForm((current) => ({ ...current, bus: event.target.value }))} required value={tripForm.bus}><option value="">Chọn xe</option>{buses.filter((bus) => bus.status === 'ACTIVE').map((bus) => <option key={bus.id} value={bus.id}>{bus.busName} – {bus.licensePlate}</option>)}</select></label>
+            <label className="admin-field"><span>Xe</span><select className="form-select" onChange={(event) => setTripForm((current) => ({ ...current, bus: event.target.value }))} required value={tripForm.bus}><option value="">Chọn xe</option>{buses.filter((bus) => bus.status === 'ACTIVE').map((bus) => <option key={bus.id} value={bus.id}>{bus.busName} – {bus.licensePlate} – {getBusTypeLabel(bus.busType)}</option>)}</select></label>
             <label className="admin-field"><span>Khởi hành</span><input className="form-control" onChange={(event) => setTripForm((current) => ({ ...current, departureTime: event.target.value }))} required type="datetime-local" value={tripForm.departureTime} /></label>
             <label className="admin-field"><span>Dự kiến đến</span><input className="form-control" onChange={(event) => setTripForm((current) => ({ ...current, expectedArrivalTime: event.target.value }))} required type="datetime-local" value={tripForm.expectedArrivalTime} /></label>
-            <label className="admin-field admin-field--wide"><span>Giá vé</span><input className="form-control" min="0" onChange={(event) => setTripForm((current) => ({ ...current, ticketPrice: event.target.value }))} required type="number" value={tripForm.ticketPrice} /></label>
+            {isRoomBusType(selectedTripBus?.busType) ? (
+              <>
+                <label className="admin-field"><span>Giá phòng đơn tại chuyến</span><input className="form-control" min="0" onChange={(event) => setTripForm((current) => ({ ...current, singleRoomPrice: event.target.value }))} placeholder="Để trống để dùng giá tuyến" type="number" value={tripForm.singleRoomPrice} /></label>
+                <label className="admin-field"><span>Giá phòng đôi tại chuyến</span><input className="form-control" min="0" onChange={(event) => setTripForm((current) => ({ ...current, doubleRoomPrice: event.target.value }))} placeholder="Để trống để dùng giá tuyến" type="number" value={tripForm.doubleRoomPrice} /></label>
+              </>
+            ) : (
+              <label className="admin-field admin-field--wide"><span>Giá vé tại chuyến</span><input className="form-control" min="0" onChange={(event) => setTripForm((current) => ({ ...current, ticketPrice: event.target.value }))} placeholder="Để trống để dùng giá tuyến" type="number" value={tripForm.ticketPrice} /></label>
+            )}
             <div className="admin-field admin-field--wide"><button className="btn btn-primary" type="submit">Tạo chuyến và ghế</button></div>
           </form>
         </section>
@@ -236,7 +330,9 @@ function AdminTripsRoutesPage() {
             <label className="admin-field"><span>Điểm đến</span><select className="form-select" onChange={(event) => setRouteForm((current) => ({ ...current, arrivalLocation: event.target.value }))} required value={routeForm.arrivalLocation}><option value="">Chọn điểm đến</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name} – {location.province}</option>)}</select></label>
             <label className="admin-field"><span>Khoảng cách (km)</span><input className="form-control" min="1" onChange={(event) => setRouteForm((current) => ({ ...current, distanceKm: event.target.value }))} required type="number" value={routeForm.distanceKm} /></label>
             <label className="admin-field"><span>Thời gian dự kiến (phút)</span><input className="form-control" min="1" onChange={(event) => setRouteForm((current) => ({ ...current, estimatedDurationMinutes: event.target.value }))} required type="number" value={routeForm.estimatedDurationMinutes} /></label>
-            <label className="admin-field admin-field--wide"><span>Giá vé mặc định</span><input className="form-control" min="0" onChange={(event) => setRouteForm((current) => ({ ...current, defaultTicketPrice: event.target.value }))} type="number" value={routeForm.defaultTicketPrice} /></label>
+            <label className="admin-field"><span>Giá vé 34 giường mặc định</span><input className="form-control" min="0" onChange={(event) => setRouteForm((current) => ({ ...current, defaultTicketPrice: event.target.value }))} type="number" value={routeForm.defaultTicketPrice} /></label>
+            <label className="admin-field"><span>Giá phòng đơn mặc định</span><input className="form-control" min="0" onChange={(event) => setRouteForm((current) => ({ ...current, defaultSingleRoomPrice: event.target.value }))} type="number" value={routeForm.defaultSingleRoomPrice} /></label>
+            <label className="admin-field"><span>Giá phòng đôi mặc định</span><input className="form-control" min="0" onChange={(event) => setRouteForm((current) => ({ ...current, defaultDoubleRoomPrice: event.target.value }))} type="number" value={routeForm.defaultDoubleRoomPrice} /></label>
             <div className="admin-field admin-field--wide"><button className="btn btn-primary" type="submit">Tạo tuyến đường</button></div>
           </form>
         </section>
@@ -259,13 +355,21 @@ function AdminTripsRoutesPage() {
               {trips.map((trip) => (
                 <tr key={trip.id}>
                   <td><strong>{shortCode(trip.id, 'CX')}</strong></td>
-                  <td>{trip.bus?.busName}<small>{trip.bus?.licensePlate} · {trip.bus?.busType}</small></td>
+                  <td>{trip.bus?.busName}<small>{trip.bus?.licensePlate} · {getBusTypeLabel(trip.bus?.busType)}</small></td>
                   <td>{trip.route?.routeName}</td>
                   <td>{formatDateTime(trip.departureTime)}</td>
-                  <td>{formatCurrency(trip.ticketPrice)}</td>
+                  <td>
+                    {isRoomBusType(trip.bus?.busType) ? (
+                      <>
+                        <strong>Đơn: {formatCurrency(trip.singleRoomPrice)}</strong>
+                        <small>Đôi: {formatCurrency(trip.doubleRoomPrice)}</small>
+                      </>
+                    ) : formatCurrency(trip.ticketPrice)}
+                  </td>
                   <td>
                     <span className="admin-seat-count">Trống {trip.seatStats?.available ?? '—'}</span>
                     <small>Đã đặt {trip.seatStats?.booked ?? '—'}</small>
+                    <small>Đang giữ {trip.seatStats?.held ?? '—'}</small>
                   </td>
                   <td>
                     <div className="admin-row-actions">
@@ -304,7 +408,11 @@ function AdminTripsRoutesPage() {
                   <td><strong>{shortCode(route.id, 'TX')}</strong></td>
                   <td>{route.departureLocation?.name}</td>
                   <td>{route.arrivalLocation?.name}</td>
-                  <td>{route.defaultTicketPrice == null ? 'Chưa đặt' : formatCurrency(route.defaultTicketPrice)}</td>
+                  <td>
+                    <span>34 giường: {route.defaultTicketPrice == null ? 'Chưa đặt' : formatCurrency(route.defaultTicketPrice)}</span>
+                    <small>Phòng đơn: {route.defaultSingleRoomPrice == null ? 'Chưa đặt' : formatCurrency(route.defaultSingleRoomPrice)}</small>
+                    <small>Phòng đôi: {route.defaultDoubleRoomPrice == null ? 'Chưa đặt' : formatCurrency(route.defaultDoubleRoomPrice)}</small>
+                  </td>
                   <td><span className={`status-badge status-badge--${route.status.toLowerCase()}`}>{route.status}</span></td>
                   <td>
                     <div className="admin-row-actions">

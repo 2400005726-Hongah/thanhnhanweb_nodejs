@@ -105,6 +105,8 @@ const createRoute = async (payload, actor = null) => {
       distanceKm: payload.distanceKm,
       estimatedDurationMinutes: payload.estimatedDurationMinutes,
       defaultTicketPrice: payload.defaultTicketPrice ?? null,
+      defaultSingleRoomPrice: payload.defaultSingleRoomPrice ?? null,
+      defaultDoubleRoomPrice: payload.defaultDoubleRoomPrice ?? null,
       status: payload.status || 'ACTIVE',
     },
     include: routeInclude,
@@ -189,6 +191,12 @@ const updateRoute = async (routeId, payload, actor = null) => {
       }),
       ...(payload.defaultTicketPrice !== undefined && {
         defaultTicketPrice: payload.defaultTicketPrice,
+      }),
+      ...(payload.defaultSingleRoomPrice !== undefined && {
+        defaultSingleRoomPrice: payload.defaultSingleRoomPrice,
+      }),
+      ...(payload.defaultDoubleRoomPrice !== undefined && {
+        defaultDoubleRoomPrice: payload.defaultDoubleRoomPrice,
       }),
       ...(payload.status && { status: payload.status }),
     },

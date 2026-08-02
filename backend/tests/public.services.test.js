@@ -67,6 +67,14 @@ const {
 beforeEach(() => {
   routeExists = true
   tripExists = true
+  trip.ticketPrice = 300000
+  trip.singleRoomPrice = null
+  trip.doubleRoomPrice = null
+  trip.bus.busType = 'SLEEPER'
+  trip.bus.capacity = 44
+  trip.route.defaultTicketPrice = null
+  trip.route.defaultSingleRoomPrice = null
+  trip.route.defaultDoubleRoomPrice = null
   jest.clearAllMocks()
 })
 
@@ -95,6 +103,30 @@ describe('Public trip service business rules', () => {
     expect(typeof data.trips[0].ticketPrice).toBe('number')
   })
 
+  test('returns distinct single and double prices for a 22-room bus', async () => {
+    trip.bus.busType = 'LIMOUSINE_22'
+    trip.bus.capacity = 22
+    trip.ticketPrice = null
+    trip.singleRoomPrice = 420000
+    trip.doubleRoomPrice = 690000
+
+    const data = await searchPublicTrips({
+      departureLocationId,
+      arrivalLocationId,
+      departureDate: '2099-07-25',
+      page: 1,
+      limit: 10,
+    })
+
+    expect(data.trips[0]).toMatchObject({
+      busType: 'LIMOUSINE_22',
+      capacity: 22,
+      ticketPrice: 420000,
+      singleRoomPrice: 420000,
+      doubleRoomPrice: 690000,
+    })
+  })
+
   test('returns an empty page when no ACTIVE route matches', async () => {
     routeExists = false
     const data = await searchPublicTrips({ departureLocationId, arrivalLocationId, departureDate: '2099-07-25' })
@@ -120,6 +152,12 @@ describe('Public trip service business rules', () => {
       data: { status: 'AVAILABLE', heldBy: null, holdExpiresAt: null },
     }))
     expect(data.summary).toEqual({ total: 2, available: 1, held: 0, booked: 1 })
+    expect(data.floors[0].seats[0]).toEqual(
+      expect.objectContaining({
+        seatType: 'NORMAL',
+        price: 300000,
+      }),
+    )
     expect(data.floors[0].seats[0]).not.toHaveProperty('heldBy')
   })
 })

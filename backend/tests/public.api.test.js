@@ -49,6 +49,20 @@ describe('Public trip API validation and responses', () => {
     expect(searchPublicTrips).toHaveBeenCalledTimes(1)
   })
 
+  test('accepts Phase 3 bus type filters', async () => {
+    const response = await request(app).get('/api/v1/public/trips/search').query({
+      departureLocationId,
+      arrivalLocationId,
+      departureDate: '2099-07-25',
+      busType: 'LIMOUSINE_22',
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(searchPublicTrips).toHaveBeenCalledWith(
+      expect.objectContaining({ busType: 'LIMOUSINE_22' }),
+    )
+  })
+
   test('rejects missing search queries', async () => {
     const response = await request(app).get('/api/v1/public/trips/search')
     expect(response.statusCode).toBe(400)

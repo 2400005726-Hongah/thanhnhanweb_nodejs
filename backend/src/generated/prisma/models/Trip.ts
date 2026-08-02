@@ -235,7 +235,7 @@ export type TripGroupByOutputType = {
   busId: string
   departureTime: Date
   expectedArrivalTime: Date
-  ticketPrice: runtime.Decimal
+  ticketPrice: runtime.Decimal | null
   singleRoomPrice: runtime.Decimal | null
   doubleRoomPrice: runtime.Decimal | null
   status: $Enums.TripStatus
@@ -273,7 +273,7 @@ export type TripWhereInput = {
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
-  ticketPrice?: Prisma.DecimalFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFilter<"Trip"> | $Enums.TripStatus
@@ -293,7 +293,7 @@ export type TripOrderByWithRelationInput = {
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
-  ticketPrice?: Prisma.SortOrder
+  ticketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -316,7 +316,7 @@ export type TripWhereUniqueInput = Prisma.AtLeast<{
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
-  ticketPrice?: Prisma.DecimalFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFilter<"Trip"> | $Enums.TripStatus
@@ -336,7 +336,7 @@ export type TripOrderByWithAggregationInput = {
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
-  ticketPrice?: Prisma.SortOrder
+  ticketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -359,7 +359,7 @@ export type TripScalarWhereWithAggregatesInput = {
   busId?: Prisma.UuidWithAggregatesFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
-  ticketPrice?: Prisma.DecimalWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusWithAggregatesFilter<"Trip"> | $Enums.TripStatus
@@ -372,7 +372,7 @@ export type TripCreateInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -391,7 +391,7 @@ export type TripUncheckedCreateInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -406,7 +406,7 @@ export type TripUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -425,7 +425,7 @@ export type TripUncheckedUpdateInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -442,7 +442,7 @@ export type TripCreateManyInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -455,7 +455,7 @@ export type TripUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -469,7 +469,7 @@ export type TripUncheckedUpdateManyInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -712,7 +712,7 @@ export type TripCreateWithoutCreatedByInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -730,7 +730,7 @@ export type TripUncheckedCreateWithoutCreatedByInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -775,7 +775,7 @@ export type TripScalarWhereInput = {
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
-  ticketPrice?: Prisma.DecimalFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFilter<"Trip"> | $Enums.TripStatus
@@ -788,7 +788,7 @@ export type TripCreateWithoutRouteInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -805,7 +805,7 @@ export type TripUncheckedCreateWithoutRouteInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -846,7 +846,7 @@ export type TripCreateWithoutBusInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -863,7 +863,7 @@ export type TripUncheckedCreateWithoutBusInput = {
   routeId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -904,7 +904,7 @@ export type TripCreateWithoutTripSeatsInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -922,7 +922,7 @@ export type TripUncheckedCreateWithoutTripSeatsInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -952,7 +952,7 @@ export type TripUpdateWithoutTripSeatsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -970,7 +970,7 @@ export type TripUncheckedUpdateWithoutTripSeatsInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -984,7 +984,7 @@ export type TripCreateWithoutBookingsInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -1002,7 +1002,7 @@ export type TripUncheckedCreateWithoutBookingsInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -1032,7 +1032,7 @@ export type TripUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1050,7 +1050,7 @@ export type TripUncheckedUpdateWithoutBookingsInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1066,7 +1066,7 @@ export type TripCreateManyCreatedByInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -1078,7 +1078,7 @@ export type TripUpdateWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1096,7 +1096,7 @@ export type TripUncheckedUpdateWithoutCreatedByInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1112,7 +1112,7 @@ export type TripUncheckedUpdateManyWithoutCreatedByInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1125,7 +1125,7 @@ export type TripCreateManyRouteInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -1138,7 +1138,7 @@ export type TripUpdateWithoutRouteInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1155,7 +1155,7 @@ export type TripUncheckedUpdateWithoutRouteInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1171,7 +1171,7 @@ export type TripUncheckedUpdateManyWithoutRouteInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1185,7 +1185,7 @@ export type TripCreateManyBusInput = {
   routeId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
-  ticketPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
@@ -1198,7 +1198,7 @@ export type TripUpdateWithoutBusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1215,7 +1215,7 @@ export type TripUncheckedUpdateWithoutBusInput = {
   routeId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1231,7 +1231,7 @@ export type TripUncheckedUpdateManyWithoutBusInput = {
   routeId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ticketPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
@@ -1387,7 +1387,7 @@ export type $TripPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     busId: string
     departureTime: Date
     expectedArrivalTime: Date
-    ticketPrice: runtime.Decimal
+    ticketPrice: runtime.Decimal | null
     singleRoomPrice: runtime.Decimal | null
     doubleRoomPrice: runtime.Decimal | null
     status: $Enums.TripStatus

@@ -94,6 +94,15 @@ describe('Prisma PostgreSQL schema', () => {
 
   test('maps Decimal money fields and safe relations', () => {
     expect(schema).toContain('@db.Decimal(12, 2)')
+    expect(schema).toMatch(
+      /defaultSingleRoomPrice\s+Decimal\?\s+@map\("default_single_room_price"\)/,
+    )
+    expect(schema).toMatch(
+      /defaultDoubleRoomPrice\s+Decimal\?\s+@map\("default_double_room_price"\)/,
+    )
+    expect(schema).toMatch(
+      /ticketPrice\s+Decimal\?\s+@map\("ticket_price"\)/,
+    )
     expect(schema).not.toContain('onDelete: Cascade')
     expect(schema).toContain('onDelete: Restrict')
     expect(schema).toContain('onDelete: SetNull')

@@ -1,7 +1,18 @@
 import prisma from '../config/prisma.js'
+import {
+  getBusCapacity,
+  getBusSeatTemplate,
+  isManagedBusType,
+} from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { writeAuditLog } from './auditLog.service.js'
+import { summarizeTripSeats } from './seatAvailability.service.js'
+import {
+  getTripSeatPrice,
+  resolveTripPricing,
+  serializeTripPricing,
+} from './tripPricing.service.js'
 
 const editableStatuses = ['OPEN', 'CLOSED']
 const statusTransitions = {
@@ -65,6 +76,30 @@ const ensureTripReferences = async (database, routeId, busId) => {
   if (bus.seats.length === 0) {
     throw new HttpError('Xe phải có ít nhất một ghế đang hoạt động', 400)
   }
+  if (isManagedBusType(bus.busType)) {
+    const expectedCapacity = getBusCapacity(bus.busType)
+    const expectedSeats = getBusSeatTemplate(bus.busType)
+    const actualByCode = new Map(
+      bus.seats.map((seat) => [seat.seatCode, seat]),
+    )
+    const structureMatches =
+      bus.capacity === expectedCapacity &&
+      bus.seats.length === expectedSeats.length &&
+      expectedSeats.every((expected) => {
+        const actual = actualByCode.get(expected.seatCode)
+        return (
+          actual?.floor === expected.floor &&
+          actual?.seatType === expected.seatType
+        )
+      })
+
+    if (!structureMatches) {
+      throw new HttpError(
+        'Sơ đồ ghế của xe không khớp mẫu chuẩn; không thể tạo chuyến',
+        409,
+      )
+    }
+  }
 
   return { route, bus, activeSeats: bus.seats }
 }
@@ -89,16 +124,35 @@ const ensureNoScheduleConflict = async (
   }
 }
 
-const buildTripSeatData = (tripId, seats, ticketPrice) =>
+const buildTripSeatData = (tripId, seats, pricing) =>
   seats.map((seat) => ({
     tripId,
     seatId: seat.id,
     seatCode: seat.seatCode,
     floor: seat.floor,
     seatType: seat.seatType,
-    price: ticketPrice,
+    price: getTripSeatPrice(pricing, seat.seatType),
     status: 'AVAILABLE',
   }))
+
+const serializeManagedTrip = (trip, now = new Date()) => {
+  const pricing = serializeTripPricing(
+    resolveTripPricing({
+      busType: trip.bus.busType,
+      route: trip.route,
+      ticketPrice: trip.ticketPrice,
+      singleRoomPrice: trip.singleRoomPrice,
+      doubleRoomPrice: trip.doubleRoomPrice,
+    }),
+  )
+  const { tripSeats, ...tripData } = trip
+
+  return {
+    ...tripData,
+    ...pricing,
+    ...(tripSeats && { seatStats: summarizeTripSeats(tripSeats, now) }),
+  }
+}
 
 const getTrips = async ({ query, isAdmin }) => {
   const { page, limit, skip } = parsePagination(query)
@@ -126,7 +180,9 @@ const getTrips = async ({ query, isAdmin }) => {
       include: {
         ...tripInclude,
         ...(isAdmin && {
-          tripSeats: { select: { status: true } },
+          tripSeats: {
+            select: { status: true, holdExpiresAt: true },
+          },
         }),
       },
       orderBy: { departureTime: query.sort === 'desc' ? 'desc' : 'asc' },
@@ -137,18 +193,7 @@ const getTrips = async ({ query, isAdmin }) => {
   ])
 
   return {
-    trips: trips.map((trip) => {
-      if (!trip.tripSeats) return trip
-      const { tripSeats, ...tripData } = trip
-      return {
-        ...tripData,
-        seatStats: {
-          available: tripSeats.filter((seat) => seat.status === 'AVAILABLE').length,
-          held: tripSeats.filter((seat) => seat.status === 'HELD').length,
-          booked: tripSeats.filter((seat) => seat.status === 'BOOKED').length,
-        },
-      }
-    }),
+    trips: trips.map((trip) => serializeManagedTrip(trip, now)),
     pagination: buildPagination(total, page, limit),
   }
 }
@@ -165,7 +210,9 @@ const getTripById = async ({ tripId, isAdmin }) => {
     include: {
       ...tripInclude,
       ...(isAdmin && {
-        tripSeats: { select: { status: true } },
+        tripSeats: {
+          select: { status: true, holdExpiresAt: true },
+        },
       }),
     },
   })
@@ -173,16 +220,7 @@ const getTripById = async ({ tripId, isAdmin }) => {
   if (!trip) {
     throw new HttpError('Không tìm thấy chuyến xe', 404)
   }
-  if (!trip.tripSeats) return trip
-  const { tripSeats, ...tripData } = trip
-  return {
-    ...tripData,
-    seatStats: {
-      available: tripSeats.filter((seat) => seat.status === 'AVAILABLE').length,
-      held: tripSeats.filter((seat) => seat.status === 'HELD').length,
-      booked: tripSeats.filter((seat) => seat.status === 'BOOKED').length,
-    },
-  }
+  return serializeManagedTrip(trip)
 }
 
 const createTrip = async (payload, createdById, actor = null) => {
@@ -197,7 +235,7 @@ const createTrip = async (payload, createdById, actor = null) => {
   }
 
   return prisma.$transaction(async (transaction) => {
-    const { activeSeats } = await ensureTripReferences(
+    const { route, bus, activeSeats } = await ensureTripReferences(
       transaction,
       payload.route,
       payload.bus,
@@ -207,6 +245,13 @@ const createTrip = async (payload, createdById, actor = null) => {
       departureTime,
       expectedArrivalTime,
     })
+    const pricing = resolveTripPricing({
+      busType: bus.busType,
+      route,
+      ticketPrice: payload.ticketPrice,
+      singleRoomPrice: payload.singleRoomPrice,
+      doubleRoomPrice: payload.doubleRoomPrice,
+    })
 
     const trip = await transaction.trip.create({
       data: {
@@ -214,14 +259,16 @@ const createTrip = async (payload, createdById, actor = null) => {
         busId: payload.bus,
         departureTime,
         expectedArrivalTime,
-        ticketPrice: payload.ticketPrice,
+        ticketPrice: payload.ticketPrice ?? null,
+        singleRoomPrice: payload.singleRoomPrice ?? null,
+        doubleRoomPrice: payload.doubleRoomPrice ?? null,
         status: payload.status || 'OPEN',
         createdById,
       },
     })
 
     await transaction.tripSeat.createMany({
-      data: buildTripSeatData(trip.id, activeSeats, payload.ticketPrice),
+      data: buildTripSeatData(trip.id, activeSeats, pricing),
     })
 
     const createdTrip = await transaction.trip.findUnique({
@@ -274,15 +321,22 @@ const updateTrip = async (tripId, payload, actor = null) =>
     )
 
     if (protectedChange) {
-      const protectedSeatCount = await transaction.tripSeat.count({
-        where: {
-          tripId,
-          status: { in: ['HELD', 'BOOKED'] },
-        },
-      })
-      if (protectedSeatCount > 0) {
+      const [protectedSeatCount, bookingItemCount] = await Promise.all([
+        transaction.tripSeat.count({
+          where: {
+            tripId,
+            status: { in: ['HELD', 'BOOKED'] },
+          },
+        }),
+        transaction.bookingItem.count({
+          where: {
+            tripSeat: { tripId },
+          },
+        }),
+      ])
+      if (protectedSeatCount > 0 || bookingItemCount > 0) {
         throw new HttpError(
-          'Không thể đổi tuyến, xe hoặc thời gian khi có ghế đang giữ/đã đặt',
+          'Không thể đổi tuyến, xe hoặc thời gian khi có ghế đang giữ hoặc lịch sử đặt vé',
           409,
         )
       }
@@ -295,7 +349,7 @@ const updateTrip = async (tripId, payload, actor = null) =>
       throw new HttpError('Thời gian chuyến xe không hợp lệ', 400)
     }
 
-    const { activeSeats } = await ensureTripReferences(
+    const { route, bus, activeSeats } = await ensureTripReferences(
       transaction,
       nextRouteId,
       nextBusId,
@@ -308,21 +362,54 @@ const updateTrip = async (tripId, payload, actor = null) =>
     })
 
     const busChanged = nextBusId !== trip.busId
-    const nextPrice =
-      payload.ticketPrice !== undefined
-        ? payload.ticketPrice
-        : trip.ticketPrice
+    const nextTicketPrice =
+      payload.ticketPrice !== undefined ? payload.ticketPrice : trip.ticketPrice
+    const nextSingleRoomPrice =
+      payload.singleRoomPrice !== undefined
+        ? payload.singleRoomPrice
+        : trip.singleRoomPrice
+    const nextDoubleRoomPrice =
+      payload.doubleRoomPrice !== undefined
+        ? payload.doubleRoomPrice
+        : trip.doubleRoomPrice
+    const pricing = resolveTripPricing({
+      busType: bus.busType,
+      route,
+      ticketPrice: nextTicketPrice,
+      singleRoomPrice: nextSingleRoomPrice,
+      doubleRoomPrice: nextDoubleRoomPrice,
+    })
+    const pricingChanged =
+      payload.ticketPrice !== undefined ||
+      payload.singleRoomPrice !== undefined ||
+      payload.doubleRoomPrice !== undefined ||
+      payload.route !== undefined ||
+      payload.bus !== undefined
 
     if (busChanged) {
       await transaction.tripSeat.deleteMany({ where: { tripId } })
       await transaction.tripSeat.createMany({
-        data: buildTripSeatData(tripId, activeSeats, nextPrice),
+        data: buildTripSeatData(tripId, activeSeats, pricing),
       })
-    } else if (payload.ticketPrice !== undefined) {
-      await transaction.tripSeat.updateMany({
-        where: { tripId, status: 'AVAILABLE' },
-        data: { price: nextPrice },
-      })
+    } else if (pricingChanged) {
+      await Promise.all([
+        transaction.tripSeat.updateMany({
+          where: {
+            tripId,
+            status: 'AVAILABLE',
+            seatType: { in: ['NORMAL', 'VIP'] },
+          },
+          data: { price: pricing.ticketPrice },
+        }),
+        transaction.tripSeat.updateMany({
+          where: { tripId, status: 'AVAILABLE', seatType: 'SINGLE_ROOM' },
+          data: { price: pricing.singleRoomPrice ?? pricing.ticketPrice },
+        }),
+        transaction.tripSeat.updateMany({
+          where: { tripId, status: 'AVAILABLE', seatType: 'DOUBLE_ROOM' },
+          data: { price: pricing.doubleRoomPrice ?? pricing.ticketPrice },
+        }),
+      ])
     }
 
     const updatedTrip = await transaction.trip.update({
@@ -332,7 +419,9 @@ const updateTrip = async (tripId, payload, actor = null) =>
         busId: nextBusId,
         departureTime: nextDepartureTime,
         expectedArrivalTime: nextArrivalTime,
-        ticketPrice: nextPrice,
+        ticketPrice: nextTicketPrice,
+        singleRoomPrice: nextSingleRoomPrice,
+        doubleRoomPrice: nextDoubleRoomPrice,
       },
       include: tripInclude,
     })

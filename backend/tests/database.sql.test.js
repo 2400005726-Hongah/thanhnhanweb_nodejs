@@ -19,6 +19,10 @@ const customerPhase2MigrationPath = new URL(
   '../prisma/migrations/20260730000200_customer_profiles_phase2/migration.sql',
   import.meta.url,
 )
+const phase3MigrationPath = new URL(
+  '../prisma/migrations/20260731000100_phase3_bus_seat_pricing/migration.sql',
+  import.meta.url,
+)
 
 const [
   schema,
@@ -27,6 +31,7 @@ const [
   adminMigration,
   businessUpgradeMigration,
   customerPhase2Migration,
+  phase3Migration,
 ] = await Promise.all([
   readFile(schemaPath, 'utf8'),
   readFile(seedPath, 'utf8'),
@@ -34,6 +39,7 @@ const [
   readFile(adminMigrationPath, 'utf8'),
   readFile(businessUpgradeMigrationPath, 'utf8'),
   readFile(customerPhase2MigrationPath, 'utf8'),
+  readFile(phase3MigrationPath, 'utf8'),
 ])
 
 const tables = [
@@ -133,6 +139,24 @@ describe('Supabase SQL assets', () => {
     )
     expect(customerPhase2Migration).not.toMatch(
       /update\s+public\.bookings[\s\S]*set\s+(passenger_full_name|passenger_phone|passenger_email)/i,
+    )
+  })
+
+  test('prepares non-destructive Phase 3 route and trip pricing changes', () => {
+    expect(phase3Migration).toContain(
+      'add column if not exists default_single_room_price',
+    )
+    expect(phase3Migration).toContain(
+      'add column if not exists default_double_room_price',
+    )
+    expect(phase3Migration).toContain(
+      'alter column ticket_price drop not null',
+    )
+    expect(phase3Migration).not.toMatch(
+      /drop\s+(table|type|schema)|truncate|delete\s+from|update\s+public\./i,
+    )
+    expect(phase3Migration).not.toMatch(
+      /update\s+public\.(buses|seats|trip_seats|booking_items)/i,
     )
   })
 })

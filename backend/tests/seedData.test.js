@@ -19,7 +19,23 @@ describe('expanded demo schedule seed', () => {
   test('contains the expanded master data', () => {
     expect(locationData).toHaveLength(6)
     expect(routeData).toHaveLength(10)
-    expect(busData).toHaveLength(8)
+    expect(busData).toHaveLength(10)
+    expect(busData).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          busType: 'SLEEPER',
+          capacity: 44,
+        }),
+        expect.objectContaining({
+          busType: 'SLEEPER_34',
+          capacity: 34,
+        }),
+        expect.objectContaining({
+          busType: 'LIMOUSINE_22',
+          capacity: 22,
+        }),
+      ]),
+    )
   })
 
   test('builds two daily departures for every recurring service over 30 days', () => {

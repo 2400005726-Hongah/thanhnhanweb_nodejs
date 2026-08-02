@@ -7,14 +7,13 @@ import { holdSeats } from '../services/booking.service.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
 import { getTripDetail, getTripSeats } from '../services/publicTrip.service.js'
 import { saveSeatHold } from '../utils/bookingSession.js'
+import {
+  getBusTypeLabel,
+  getSeatTypeLabel,
+  isRoomBusType,
+} from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
-
-const busTypeLabel = {
-  SEATED: 'Ghế ngồi',
-  SLEEPER: 'Giường nằm',
-  LIMOUSINE: 'Limousine',
-}
 
 function TripDetailPage() {
   const { tripId } = useParams()
@@ -103,6 +102,7 @@ function TripDetailPage() {
   }
 
   const trip = detail.trip
+  const roomBus = isRoomBusType(trip.bus.busType)
 
   return (
     <div className="page-surface">
@@ -146,14 +146,25 @@ function TripDetailPage() {
               <span>Phương tiện</span>
               <strong>{trip.bus.busName}</strong>
               <small>
-                {busTypeLabel[trip.bus.busType]} · {trip.bus.licensePlate}
+                {getBusTypeLabel(trip.bus.busType)} · {trip.bus.licensePlate}
               </small>
             </div>
             <div>
-              <span>Giá vé</span>
-              <strong className="price-text">
-                {formatCurrency(trip.ticketPrice)}
-              </strong>
+              <span>{roomBus ? 'Giá phòng' : 'Giá vé'}</span>
+              {roomBus ? (
+                <>
+                  <strong className="price-text">
+                    Đơn: {formatCurrency(trip.singleRoomPrice)}
+                  </strong>
+                  <small>
+                    Đôi: {formatCurrency(trip.doubleRoomPrice)}
+                  </small>
+                </>
+              ) : (
+                <strong className="price-text">
+                  {formatCurrency(trip.ticketPrice)}
+                </strong>
+              )}
             </div>
           </div>
         </section>
@@ -167,10 +178,11 @@ function TripDetailPage() {
                   <h2>Chọn vị trí của bạn</h2>
                 </div>
                 <span className="availability-pill">
-                  Còn {seatData.summary.available}/{seatData.summary.total} ghế
+                  Còn {seatData.summary.available}/{seatData.summary.total} vị trí
                 </span>
               </div>
               <SeatMap
+                busType={trip.bus.busType}
                 floors={seatData.floors}
                 selectedIds={new Set(selected.keys())}
                 onToggle={toggleSeat}
@@ -182,16 +194,21 @@ function TripDetailPage() {
               <span className="eyebrow">LỰA CHỌN CỦA BẠN</span>
               <h2>Tạm tính chuyến đi</h2>
               <div className="summary-row">
-                <span>Ghế đã chọn</span>
+                <span>Vị trí đã chọn</span>
                 <strong>
                   {selected.size
-                    ? [...selected.values()].map((seat) => seat.seatCode).join(', ')
+                    ? [...selected.values()]
+                        .map(
+                          (seat) =>
+                            `${seat.seatCode} (${getSeatTypeLabel(seat.seatType)})`,
+                        )
+                        .join(', ')
                     : 'Chưa chọn'}
                 </strong>
               </div>
               <div className="summary-row">
                 <span>Số lượng</span>
-                <strong>{selected.size} ghế</strong>
+                <strong>{selected.size} vị trí</strong>
               </div>
               <div className="summary-total">
                 <span>Tổng tạm tính</span>

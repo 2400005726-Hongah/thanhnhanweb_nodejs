@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'node:url'
 
+import { getBusSeatTemplate } from '../config/busCatalog.js'
 import { connectDatabase, disconnectDatabase } from '../config/database.js'
 import prisma from '../config/prisma.js'
 import { buildFutureVietnamDate } from '../utils/dateTime.js'
@@ -205,6 +206,20 @@ const busData = [
     busType: 'LIMOUSINE',
     capacity: 22,
     seats: limousineSeats(),
+  },
+  {
+    busName: 'Giường nằm Thành Nhân 34',
+    licensePlate: '47B-03434',
+    busType: 'SLEEPER_34',
+    capacity: 34,
+    seats: getBusSeatTemplate('SLEEPER_34'),
+  },
+  {
+    busName: 'Limousine Thành Nhân 22 phòng',
+    licensePlate: '47B-02223',
+    busType: 'LIMOUSINE_22',
+    capacity: 22,
+    seats: getBusSeatTemplate('LIMOUSINE_22'),
   },
 ]
 

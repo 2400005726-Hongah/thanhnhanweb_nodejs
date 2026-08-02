@@ -24,6 +24,14 @@ const routeBodyRules = (optional = false) => {
       .optional({ nullable: true })
       .isFloat({ min: 0 })
       .withMessage('Giá vé mặc định không hợp lệ'),
+    body('defaultSingleRoomPrice')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('Giá phòng đơn mặc định không hợp lệ'),
+    body('defaultDoubleRoomPrice')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('Giá phòng đôi mặc định không hợp lệ'),
     body('status').optional().isIn(['ACTIVE', 'INACTIVE']).withMessage('Trạng thái không hợp lệ'),
   ]
 }

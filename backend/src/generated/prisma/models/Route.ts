@@ -30,12 +30,16 @@ export type RouteAvgAggregateOutputType = {
   distanceKm: runtime.Decimal | null
   estimatedDurationMinutes: number | null
   defaultTicketPrice: runtime.Decimal | null
+  defaultSingleRoomPrice: runtime.Decimal | null
+  defaultDoubleRoomPrice: runtime.Decimal | null
 }
 
 export type RouteSumAggregateOutputType = {
   distanceKm: runtime.Decimal | null
   estimatedDurationMinutes: number | null
   defaultTicketPrice: runtime.Decimal | null
+  defaultSingleRoomPrice: runtime.Decimal | null
+  defaultDoubleRoomPrice: runtime.Decimal | null
 }
 
 export type RouteMinAggregateOutputType = {
@@ -46,6 +50,8 @@ export type RouteMinAggregateOutputType = {
   distanceKm: runtime.Decimal | null
   estimatedDurationMinutes: number | null
   defaultTicketPrice: runtime.Decimal | null
+  defaultSingleRoomPrice: runtime.Decimal | null
+  defaultDoubleRoomPrice: runtime.Decimal | null
   status: $Enums.RecordStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +65,8 @@ export type RouteMaxAggregateOutputType = {
   distanceKm: runtime.Decimal | null
   estimatedDurationMinutes: number | null
   defaultTicketPrice: runtime.Decimal | null
+  defaultSingleRoomPrice: runtime.Decimal | null
+  defaultDoubleRoomPrice: runtime.Decimal | null
   status: $Enums.RecordStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -72,6 +80,8 @@ export type RouteCountAggregateOutputType = {
   distanceKm: number
   estimatedDurationMinutes: number
   defaultTicketPrice: number
+  defaultSingleRoomPrice: number
+  defaultDoubleRoomPrice: number
   status: number
   createdAt: number
   updatedAt: number
@@ -83,12 +93,16 @@ export type RouteAvgAggregateInputType = {
   distanceKm?: true
   estimatedDurationMinutes?: true
   defaultTicketPrice?: true
+  defaultSingleRoomPrice?: true
+  defaultDoubleRoomPrice?: true
 }
 
 export type RouteSumAggregateInputType = {
   distanceKm?: true
   estimatedDurationMinutes?: true
   defaultTicketPrice?: true
+  defaultSingleRoomPrice?: true
+  defaultDoubleRoomPrice?: true
 }
 
 export type RouteMinAggregateInputType = {
@@ -99,6 +113,8 @@ export type RouteMinAggregateInputType = {
   distanceKm?: true
   estimatedDurationMinutes?: true
   defaultTicketPrice?: true
+  defaultSingleRoomPrice?: true
+  defaultDoubleRoomPrice?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -112,6 +128,8 @@ export type RouteMaxAggregateInputType = {
   distanceKm?: true
   estimatedDurationMinutes?: true
   defaultTicketPrice?: true
+  defaultSingleRoomPrice?: true
+  defaultDoubleRoomPrice?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -125,6 +143,8 @@ export type RouteCountAggregateInputType = {
   distanceKm?: true
   estimatedDurationMinutes?: true
   defaultTicketPrice?: true
+  defaultSingleRoomPrice?: true
+  defaultDoubleRoomPrice?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -225,6 +245,8 @@ export type RouteGroupByOutputType = {
   distanceKm: runtime.Decimal
   estimatedDurationMinutes: number
   defaultTicketPrice: runtime.Decimal | null
+  defaultSingleRoomPrice: runtime.Decimal | null
+  defaultDoubleRoomPrice: runtime.Decimal | null
   status: $Enums.RecordStatus
   createdAt: Date
   updatedAt: Date
@@ -261,6 +283,8 @@ export type RouteWhereInput = {
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFilter<"Route"> | number
   defaultTicketPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFilter<"Route"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFilter<"Route"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Route"> | Date | string
@@ -277,6 +301,8 @@ export type RouteOrderByWithRelationInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -297,6 +323,8 @@ export type RouteWhereUniqueInput = Prisma.AtLeast<{
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFilter<"Route"> | number
   defaultTicketPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFilter<"Route"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFilter<"Route"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Route"> | Date | string
@@ -313,6 +341,8 @@ export type RouteOrderByWithAggregationInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -334,6 +364,8 @@ export type RouteScalarWhereWithAggregatesInput = {
   distanceKm?: Prisma.DecimalWithAggregatesFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntWithAggregatesFilter<"Route"> | number
   defaultTicketPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusWithAggregatesFilter<"Route"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Route"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Route"> | Date | string
@@ -345,6 +377,8 @@ export type RouteCreateInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -361,6 +395,8 @@ export type RouteUncheckedCreateInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -373,6 +409,8 @@ export type RouteUpdateInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -389,6 +427,8 @@ export type RouteUncheckedUpdateInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -403,6 +443,8 @@ export type RouteCreateManyInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -414,6 +456,8 @@ export type RouteUpdateManyMutationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -427,6 +471,8 @@ export type RouteUncheckedUpdateManyInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -455,6 +501,8 @@ export type RouteCountOrderByAggregateInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -464,6 +512,8 @@ export type RouteAvgOrderByAggregateInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrder
 }
 
 export type RouteMaxOrderByAggregateInput = {
@@ -474,6 +524,8 @@ export type RouteMaxOrderByAggregateInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -487,6 +539,8 @@ export type RouteMinOrderByAggregateInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -496,6 +550,8 @@ export type RouteSumOrderByAggregateInput = {
   distanceKm?: Prisma.SortOrder
   estimatedDurationMinutes?: Prisma.SortOrder
   defaultTicketPrice?: Prisma.SortOrder
+  defaultSingleRoomPrice?: Prisma.SortOrder
+  defaultDoubleRoomPrice?: Prisma.SortOrder
 }
 
 export type RouteScalarRelationFilter = {
@@ -631,6 +687,8 @@ export type RouteCreateWithoutDepartureLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -645,6 +703,8 @@ export type RouteUncheckedCreateWithoutDepartureLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -667,6 +727,8 @@ export type RouteCreateWithoutArrivalLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -681,6 +743,8 @@ export type RouteUncheckedCreateWithoutArrivalLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -724,6 +788,8 @@ export type RouteScalarWhereInput = {
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFilter<"Route"> | number
   defaultTicketPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.DecimalNullableFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFilter<"Route"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFilter<"Route"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Route"> | Date | string
@@ -751,6 +817,8 @@ export type RouteCreateWithoutTripsInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -766,6 +834,8 @@ export type RouteUncheckedCreateWithoutTripsInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -793,6 +863,8 @@ export type RouteUpdateWithoutTripsInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -808,6 +880,8 @@ export type RouteUncheckedUpdateWithoutTripsInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -820,6 +894,8 @@ export type RouteCreateManyDepartureLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -832,6 +908,8 @@ export type RouteCreateManyArrivalLocationInput = {
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -843,6 +921,8 @@ export type RouteUpdateWithoutDepartureLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -857,6 +937,8 @@ export type RouteUncheckedUpdateWithoutDepartureLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -870,6 +952,8 @@ export type RouteUncheckedUpdateManyWithoutDepartureLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -881,6 +965,8 @@ export type RouteUpdateWithoutArrivalLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -895,6 +981,8 @@ export type RouteUncheckedUpdateWithoutArrivalLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -908,6 +996,8 @@ export type RouteUncheckedUpdateManyWithoutArrivalLocationInput = {
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -952,6 +1042,8 @@ export type RouteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   distanceKm?: boolean
   estimatedDurationMinutes?: boolean
   defaultTicketPrice?: boolean
+  defaultSingleRoomPrice?: boolean
+  defaultDoubleRoomPrice?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -969,6 +1061,8 @@ export type RouteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   distanceKm?: boolean
   estimatedDurationMinutes?: boolean
   defaultTicketPrice?: boolean
+  defaultSingleRoomPrice?: boolean
+  defaultDoubleRoomPrice?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -984,6 +1078,8 @@ export type RouteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   distanceKm?: boolean
   estimatedDurationMinutes?: boolean
   defaultTicketPrice?: boolean
+  defaultSingleRoomPrice?: boolean
+  defaultDoubleRoomPrice?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -999,12 +1095,14 @@ export type RouteSelectScalar = {
   distanceKm?: boolean
   estimatedDurationMinutes?: boolean
   defaultTicketPrice?: boolean
+  defaultSingleRoomPrice?: boolean
+  defaultDoubleRoomPrice?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RouteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeName" | "departureLocationId" | "arrivalLocationId" | "distanceKm" | "estimatedDurationMinutes" | "defaultTicketPrice" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["route"]>
+export type RouteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeName" | "departureLocationId" | "arrivalLocationId" | "distanceKm" | "estimatedDurationMinutes" | "defaultTicketPrice" | "defaultSingleRoomPrice" | "defaultDoubleRoomPrice" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["route"]>
 export type RouteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   departureLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
   arrivalLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
@@ -1035,6 +1133,8 @@ export type $RoutePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     distanceKm: runtime.Decimal
     estimatedDurationMinutes: number
     defaultTicketPrice: runtime.Decimal | null
+    defaultSingleRoomPrice: runtime.Decimal | null
+    defaultDoubleRoomPrice: runtime.Decimal | null
     status: $Enums.RecordStatus
     createdAt: Date
     updatedAt: Date
@@ -1471,6 +1571,8 @@ export interface RouteFieldRefs {
   readonly distanceKm: Prisma.FieldRef<"Route", 'Decimal'>
   readonly estimatedDurationMinutes: Prisma.FieldRef<"Route", 'Int'>
   readonly defaultTicketPrice: Prisma.FieldRef<"Route", 'Decimal'>
+  readonly defaultSingleRoomPrice: Prisma.FieldRef<"Route", 'Decimal'>
+  readonly defaultDoubleRoomPrice: Prisma.FieldRef<"Route", 'Decimal'>
   readonly status: Prisma.FieldRef<"Route", 'RecordStatus'>
   readonly createdAt: Prisma.FieldRef<"Route", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Route", 'DateTime'>

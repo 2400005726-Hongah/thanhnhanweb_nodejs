@@ -195,6 +195,8 @@ model Route {
   distanceKm               Decimal      @map("distance_km") @db.Decimal(10, 2)
   estimatedDurationMinutes Int          @map("estimated_duration_minutes")
   defaultTicketPrice       Decimal?     @map("default_ticket_price") @db.Decimal(12, 2)
+  defaultSingleRoomPrice   Decimal?     @map("default_single_room_price") @db.Decimal(12, 2)
+  defaultDoubleRoomPrice   Decimal?     @map("default_double_room_price") @db.Decimal(12, 2)
   status                   RecordStatus @default(ACTIVE)
   createdAt                DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -246,7 +248,7 @@ model Trip {
   busId               String     @map("bus_id") @db.Uuid
   departureTime       DateTime   @map("departure_time") @db.Timestamptz(6)
   expectedArrivalTime DateTime   @map("expected_arrival_time") @db.Timestamptz(6)
-  ticketPrice         Decimal    @map("ticket_price") @db.Decimal(12, 2)
+  ticketPrice         Decimal?   @map("ticket_price") @db.Decimal(12, 2)
   singleRoomPrice     Decimal?   @map("single_room_price") @db.Decimal(12, 2)
   doubleRoomPrice     Decimal?   @map("double_room_price") @db.Decimal(12, 2)
   status              TripStatus @default(OPEN)

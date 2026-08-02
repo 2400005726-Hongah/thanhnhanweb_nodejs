@@ -1483,6 +1483,8 @@ export const RouteScalarFieldEnum = {
   distanceKm: 'distanceKm',
   estimatedDurationMinutes: 'estimatedDurationMinutes',
   defaultTicketPrice: 'defaultTicketPrice',
+  defaultSingleRoomPrice: 'defaultSingleRoomPrice',
+  defaultDoubleRoomPrice: 'defaultDoubleRoomPrice',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

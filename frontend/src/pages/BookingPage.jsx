@@ -10,6 +10,7 @@ import {
   getSeatHold,
   saveBookingResult,
 } from '../utils/bookingSession.js'
+import { getSeatTypeLabel } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
 
@@ -159,8 +160,14 @@ function BookingPage() {
     }
   }
 
-  const heldSeatCodes = useMemo(
-    () => hold?.seats.map((seat) => seat.seatCode).join(', ') || '',
+  const heldSeatDescriptions = useMemo(
+    () =>
+      hold?.seats
+        .map(
+          (seat) =>
+            `${seat.seatCode} · ${getSeatTypeLabel(seat.seatType)} · ${formatCurrency(seat.price)}`,
+        )
+        .join('; ') || '',
     [hold],
   )
 
@@ -320,12 +327,12 @@ function BookingPage() {
                 <strong>{trip.bus.busName}</strong>
               </div>
               <div className="summary-row">
-                <span>Ghế đang giữ</span>
-                <strong>{heldSeatCodes}</strong>
+                <span>Vị trí đang giữ</span>
+                <strong>{heldSeatDescriptions}</strong>
               </div>
               <div className="summary-row">
                 <span>Số lượng</span>
-                <strong>{hold.seats.length} ghế</strong>
+                <strong>{hold.seats.length} vị trí</strong>
               </div>
               <div className="summary-total">
                 <span>Tổng tiền máy chủ</span>

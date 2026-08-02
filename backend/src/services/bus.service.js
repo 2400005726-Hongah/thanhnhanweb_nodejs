@@ -1,4 +1,9 @@
 import prisma from '../config/prisma.js'
+import {
+  getBusCapacity,
+  getBusSeatTemplate,
+  isManagedBusType,
+} from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
 import { normalizeLicensePlate } from '../utils/normalize.js'
 import {
@@ -41,6 +46,25 @@ const ensureSeatStructureMutable = async (busId) => {
   }
 }
 
+const ensureLegacySeatStructure = async (busId) => {
+  const bus = await prisma.bus.findUnique({
+    where: { id: busId },
+    select: { id: true, busType: true },
+  })
+
+  if (!bus) {
+    throw new HttpError('Không tìm thấy xe', 404)
+  }
+  if (isManagedBusType(bus.busType)) {
+    throw new HttpError(
+      'Sơ đồ xe 34 giường và 22 phòng được quản lý từ mẫu tập trung',
+      409,
+    )
+  }
+
+  return bus
+}
+
 const getBuses = async (query) => {
   const { page, limit, skip } = parsePagination(query)
   const where = {
@@ -57,7 +81,9 @@ const getBuses = async (query) => {
   const [buses, total] = await Promise.all([
     prisma.bus.findMany({
       where,
-      include: { seats: { orderBy: { seatCode: 'asc' } } },
+      include: {
+        seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
+      },
       orderBy: { busName: 'asc' },
       skip,
       take: limit,
@@ -71,7 +97,9 @@ const getBuses = async (query) => {
 const getBusById = async (busId) => {
   const bus = await prisma.bus.findUnique({
     where: { id: busId },
-    include: { seats: { orderBy: { seatCode: 'asc' } } },
+    include: {
+      seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
+    },
   })
 
   if (!bus) {
@@ -81,49 +109,79 @@ const getBusById = async (busId) => {
 }
 
 const createBus = async (payload) => {
+  if (!isManagedBusType(payload.busType)) {
+    throw new HttpError(
+      'Xe mới chỉ hỗ trợ loại SLEEPER_34 hoặc LIMOUSINE_22',
+      400,
+    )
+  }
+
+  const capacity = getBusCapacity(payload.busType)
+  if (
+    payload.capacity !== undefined &&
+    Number(payload.capacity) !== capacity
+  ) {
+    throw new HttpError(
+      `Sức chứa của ${payload.busType} phải là ${capacity}`,
+      400,
+    )
+  }
+  if (
+    payload.seats !== undefined &&
+    (!Array.isArray(payload.seats) || payload.seats.length > 0)
+  ) {
+    throw new HttpError('Sơ đồ ghế phải do máy chủ tạo từ mẫu chuẩn', 400)
+  }
+
   const licensePlate = normalizeLicensePlate(payload.licensePlate)
-  const duplicate = await prisma.bus.findUnique({
-    where: { licensePlate },
-    select: { id: true },
-  })
+  const seats = getBusSeatTemplate(payload.busType)
 
-  if (duplicate) {
-    throw new HttpError('Biển số xe đã tồn tại', 409)
-  }
+  return prisma.$transaction(async (transaction) => {
+    const duplicate = await transaction.bus.findUnique({
+      where: { licensePlate },
+      select: { id: true },
+    })
+    if (duplicate) {
+      throw new HttpError('Biển số xe đã tồn tại', 409)
+    }
 
-  const seats = payload.seats || []
-  if (seats.length > payload.capacity) {
-    throw new HttpError('Số ghế không được vượt quá sức chứa', 400)
-  }
-
-  return prisma.bus.create({
-    data: {
-      busName: normalizeText(payload.busName),
-      licensePlate,
-      busType: payload.busType,
-      capacity: payload.capacity,
-      status: payload.status || 'ACTIVE',
-      seats: {
-        create: seats.map((seat) => ({
-          seatCode: String(seat.seatCode).trim().toUpperCase(),
-          floor: seat.floor,
-          seatType: seat.seatType || 'NORMAL',
-          status: seat.status || 'ACTIVE',
-        })),
+    const bus = await transaction.bus.create({
+      data: {
+        busName: normalizeText(payload.busName),
+        licensePlate,
+        busType: payload.busType,
+        capacity,
+        status: payload.status || 'ACTIVE',
       },
-    },
-    include: { seats: { orderBy: { seatCode: 'asc' } } },
+    })
+
+    await transaction.seat.createMany({
+      data: seats.map((seat) => ({ ...seat, busId: bus.id })),
+    })
+
+    return transaction.bus.findUnique({
+      where: { id: bus.id },
+      include: {
+        seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
+      },
+    })
   })
 }
 
 const updateBus = async (busId, payload) => {
   const bus = await prisma.bus.findUnique({
     where: { id: busId },
-    include: { _count: { select: { seats: true } } },
+    include: { _count: { select: { seats: true, trips: true } } },
   })
 
   if (!bus) {
     throw new HttpError('Không tìm thấy xe', 404)
+  }
+  if (payload.busType !== undefined && payload.busType !== bus.busType) {
+    throw new HttpError(
+      'Không thể đổi loại xe; hãy tạo xe mới để giữ nguyên sơ đồ và lịch sử',
+      409,
+    )
   }
 
   let licensePlate = bus.licensePlate
@@ -138,11 +196,22 @@ const updateBus = async (busId, payload) => {
     }
   }
 
-  if (payload.capacity !== undefined && payload.capacity < bus._count.seats) {
-    throw new HttpError(
-      'Sức chứa không được nhỏ hơn số ghế hiện có',
-      400,
-    )
+  if (payload.capacity !== undefined) {
+    if (
+      isManagedBusType(bus.busType) &&
+      Number(payload.capacity) !== getBusCapacity(bus.busType)
+    ) {
+      throw new HttpError(
+        `Sức chứa của ${bus.busType} phải là ${getBusCapacity(bus.busType)}`,
+        400,
+      )
+    }
+    if (payload.capacity < bus._count.seats) {
+      throw new HttpError(
+        'Sức chứa không được nhỏ hơn số ghế hiện có',
+        400,
+      )
+    }
   }
   if (
     payload.status &&
@@ -159,11 +228,14 @@ const updateBus = async (busId, payload) => {
       ...(payload.busName !== undefined && {
         busName: normalizeText(payload.busName),
       }),
-      ...(payload.busType !== undefined && { busType: payload.busType }),
-      ...(payload.capacity !== undefined && { capacity: payload.capacity }),
+      ...(payload.capacity !== undefined && {
+        capacity: Number(payload.capacity),
+      }),
       ...(payload.status && { status: payload.status }),
     },
-    include: { seats: { orderBy: { seatCode: 'asc' } } },
+    include: {
+      seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
+    },
   })
 }
 
@@ -190,8 +262,9 @@ const getBusSeats = async (busId) => {
     select: {
       id: true,
       busName: true,
+      busType: true,
       capacity: true,
-      seats: { orderBy: { seatCode: 'asc' } },
+      seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
     },
   })
 
@@ -202,12 +275,14 @@ const getBusSeats = async (busId) => {
   return {
     busId: bus.id,
     busName: bus.busName,
+    busType: bus.busType,
     capacity: bus.capacity,
     seats: bus.seats,
   }
 }
 
 const addBusSeat = async (busId, payload) => {
+  await ensureLegacySeatStructure(busId)
   await ensureSeatStructureMutable(busId)
   const bus = await prisma.bus.findUnique({
     where: { id: busId },
@@ -243,6 +318,19 @@ const addBusSeat = async (busId, payload) => {
 }
 
 const updateBusSeat = async (busId, seatId, payload) => {
+  const bus = await prisma.bus.findUnique({
+    where: { id: busId },
+    select: { id: true, busType: true },
+  })
+  if (!bus) {
+    throw new HttpError('Không tìm thấy xe', 404)
+  }
+  if (isManagedBusType(bus.busType)) {
+    throw new HttpError(
+      'Không thể sửa riêng từng vị trí của sơ đồ chuẩn',
+      409,
+    )
+  }
   await ensureSeatStructureMutable(busId)
   const seat = await prisma.seat.findFirst({ where: { id: seatId, busId } })
 
@@ -274,6 +362,7 @@ const updateBusSeat = async (busId, seatId, payload) => {
 }
 
 const deactivateBusSeat = async (busId, seatId) => {
+  await ensureLegacySeatStructure(busId)
   await ensureSeatStructureMutable(busId)
   const seat = await prisma.seat.findFirst({ where: { id: seatId, busId } })
 

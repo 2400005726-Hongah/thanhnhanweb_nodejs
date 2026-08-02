@@ -19,7 +19,18 @@ const tripBodyRules = (optional = false) => {
     applyOptional(body('bus')).isUUID().withMessage('ID xe không hợp lệ'),
     applyOptional(body('departureTime')).isISO8601().withMessage('Thời gian khởi hành không hợp lệ'),
     applyOptional(body('expectedArrivalTime')).isISO8601().withMessage('Thời gian đến không hợp lệ'),
-    applyOptional(body('ticketPrice')).isFloat({ min: 0 }).withMessage('Giá vé không hợp lệ'),
+    body('ticketPrice')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('Giá vé không hợp lệ'),
+    body('singleRoomPrice')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('Giá phòng đơn không hợp lệ'),
+    body('doubleRoomPrice')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('Giá phòng đôi không hợp lệ'),
   ]
 }
 

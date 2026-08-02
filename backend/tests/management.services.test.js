@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto'
 
 import { jest } from '@jest/globals'
 
+import { getBusSeatTemplate } from '../src/config/busCatalog.js'
+
 const routeId = randomUUID()
 const busId = randomUUID()
 const adminId = randomUUID()
@@ -17,6 +19,8 @@ let routeFound
 let busFound
 let scheduleConflict
 let tripSeatInsertError
+let createdBus
+let createdBusSeats
 
 const prisma = {
   location: {
@@ -33,17 +37,27 @@ const prisma = {
   bus: {
     findUnique: jest.fn(async ({ where }) => {
       if (where.licensePlate) return duplicatePlate
+      if (where.id && createdBus?.id === where.id) {
+        return { ...createdBus, seats: createdBusSeats }
+      }
       if (where.id) return { ...busFound, _count: { seats: busFound.seats.length } }
       return null
     }),
     findFirst: jest.fn(async () => busFound),
     findMany: jest.fn(async () => []),
     count: jest.fn(async () => 0),
-    create: jest.fn(async ({ data }) => ({ id: busId, ...data })),
+    create: jest.fn(async ({ data }) => {
+      createdBus = { id: busId, ...data }
+      return createdBus
+    }),
   },
   seat: {
     findUnique: jest.fn(async () => duplicateSeat),
     create: jest.fn(async ({ data }) => ({ id: randomUUID(), ...data })),
+    createMany: jest.fn(async ({ data }) => {
+      createdBusSeats = data.map((seat) => ({ id: randomUUID(), ...seat }))
+      return { count: data.length }
+    }),
   },
   trip: {
     findFirst: jest.fn(async () =>
@@ -59,13 +73,16 @@ const prisma = {
       return { count: data.length }
     }),
   },
+  bookingItem: {
+    count: jest.fn(async () => 0),
+  },
   $transaction: jest.fn(async (callback) => callback(prisma)),
 }
 
 jest.unstable_mockModule('../src/config/prisma.js', () => ({ default: prisma }))
 
 const { createRoute } = await import('../src/services/route.service.js')
-const { addBusSeat, createBus, getBuses } = await import(
+const { addBusSeat, createBus, getBuses, updateBus, updateBusSeat } = await import(
   '../src/services/bus.service.js'
 )
 const { createTrip } = await import('../src/services/trip.service.js')
@@ -104,12 +121,15 @@ beforeEach(() => {
   routeFound = { id: routeId, status: 'ACTIVE' }
   busFound = {
     id: busId,
+    busType: 'SLEEPER',
     capacity: 2,
     status: 'ACTIVE',
     seats: [makeSeat('A1'), makeSeat('A2')],
   }
   scheduleConflict = false
   tripSeatInsertError = null
+  createdBus = null
+  createdBusSeats = []
   jest.clearAllMocks()
 })
 
@@ -157,26 +177,58 @@ describe('Prisma Route, Bus and Seat rules', () => {
     })
   })
 
-  test('creates a bus', async () => {
+  test('creates a 34-bed bus and its server-owned template in a transaction', async () => {
     const bus = await createBus({
-      busName: 'Sleeper 44',
+      busName: 'Sleeper 34',
       licensePlate: '47B-123.45',
-      busType: 'SLEEPER',
-      capacity: 44,
+      busType: 'SLEEPER_34',
     })
     expect(bus.licensePlate).toBe('47B12345')
+    expect(bus.capacity).toBe(34)
+    expect(bus.seats).toHaveLength(34)
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+    expect(prisma.seat.createMany).toHaveBeenCalledTimes(1)
+  })
+
+  test('creates a 22-room bus with single and double rooms', async () => {
+    const bus = await createBus({
+      busName: 'Limousine 22',
+      licensePlate: '47B-222.22',
+      busType: 'LIMOUSINE_22',
+    })
+
+    expect(bus.capacity).toBe(22)
+    expect(bus.seats).toHaveLength(22)
+    expect(bus.seats.some((seat) => seat.seatType === 'SINGLE_ROOM')).toBe(true)
+    expect(bus.seats.some((seat) => seat.seatType === 'DOUBLE_ROOM')).toBe(true)
+    expect(new Set(bus.seats.map((seat) => seat.seatCode)).size).toBe(22)
   })
 
   test('rejects a duplicate license plate', async () => {
     duplicatePlate = { id: busId }
     await expect(
       createBus({
-        busName: 'Sleeper 44',
+        busName: 'Sleeper 34',
         licensePlate: '47B-123.45',
-        busType: 'SLEEPER',
-        capacity: 44,
+        busType: 'SLEEPER_34',
       }),
     ).rejects.toMatchObject({ statusCode: 409 })
+  })
+
+  test('does not convert a legacy bus into a managed template type', async () => {
+    await expect(
+      updateBus(busId, { busType: 'SLEEPER_34' }),
+    ).rejects.toMatchObject({ statusCode: 409 })
+    expect(busFound.busType).toBe('SLEEPER')
+  })
+
+  test('does not allow individual changes inside a managed seat template', async () => {
+    busFound.busType = 'SLEEPER_34'
+
+    await expect(
+      updateBusSeat(busId, randomUUID(), { status: 'INACTIVE' }),
+    ).rejects.toMatchObject({ statusCode: 409 })
+    expect(prisma.seat.create).not.toHaveBeenCalled()
   })
 
   test('creates a seat', async () => {
@@ -209,6 +261,59 @@ describe('Prisma Trip transaction rules', () => {
     const data = prisma.tripSeat.createMany.mock.calls[0][0].data
     expect(data).toHaveLength(2)
     expect(data.every((seat) => seat.status === 'AVAILABLE')).toBe(true)
+  })
+
+  test('falls back to the route price when a trip override is omitted', async () => {
+    routeFound.defaultTicketPrice = 275000
+
+    await createTrip(
+      {
+        ...tripPayload,
+        ticketPrice: undefined,
+      },
+      adminId,
+    )
+
+    const data = prisma.tripSeat.createMany.mock.calls[0][0].data
+    expect(data.every((seat) => seat.price === 275000)).toBe(true)
+    expect(prisma.trip.create.mock.calls[0][0].data.ticketPrice).toBeNull()
+  })
+
+  test('snapshots limousine room type and server-calculated room price', async () => {
+    busFound = {
+      id: busId,
+      busType: 'LIMOUSINE_22',
+      capacity: 22,
+      status: 'ACTIVE',
+      seats: getBusSeatTemplate('LIMOUSINE_22').map((seat) => ({
+        ...seat,
+        id: randomUUID(),
+        busId,
+      })),
+    }
+
+    await createTrip(
+      {
+        ...tripPayload,
+        ticketPrice: undefined,
+        singleRoomPrice: 410000,
+        doubleRoomPrice: 690000,
+      },
+      adminId,
+    )
+
+    const data = prisma.tripSeat.createMany.mock.calls[0][0].data
+    expect(data).toHaveLength(22)
+    expect(
+      data
+        .filter((seat) => seat.seatType === 'SINGLE_ROOM')
+        .every((seat) => seat.price === 410000),
+    ).toBe(true)
+    expect(
+      data
+        .filter((seat) => seat.seatType === 'DOUBLE_ROOM')
+        .every((seat) => seat.price === 690000),
+    ).toBe(true)
   })
 
   test('rejects a trip when the bus has no ACTIVE seats', async () => {

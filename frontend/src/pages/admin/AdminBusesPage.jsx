@@ -11,6 +11,11 @@ import {
 } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import { hasPermission, PERMISSIONS } from '../../utils/adminPermissions.js'
+import {
+  getBusTypeLabel,
+  getSeatTypeLabel,
+  MANAGED_BUS_CAPACITIES,
+} from '../../utils/busTypes.js'
 
 function AdminBusesPage() {
   const { user } = useAuth()
@@ -19,8 +24,7 @@ function AdminBusesPage() {
   const [form, setForm] = useState({
     busName: '',
     licensePlate: '',
-    busType: 'SLEEPER',
-    capacity: 44,
+    busType: 'SLEEPER_34',
   })
   const [error, setError] = useState('')
 
@@ -44,17 +48,8 @@ function AdminBusesPage() {
 
   const submit = async (event) => {
     event.preventDefault()
-    const capacity = Number(form.capacity)
-    const seats = Array.from({ length: capacity }, (_, index) => ({
-      seatCode: `${form.busType === 'LIMOUSINE' ? 'V' : 'A'}${String(index + 1).padStart(2, '0')}`,
-      floor:
-        form.busType === 'SLEEPER' && index >= Math.ceil(capacity / 2)
-          ? 2
-          : 1,
-      seatType: form.busType === 'LIMOUSINE' ? 'VIP' : 'NORMAL',
-    }))
     try {
-      await createBus({ ...form, capacity, seats })
+      await createBus(form)
       setShowForm(false)
       await load()
     } catch (requestError) {
@@ -96,8 +91,8 @@ function AdminBusesPage() {
           <form className="admin-form-grid" onSubmit={submit}>
             <label className="admin-field"><span>Tên xe</span><input className="form-control" onChange={(event) => setForm((current) => ({ ...current, busName: event.target.value }))} required value={form.busName} /></label>
             <label className="admin-field"><span>Biển số</span><input className="form-control" onChange={(event) => setForm((current) => ({ ...current, licensePlate: event.target.value }))} required value={form.licensePlate} /></label>
-            <label className="admin-field"><span>Loại xe</span><select className="form-select" onChange={(event) => setForm((current) => ({ ...current, busType: event.target.value }))} value={form.busType}><option value="SEATED">Ghế ngồi</option><option value="SLEEPER">Giường nằm</option><option value="LIMOUSINE">Limousine</option></select></label>
-            <label className="admin-field"><span>Sức chứa</span><input className="form-control" min="1" onChange={(event) => setForm((current) => ({ ...current, capacity: event.target.value }))} required type="number" value={form.capacity} /></label>
+            <label className="admin-field"><span>Loại xe</span><select className="form-select" onChange={(event) => setForm((current) => ({ ...current, busType: event.target.value }))} value={form.busType}><option value="SLEEPER_34">Giường nằm 34 giường</option><option value="LIMOUSINE_22">Limousine 22 phòng</option></select></label>
+            <label className="admin-field"><span>Sức chứa do máy chủ quy định</span><input className="form-control" readOnly type="number" value={MANAGED_BUS_CAPACITIES[form.busType]} /></label>
             <div className="admin-field admin-field--wide"><button className="btn btn-primary" type="submit">Tạo xe và ghế tự động</button></div>
           </form>
         </section>
@@ -113,8 +108,32 @@ function AdminBusesPage() {
                 {data.buses.map((bus) => (
                   <tr key={bus.id}>
                     <td><strong>{bus.busName}</strong></td>
-                    <td>{bus.licensePlate}</td><td>{bus.busType}</td><td>{bus.capacity}</td>
-                    <td>{bus.seats?.map((seat) => seat.seatCode).join(', ') || 'Chưa có ghế'}</td>
+                    <td>{bus.licensePlate}</td><td>{getBusTypeLabel(bus.busType)}</td><td>{bus.capacity}</td>
+                    <td>
+                      {bus.seats?.length ? (
+                        <details className="admin-seat-layout">
+                          <summary>Xem {bus.seats.length} vị trí</summary>
+                          {[1, 2].map((floor) => {
+                            const seats = bus.seats.filter(
+                              (seat) => seat.floor === floor,
+                            )
+                            return seats.length ? (
+                              <div key={floor}>
+                                <strong>Tầng {floor}</strong>
+                                <div>
+                                  {seats.map((seat) => (
+                                    <span key={seat.id} title={getSeatTypeLabel(seat.seatType)}>
+                                      {seat.seatCode}
+                                      <small>{getSeatTypeLabel(seat.seatType)}</small>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null
+                          })}
+                        </details>
+                      ) : 'Chưa có ghế'}
+                    </td>
                     <td><span className={`status-badge status-badge--${bus.status.toLowerCase()}`}>{bus.status}</span></td>
                     {canManage && <td><div className="admin-row-actions"><button onClick={() => edit(bus)} type="button">Sửa</button><button className="is-danger" onClick={() => remove(bus)} type="button">Xóa</button></div></td>}
                   </tr>

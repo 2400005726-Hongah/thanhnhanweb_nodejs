@@ -1,7 +1,17 @@
 import prisma from '../config/prisma.js'
+import { isRoomBusType } from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { getVietnamDateRange, getVietnamDateTime } from '../utils/dateTime.js'
+import {
+  buildAvailableSeatWhere,
+  summarizeTripSeats,
+} from './seatAvailability.service.js'
+import {
+  resolveTripPricing,
+  serializeTripPricing,
+  toSafeMoneyNumber,
+} from './tripPricing.service.js'
 
 const publicLocationSelect = {
   id: true,
@@ -28,14 +38,6 @@ const publicTripInclude = {
   },
 }
 
-const toSafeNumber = (value, fieldName) => {
-  const number = Number(value)
-  if (!Number.isFinite(number) || !Number.isSafeInteger(Math.round(number * 100))) {
-    throw new HttpError(`Giá trị ${fieldName} không thể chuyển đổi an toàn`, 500)
-  }
-  return number
-}
-
 const serializeLocation = (location) => ({
   id: location.id,
   name: location.name,
@@ -43,23 +45,40 @@ const serializeLocation = (location) => ({
   address: location.address,
 })
 
-const serializeTrip = (trip, availableSeatCount) => ({
-  id: trip.id,
-  departureTime: trip.departureTime,
-  expectedArrivalTime: trip.expectedArrivalTime,
-  ticketPrice: toSafeNumber(trip.ticketPrice, 'giá vé'),
-  status: trip.status,
-  availableSeatCount,
-  route: {
-    id: trip.route.id,
-    routeName: trip.route.routeName,
-    departureLocation: serializeLocation(trip.route.departureLocation),
-    arrivalLocation: serializeLocation(trip.route.arrivalLocation),
-    distanceKm: toSafeNumber(trip.route.distanceKm, 'khoảng cách'),
-    estimatedDurationMinutes: trip.route.estimatedDurationMinutes,
-  },
-  bus: trip.bus,
-})
+const serializeTrip = (trip, availableSeatCount) => {
+  const pricing = serializeTripPricing(
+    resolveTripPricing({
+      busType: trip.bus.busType,
+      route: trip.route,
+      ticketPrice: trip.ticketPrice,
+      singleRoomPrice: trip.singleRoomPrice,
+      doubleRoomPrice: trip.doubleRoomPrice,
+    }),
+  )
+
+  return {
+    id: trip.id,
+    departureTime: trip.departureTime,
+    expectedArrivalTime: trip.expectedArrivalTime,
+    ...pricing,
+    ticketPrice: isRoomBusType(trip.bus.busType)
+      ? Math.min(pricing.singleRoomPrice, pricing.doubleRoomPrice)
+      : pricing.ticketPrice,
+    status: trip.status,
+    busType: trip.bus.busType,
+    capacity: trip.bus.capacity,
+    availableSeatCount,
+    route: {
+      id: trip.route.id,
+      routeName: trip.route.routeName,
+      departureLocation: serializeLocation(trip.route.departureLocation),
+      arrivalLocation: serializeLocation(trip.route.arrivalLocation),
+      distanceKm: toSafeMoneyNumber(trip.route.distanceKm, 'khoảng cách'),
+      estimatedDurationMinutes: trip.route.estimatedDurationMinutes,
+    },
+    bus: trip.bus,
+  }
+}
 
 const getPublicLocations = async ({ keyword }) => {
   const locations = await prisma.location.findMany({
@@ -113,11 +132,13 @@ const buildDepartureRange = (query, now) => {
   return { gte: lowerBound, lt: upperBound }
 }
 
-const sortOptions = {
-  departureTimeAsc: { departureTime: 'asc' },
-  departureTimeDesc: { departureTime: 'desc' },
-  priceAsc: { ticketPrice: 'asc' },
-  priceDesc: { ticketPrice: 'desc' },
+const compareTrips = (left, right, sort) => {
+  if (sort === 'departureTimeDesc') {
+    return new Date(right.departureTime) - new Date(left.departureTime)
+  }
+  if (sort === 'priceAsc') return left.ticketPrice - right.ticketPrice
+  if (sort === 'priceDesc') return right.ticketPrice - left.ticketPrice
+  return new Date(left.departureTime) - new Date(right.departureTime)
 }
 
 const searchPublicTrips = async (query) => {
@@ -153,34 +174,32 @@ const searchPublicTrips = async (query) => {
       status: 'ACTIVE',
       ...(query.busType && { busType: query.busType }),
     },
-    ...((query.minPrice !== undefined || query.maxPrice !== undefined) && {
-      ticketPrice: {
-        ...(query.minPrice !== undefined && { gte: query.minPrice }),
-        ...(query.maxPrice !== undefined && { lte: query.maxPrice }),
-      },
-    }),
   }
 
-  const [trips, total] = await Promise.all([
-    prisma.trip.findMany({
-      where,
-      include: publicTripInclude,
-      orderBy: sortOptions[query.sort] || sortOptions.departureTimeAsc,
-      skip,
-      take: limit,
-    }),
-    prisma.trip.count({ where }),
-  ])
+  const allTrips = await prisma.trip.findMany({
+    where,
+    include: publicTripInclude,
+    orderBy: { departureTime: 'asc' },
+  })
+  const filteredTrips = allTrips
+    .map((trip) => serializeTrip(trip, 0))
+    .filter(
+      (trip) =>
+        (query.minPrice === undefined ||
+          trip.ticketPrice >= Number(query.minPrice)) &&
+        (query.maxPrice === undefined ||
+          trip.ticketPrice <= Number(query.maxPrice)),
+    )
+    .sort((left, right) => compareTrips(left, right, query.sort))
+  const total = filteredTrips.length
+  const trips = filteredTrips.slice(skip, skip + limit)
 
   const availableCounts = trips.length
     ? await prisma.tripSeat.groupBy({
         by: ['tripId'],
         where: {
           tripId: { in: trips.map((trip) => trip.id) },
-          OR: [
-            { status: 'AVAILABLE' },
-            { status: 'HELD', holdExpiresAt: { lte: now } },
-          ],
+          ...buildAvailableSeatWhere(now),
         },
         _count: { _all: true },
       })
@@ -190,7 +209,10 @@ const searchPublicTrips = async (query) => {
   )
 
   return {
-    trips: trips.map((trip) => serializeTrip(trip, countByTrip.get(trip.id) || 0)),
+    trips: trips.map((trip) => ({
+      ...trip,
+      availableSeatCount: countByTrip.get(trip.id) || 0,
+    })),
     pagination: buildPagination(total, page, limit),
   }
 }
@@ -260,26 +282,27 @@ const getPublicTripSeats = async (tripId) => {
     orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }],
   })
 
-  const summary = seats.reduce(
-    (result, seat) => {
-      result.total += 1
-      result[seat.status.toLowerCase()] += 1
-      return result
-    },
-    { total: 0, available: 0, held: 0, booked: 0 },
-  )
+  const summary = summarizeTripSeats(seats, now)
   const floors = [...new Set(seats.map((seat) => seat.floor))].map((floor) => ({
     floor,
     seats: seats
       .filter((seat) => seat.floor === floor)
-      .map((seat) => ({ ...seat, price: toSafeNumber(seat.price, 'giá ghế') })),
+      .map((seat) => ({
+        ...seat,
+        price: toSafeMoneyNumber(seat.price, 'giá ghế'),
+      })),
   }))
+  const serializedTrip = serializeTrip(trip, summary.available)
 
   return {
     trip: {
       id: trip.id,
       departureTime: trip.departureTime,
-      ticketPrice: toSafeNumber(trip.ticketPrice, 'giá vé'),
+      busType: serializedTrip.busType,
+      capacity: serializedTrip.capacity,
+      ticketPrice: serializedTrip.ticketPrice,
+      singleRoomPrice: serializedTrip.singleRoomPrice,
+      doubleRoomPrice: serializedTrip.doubleRoomPrice,
     },
     summary,
     floors,

@@ -1,5 +1,6 @@
 import { param, query } from 'express-validator'
 
+import { SUPPORTED_BUS_TYPES } from '../config/busCatalog.js'
 import { isValidDateOnly, isValidTimeOnly } from '../utils/dateTime.js'
 
 const publicLocationValidator = [
@@ -29,7 +30,10 @@ const searchTripValidator = [
     .custom(isValidTimeOnly).withMessage('Giờ kết thúc phải có định dạng HH:mm')
     .custom((value, { req }) => !req.query.departureTimeFrom || value >= req.query.departureTimeFrom)
     .withMessage('Giờ kết thúc phải sau giờ bắt đầu'),
-  query('busType').optional().isIn(['SEATED', 'SLEEPER', 'LIMOUSINE']).withMessage('Loại xe không hợp lệ'),
+  query('busType')
+    .optional()
+    .isIn(SUPPORTED_BUS_TYPES)
+    .withMessage('Loại xe không hợp lệ'),
   query('sort').optional().isIn(['departureTimeAsc', 'departureTimeDesc', 'priceAsc', 'priceDesc']).withMessage('Kiểu sắp xếp không hợp lệ'),
   query('page').optional().isInt({ min: 1 }).withMessage('Trang phải từ 1 trở lên').toInt(),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Giới hạn phải từ 1 đến 50').toInt(),
