@@ -23,6 +23,10 @@ const phase3MigrationPath = new URL(
   '../prisma/migrations/20260731000100_phase3_bus_seat_pricing/migration.sql',
   import.meta.url,
 )
+const phase4MigrationPath = new URL(
+  '../prisma/migrations/20260803000100_phase4_booking_expiry_cleanup/migration.sql',
+  import.meta.url,
+)
 
 const [
   schema,
@@ -32,6 +36,7 @@ const [
   businessUpgradeMigration,
   customerPhase2Migration,
   phase3Migration,
+  phase4Migration,
 ] = await Promise.all([
   readFile(schemaPath, 'utf8'),
   readFile(seedPath, 'utf8'),
@@ -40,6 +45,7 @@ const [
   readFile(businessUpgradeMigrationPath, 'utf8'),
   readFile(customerPhase2MigrationPath, 'utf8'),
   readFile(phase3MigrationPath, 'utf8'),
+  readFile(phase4MigrationPath, 'utf8'),
 ])
 
 const tables = [
@@ -157,6 +163,18 @@ describe('Supabase SQL assets', () => {
     )
     expect(phase3Migration).not.toMatch(
       /update\s+public\.(buses|seats|trip_seats|booking_items)/i,
+    )
+  })
+
+  test('prepares only a non-destructive Phase 4 expiry lookup index', () => {
+    expect(phase4Migration).toContain(
+      'CREATE INDEX IF NOT EXISTS "bookings_source_status_payment_expiry_idx"',
+    )
+    expect(phase4Migration).toContain(
+      '("source", "status", "payment_status", "expires_at")',
+    )
+    expect(phase4Migration).not.toMatch(
+      /drop\s+|truncate|delete\s+from|update\s+public\./i,
     )
   })
 })

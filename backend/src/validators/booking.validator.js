@@ -50,7 +50,11 @@ const createBookingValidator = [
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại Việt Nam không hợp lệ'),
   body('passenger.email')
-    .optional({ values: 'falsy' })
+    .isString()
+    .withMessage('Email là bắt buộc khi đặt vé Online')
+    .trim()
+    .notEmpty()
+    .withMessage('Email là bắt buộc khi đặt vé Online')
     .isEmail()
     .withMessage('Email không hợp lệ')
     .isLength({ max: 255 })
@@ -65,7 +69,6 @@ const createBookingValidator = [
     'userId',
     'customerId',
     'bookingCode',
-    'source',
     'staffNote',
     'createdById',
     'totalAmount',
@@ -80,6 +83,69 @@ const createBookingValidator = [
         .not()
         .exists()
         .withMessage(`${field} không được gửi từ phía khách hàng`),
+  ),
+]
+
+const createManagedBookingValidator = [
+  body('tripId').isUUID().withMessage('ID chuyến xe không hợp lệ'),
+  body('tripSeatIds')
+    .isArray({ min: 1, max: MAX_SEATS_PER_BOOKING })
+    .withMessage(`Bạn phải chọn từ 1 đến ${MAX_SEATS_PER_BOOKING} ghế`)
+    .custom((values) => new Set(values).size === values.length)
+    .withMessage('Danh sách ghế không được chứa ID trùng nhau'),
+  body('tripSeatIds.*').isUUID().withMessage('ID ghế không hợp lệ'),
+  body('source')
+    .isIn(['HOTLINE', 'COUNTER'])
+    .withMessage('Nguồn đặt vé quản trị phải là HOTLINE hoặc COUNTER'),
+  body('passenger')
+    .isObject({ strict: true })
+    .withMessage('Thông tin hành khách không hợp lệ'),
+  body('passenger.fullName')
+    .isString()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Họ tên hành khách phải có từ 2 đến 100 ký tự'),
+  body('passenger.phone')
+    .isString()
+    .custom(isVietnamesePhone)
+    .withMessage('Số điện thoại Việt Nam không hợp lệ'),
+  body('passenger.email')
+    .optional({ values: 'falsy' })
+    .isEmail()
+    .withMessage('Email không hợp lệ')
+    .isLength({ max: 255 })
+    .withMessage('Email không được vượt quá 255 ký tự'),
+  body('customerNote')
+    .optional({ values: 'falsy' })
+    .isString()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Ghi chú khách hàng không được vượt quá 500 ký tự'),
+  body('staffNote')
+    .optional({ values: 'falsy' })
+    .isString()
+    .trim()
+    .isLength({ max: 1000 })
+    .withMessage('Ghi chú nhân viên không được vượt quá 1000 ký tự'),
+  ...[
+    'holdToken',
+    'userId',
+    'customerId',
+    'bookingCode',
+    'createdById',
+    'totalAmount',
+    'status',
+    'paymentStatus',
+    'expiresAt',
+    'deletedReason',
+    'deletedAt',
+    'deletedById',
+  ].map(
+    (field) =>
+      body(field)
+        .not()
+        .exists()
+        .withMessage(`${field} không được gửi từ phía quản trị`),
   ),
 ]
 
@@ -158,6 +224,7 @@ export {
   cancelMyBookingValidator,
   cancellationReasonBodyValidator,
   createBookingValidator,
+  createManagedBookingValidator,
   holdSeatsValidator,
   listMyBookingsValidator,
   releaseSeatHoldValidator,

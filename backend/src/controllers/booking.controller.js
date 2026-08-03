@@ -40,10 +40,32 @@ const releaseSeatHold = async (request, response, next) => {
 
 const createBooking = async (request, response, next) => {
   try {
-    const data = await createBookingService(request.body, request.user?.id)
+    const data = await createBookingService(
+      request.body,
+      request.user?.id,
+      { source: 'ONLINE', actor: request.user || null },
+    )
     response.status(201).json({
       success: true,
       message: 'Tạo booking thành công',
+      data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const createManagedBooking = async (request, response, next) => {
+  try {
+    const data = await createBookingService(request.body, null, {
+      source: request.body.source,
+      createdById: request.user.id,
+      actor: request.user,
+      staffNote: request.body.staffNote,
+    })
+    response.status(201).json({
+      success: true,
+      message: 'Tạo booking quản trị thành công',
       data,
     })
   } catch (error) {
@@ -110,6 +132,7 @@ export {
   cancelGuestBooking,
   cancelMyBooking,
   createBooking,
+  createManagedBooking,
   holdSeats,
   listMyBookings,
   releaseSeatHold,

@@ -136,7 +136,7 @@ beforeEach(() => {
     totalAmount: 320000,
     status: 'PENDING',
     paymentStatus: 'PENDING',
-    expiresAt: null,
+    expiresAt: new Date('2099-07-20T10:15:00.000Z'),
     createdAt: new Date('2099-07-20T10:00:00.000Z'),
   }
   payments = []
@@ -157,6 +157,7 @@ describe('Simulated payment transaction service', () => {
 
     expect(result.booking.status).toBe('CONFIRMED')
     expect(result.booking.paymentStatus).toBe('SUCCESS')
+    expect(booking.expiresAt).toBeNull()
     expect(result.payment.amount).toBe(320000)
     expect(result.payment.paymentMethod).toBe('SIMULATED')
     expect(result.payment.status).toBe('SUCCESS')
@@ -173,6 +174,19 @@ describe('Simulated payment transaction service', () => {
       simulatePayment({ bookingCode, phone, paymentMethod: 'SIMULATED' }),
     ).rejects.toMatchObject({ statusCode: 409 })
     expect(payments).toHaveLength(1)
+  })
+
+  test('rejects payment after the Online booking expiry time', async () => {
+    booking.expiresAt = new Date('2000-01-01T00:00:00.000Z')
+
+    await expect(
+      simulatePayment({ bookingCode, phone, paymentMethod: 'SIMULATED' }),
+    ).rejects.toMatchObject({
+      statusCode: 409,
+      message: 'Booking đã hết thời hạn thanh toán',
+    })
+    expect(payments).toHaveLength(0)
+    expect(booking.status).toBe('PENDING')
   })
 
   test.each([

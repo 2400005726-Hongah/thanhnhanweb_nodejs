@@ -35,6 +35,7 @@ let seats
 let bookings
 let bookingItems
 let customers
+let auditLogs
 let currentTrip
 let failBookingItems
 
@@ -43,6 +44,7 @@ const cloneState = () => ({
   bookings: bookings.map((booking) => ({ ...booking })),
   bookingItems: bookingItems.map((item) => ({ ...item })),
   customers: customers.map((customer) => ({ ...customer })),
+  auditLogs: auditLogs.map((log) => ({ ...log })),
 })
 
 const restoreState = (snapshot) => {
@@ -50,6 +52,7 @@ const restoreState = (snapshot) => {
   bookings = snapshot.bookings
   bookingItems = snapshot.bookingItems
   customers = snapshot.customers
+  auditLogs = snapshot.auditLogs
 }
 
 const updateSeats = (where, data) => {
@@ -148,6 +151,13 @@ const transaction = {
       return { count: data.length }
     }),
   },
+  auditLog: {
+    create: jest.fn(async ({ data }) => {
+      const log = { id: randomUUID(), ...data }
+      auditLogs.push(log)
+      return log
+    }),
+  },
 }
 
 const prisma = {
@@ -199,6 +209,7 @@ beforeEach(() => {
   bookings = []
   bookingItems = []
   customers = []
+  auditLogs = []
   currentTrip = { ...trip }
   failBookingItems = false
   jest.clearAllMocks()
@@ -294,6 +305,7 @@ describe('Booking transaction service', () => {
 
     expect(result.booking.status).toBe('PENDING')
     expect(result.booking.paymentStatus).toBe('PENDING')
+    expect(result.booking.expiresAt).toBeInstanceOf(Date)
     expect(result.booking.totalAmount).toBe(620000)
     expect(result.booking.passenger.phone).toBe('0987654321')
     expect(result.booking.passenger.email).toBe('a@example.com')
@@ -402,11 +414,14 @@ describe('Booking transaction service', () => {
     'stores source %s, customerNote and permitted staffNote',
     async (source) => {
       const actorId = source === 'ONLINE' ? null : randomUUID()
-      const hold = await holdSeats(tripId, [seatIdA])
+      const hold =
+        source === 'ONLINE' ? await holdSeats(tripId, [seatIdA]) : null
       const result = await createBooking(
         {
           tripId,
-          holdToken: hold.holdToken,
+          ...(source === 'ONLINE'
+            ? { holdToken: hold.holdToken }
+            : { tripSeatIds: [seatIdA] }),
           passenger,
           customerNote: ' Đón tại cổng chính ',
         },
@@ -427,6 +442,15 @@ describe('Booking transaction service', () => {
           source === 'ONLINE' ? null : 'Khách gọi qua tổng đài',
         createdById: actorId,
       })
+      expect(bookings[0].expiresAt).toEqual(
+        source === 'ONLINE' ? expect.any(Date) : null,
+      )
+      expect(auditLogs[0]).toMatchObject({
+        action: 'CREATE_BOOKING',
+        entityType: 'BOOKING',
+        entityId: bookings[0].id,
+        metadata: expect.objectContaining({ source }),
+      })
     },
   )
 
@@ -446,11 +470,18 @@ describe('Booking transaction service', () => {
         { id: randomUUID(), customerId, status: 'NO_SHOW' },
         { id: randomUUID(), customerId, status: 'CANCELLED' },
       )
-      const hold = await holdSeats(tripId, [seatIdA])
+      const hold =
+        source === 'ONLINE' ? await holdSeats(tripId, [seatIdA]) : null
 
       await expect(
         createBooking(
-          { tripId, holdToken: hold.holdToken, passenger },
+          {
+            tripId,
+            ...(source === 'ONLINE'
+              ? { holdToken: hold.holdToken }
+              : { tripSeatIds: [seatIdA] }),
+            passenger,
+          },
           null,
           {
             source,
@@ -463,4 +494,23 @@ describe('Booking transaction service', () => {
       ).toHaveLength(0)
     },
   )
+
+  test('allows only one direct managed booking for the same seat', async () => {
+    const actorId = randomUUID()
+    await createBooking(
+      { tripId, tripSeatIds: [seatIdA], passenger },
+      null,
+      { source: 'COUNTER', createdById: actorId, actor: { id: actorId, role: 'STAFF' } },
+    )
+
+    await expect(
+      createBooking(
+        { tripId, tripSeatIds: [seatIdA], passenger },
+        null,
+        { source: 'HOTLINE', createdById: actorId, actor: { id: actorId, role: 'STAFF' } },
+      ),
+    ).rejects.toMatchObject({ statusCode: 409 })
+    expect(bookings).toHaveLength(1)
+    expect(bookingItems).toHaveLength(1)
+  })
 })

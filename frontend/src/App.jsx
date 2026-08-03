@@ -17,6 +17,7 @@ import TicketLookupPage from './pages/TicketLookupPage.jsx'
 import TripDetailPage from './pages/TripDetailPage.jsx'
 import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage.jsx'
 import AdminBookingsPage from './pages/admin/AdminBookingsPage.jsx'
+import AdminBookingCreatePage from './pages/admin/AdminBookingCreatePage.jsx'
 import AdminBusesPage from './pages/admin/AdminBusesPage.jsx'
 import AdminCustomersPage from './pages/admin/AdminCustomersPage.jsx'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx'
@@ -59,6 +60,22 @@ function App() {
                 element={<AdminTripsRoutesPage />}
               />
               <Route path="ve-xe" element={<AdminBookingsPage />} />
+              <Route
+                element={
+                  <ProtectedRoute
+                    requiredPermissions={[PERMISSIONS.MANAGE_BOOKINGS]}
+                  />
+                }
+              >
+                <Route
+                  path="dat-ve-hotline/:tripId"
+                  element={<AdminBookingCreatePage source="HOTLINE" />}
+                />
+                <Route
+                  path="dat-ve-tai-quay/:tripId"
+                  element={<AdminBookingCreatePage source="COUNTER" />}
+                />
+              </Route>
               <Route path="khach-hang" element={<AdminCustomersPage />} />
               <Route path="tin-tuc" element={<AdminNewsPage />} />
               <Route

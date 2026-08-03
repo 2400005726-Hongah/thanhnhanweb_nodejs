@@ -4,6 +4,7 @@ import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
+import { writeAuditLog } from './auditLog.service.js'
 import { findOrCreateBookableCustomer } from './customer.service.js'
 
 const TRANSACTION_OPTIONS = {
@@ -40,6 +41,7 @@ const normalizeBookingContext = (context = {}) => {
   return {
     source,
     createdById: source === 'ONLINE' ? null : context.createdById,
+    actor: context.actor || null,
     staffNote:
       source === 'ONLINE'
         ? null
@@ -256,6 +258,106 @@ const lockHeldSeatsByToken = (database, tripId, holdToken) =>
     FOR UPDATE
   `
 
+const getDirectBookingSeats = async (database, tripId, tripSeatIds, now) => {
+  const uniqueSeatIds = [...new Set(tripSeatIds || [])]
+  if (
+    uniqueSeatIds.length === 0 ||
+    uniqueSeatIds.length > MAX_SEATS_PER_BOOKING
+  ) {
+    throw new HttpError(
+      `Bạn phải chọn từ 1 đến ${MAX_SEATS_PER_BOOKING} ghế`,
+      400,
+    )
+  }
+
+  await database.tripSeat.updateMany({
+    where: {
+      tripId,
+      status: 'HELD',
+      holdExpiresAt: { lte: now },
+    },
+    data: { status: 'AVAILABLE', heldBy: null, holdExpiresAt: null },
+  })
+  await lockTripSeatIds(database, uniqueSeatIds)
+
+  const seats = await database.tripSeat.findMany({
+    where: { id: { in: uniqueSeatIds } },
+    select: {
+      id: true,
+      tripId: true,
+      seatCode: true,
+      floor: true,
+      seatType: true,
+      price: true,
+      status: true,
+    },
+    orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }],
+  })
+
+  if (
+    seats.length !== uniqueSeatIds.length ||
+    seats.some((seat) => seat.tripId !== tripId)
+  ) {
+    throw new HttpError(
+      'Một hoặc nhiều ghế không thuộc chuyến xe đã chọn',
+      400,
+    )
+  }
+  if (seats.some((seat) => seat.status !== 'AVAILABLE')) {
+    throw new HttpError(
+      'Một hoặc nhiều ghế vừa được khách khác giữ hoặc đặt',
+      409,
+    )
+  }
+
+  return seats
+}
+
+const getOnlineBookingSeats = async (database, payload, now) => {
+  const lockedRows = await lockHeldSeatsByToken(
+    database,
+    payload.tripId,
+    payload.holdToken,
+  )
+  const tripSeatIds = lockedRows.map((row) => row.id)
+
+  if (tripSeatIds.length === 0 || tripSeatIds.length > MAX_SEATS_PER_BOOKING) {
+    throw new HttpError('Mã giữ ghế không hợp lệ hoặc đã hết hạn', 409)
+  }
+
+  const seats = await database.tripSeat.findMany({
+    where: { id: { in: tripSeatIds } },
+    select: {
+      id: true,
+      tripId: true,
+      seatCode: true,
+      floor: true,
+      seatType: true,
+      price: true,
+      status: true,
+      heldBy: true,
+      holdExpiresAt: true,
+    },
+    orderBy: { seatCode: 'asc' },
+  })
+  const invalidHold =
+    seats.length !== tripSeatIds.length ||
+    seats.some(
+      (seat) =>
+        seat.tripId !== payload.tripId ||
+        seat.status !== 'HELD' ||
+        seat.heldBy !== payload.holdToken ||
+        !seat.holdExpiresAt ||
+        seat.holdExpiresAt <= now,
+    )
+
+  if (invalidHold) {
+    throw new HttpError('Mã giữ ghế không hợp lệ hoặc đã hết hạn', 409)
+  }
+
+  return seats
+}
+
 const generateBookingCode = () =>
   `TN${randomBytes(8).toString('hex').toUpperCase()}`
 
@@ -300,48 +402,20 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     await lockTrip(transaction, payload.tripId)
     await ensureOpenFutureTrip(transaction, payload.tripId, now)
 
-    const lockedRows = await lockHeldSeatsByToken(
-      transaction,
-      payload.tripId,
-      payload.holdToken,
-    )
-    const tripSeatIds = lockedRows.map((row) => row.id)
-
-    if (
-      tripSeatIds.length === 0 ||
-      tripSeatIds.length > MAX_SEATS_PER_BOOKING
-    ) {
-      throw new HttpError('Mã giữ ghế không hợp lệ hoặc đã hết hạn', 409)
+    if (context.source === 'ONLINE' && !payload.passenger?.email) {
+      throw new HttpError('Email là bắt buộc khi đặt vé Online', 400)
     }
 
-    const seats = await transaction.tripSeat.findMany({
-      where: { id: { in: tripSeatIds } },
-      select: {
-        id: true,
-        tripId: true,
-        seatCode: true,
-        seatType: true,
-        price: true,
-        status: true,
-        heldBy: true,
-        holdExpiresAt: true,
-      },
-      orderBy: { seatCode: 'asc' },
-    })
-    const invalidHold =
-      seats.length !== tripSeatIds.length ||
-      seats.some(
-        (seat) =>
-          seat.tripId !== payload.tripId ||
-          seat.status !== 'HELD' ||
-          seat.heldBy !== payload.holdToken ||
-          !seat.holdExpiresAt ||
-          seat.holdExpiresAt <= now,
-      )
-
-    if (invalidHold) {
-      throw new HttpError('Mã giữ ghế không hợp lệ hoặc đã hết hạn', 409)
-    }
+    const seats =
+      context.source === 'ONLINE'
+        ? await getOnlineBookingSeats(transaction, payload, now)
+        : await getDirectBookingSeats(
+            transaction,
+            payload.tripId,
+            payload.tripSeatIds,
+            now,
+          )
+    const tripSeatIds = seats.map((seat) => seat.id)
 
     const totalAmount = calculateTotal(seats)
     const { customer, violations } = await findOrCreateBookableCustomer(
@@ -368,7 +442,13 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
         totalAmount,
         status: 'PENDING',
         paymentStatus: 'PENDING',
-        expiresAt: null,
+        expiresAt:
+          context.source === 'ONLINE'
+            ? new Date(
+                now.getTime() +
+                  env.bookingPaymentExpiresMinutes * 60 * 1000,
+              )
+            : null,
       },
       select: { id: true },
     })
@@ -384,18 +464,48 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     })
 
     const updatedSeats = await transaction.tripSeat.updateMany({
-      where: {
-        id: { in: tripSeatIds },
-        tripId: payload.tripId,
-        status: 'HELD',
-        heldBy: payload.holdToken,
-        holdExpiresAt: { gt: now },
-      },
+      where:
+        context.source === 'ONLINE'
+          ? {
+              id: { in: tripSeatIds },
+              tripId: payload.tripId,
+              status: 'HELD',
+              heldBy: payload.holdToken,
+              holdExpiresAt: { gt: now },
+            }
+          : {
+              id: { in: tripSeatIds },
+              tripId: payload.tripId,
+              status: 'AVAILABLE',
+            },
       data: { status: 'BOOKED', heldBy: null, holdExpiresAt: null },
     })
     if (updatedSeats.count !== tripSeatIds.length) {
       throw new HttpError('Ghế giữ không còn hợp lệ để tạo booking', 409)
     }
+
+    await writeAuditLog(
+      {
+        userId:
+          context.source === 'ONLINE'
+            ? userId || null
+            : context.createdById,
+        role:
+          context.source === 'ONLINE'
+            ? context.actor?.role || (userId ? 'CUSTOMER' : null)
+            : context.actor?.role,
+        actorName: context.actor?.fullName,
+        action: 'CREATE_BOOKING',
+        entityType: 'BOOKING',
+        entityId: booking.id,
+        description: `Tạo booking nguồn ${context.source}`,
+        metadata: {
+          source: context.source,
+          customerId: customer.id,
+        },
+      },
+      transaction,
+    )
 
     const result = await transaction.booking.findUnique({
       where: { id: booking.id },

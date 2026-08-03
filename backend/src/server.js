@@ -4,6 +4,10 @@ import {
   disconnectDatabase,
 } from './config/database.js'
 import env, { validateStartupEnv } from './config/env.js'
+import {
+  startBookingCleanupJob,
+  stopBookingCleanupJob,
+} from './jobs/bookingCleanup.js'
 
 let server
 let isShuttingDown = false
@@ -17,11 +21,13 @@ const startServer = async () => {
       `NHÀ XE THÀNH NHÂN API đang chạy tại http://localhost:${env.port}`,
     )
   })
+  startBookingCleanupJob()
 
   server.on('error', async (error) => {
     console.error(
       `Không thể khởi động HTTP server (${error.code || 'UNKNOWN_ERROR'})`,
     )
+    await stopBookingCleanupJob()
     await disconnectDatabase()
     process.exitCode = 1
   })
@@ -35,6 +41,7 @@ const shutdown = async (signal) => {
   }
 
   isShuttingDown = true
+  await stopBookingCleanupJob()
   console.log(`Đang dừng server theo tín hiệu ${signal}...`)
 
   try {

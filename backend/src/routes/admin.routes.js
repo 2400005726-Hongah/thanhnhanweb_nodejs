@@ -17,6 +17,7 @@ import {
   showAuditLogs,
   showBooking,
 } from '../controllers/admin.controller.js'
+import { createManagedBooking } from '../controllers/booking.controller.js'
 import {
   authenticate,
   authorizePermissions,
@@ -37,6 +38,7 @@ import {
   updateBookingContactValidator,
   updateCustomerValidator,
 } from '../validators/admin.validator.js'
+import { createManagedBookingValidator } from '../validators/booking.validator.js'
 
 const router = Router()
 
@@ -61,6 +63,13 @@ router.get(
   listManagedBookingsValidator,
   validate,
   listBookings,
+)
+router.post(
+  '/bookings',
+  authorizePermissions(PERMISSIONS.MANAGE_BOOKINGS),
+  createManagedBookingValidator,
+  validate,
+  createManagedBooking,
 )
 router.get(
   '/bookings/:bookingCode',

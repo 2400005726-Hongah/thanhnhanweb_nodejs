@@ -44,6 +44,9 @@ const deleteBus = async (id) =>
 const getBookings = async (params = {}) =>
   unwrap(await authApiClient.get('/admin/bookings', { params }))
 
+const createManagedBooking = async (payload) =>
+  unwrap(await authApiClient.post('/admin/bookings', payload))
+
 const cancelBooking = async (bookingCode, reason) =>
   unwrap(
     await authApiClient.post(`/admin/bookings/${bookingCode}/cancel`, {
@@ -96,6 +99,7 @@ const deleteNews = async (id) =>
 
 export {
   cancelBooking,
+  createManagedBooking,
   createNews,
   createBus,
   createRoute,

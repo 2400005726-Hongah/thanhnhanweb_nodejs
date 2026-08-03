@@ -12,6 +12,8 @@ process.env.SEAT_HOLD_MINUTES = '10'
 const tripId = randomUUID()
 const tripSeatIds = [randomUUID(), randomUUID()]
 const userId = randomUUID()
+const adminId = randomUUID()
+const staffId = randomUUID()
 const holdToken = 'a'.repeat(64)
 const holdSeats = jest.fn(async () => ({
   holdToken,
@@ -25,14 +27,34 @@ const createBooking = jest.fn(async () => ({
 }))
 const prisma = {
   user: {
-    findUnique: jest.fn(async () => ({
-      id: userId,
-      fullName: 'Nguyễn Văn A',
-      email: 'a@example.com',
-      phone: '0987654321',
-      role: 'CUSTOMER',
-      status: 'ACTIVE',
-    })),
+    findUnique: jest.fn(async ({ where }) =>
+      ({
+        [userId]: {
+          id: userId,
+          fullName: 'Nguyễn Văn A',
+          email: 'a@example.com',
+          phone: '0987654321',
+          role: 'CUSTOMER',
+          status: 'ACTIVE',
+        },
+        [adminId]: {
+          id: adminId,
+          fullName: 'Chủ xe',
+          email: 'admin@example.com',
+          phone: '0911111111',
+          role: 'ADMIN',
+          status: 'ACTIVE',
+        },
+        [staffId]: {
+          id: staffId,
+          fullName: 'Nhân viên',
+          email: 'staff@example.com',
+          phone: '0922222222',
+          role: 'STAFF',
+          status: 'ACTIVE',
+        },
+      })[where.id] || null,
+    ),
   },
 }
 
@@ -107,7 +129,10 @@ describe('Seat hold and booking API validation', () => {
       .send(payload)
 
     expect(response.statusCode).toBe(201)
-    expect(createBooking).toHaveBeenCalledWith(payload, undefined)
+    expect(createBooking).toHaveBeenCalledWith(payload, undefined, {
+      source: 'ONLINE',
+      actor: null,
+    })
   })
 
   test('attaches an active user when a valid JWT is supplied', async () => {
@@ -123,12 +148,20 @@ describe('Seat hold and booking API validation', () => {
       .send(payload)
 
     expect(response.statusCode).toBe(201)
-    expect(createBooking).toHaveBeenCalledWith(payload, userId)
+    expect(createBooking).toHaveBeenCalledWith(
+      payload,
+      userId,
+      expect.objectContaining({
+        source: 'ONLINE',
+        actor: expect.objectContaining({ id: userId, role: 'CUSTOMER' }),
+      }),
+    )
   })
 
   test.each([
     ['invalid phone', { ...passenger, phone: '123' }],
     ['invalid email', { ...passenger, email: 'invalid' }],
+    ['missing email', { fullName: passenger.fullName, phone: passenger.phone }],
     ['missing full name', { phone: passenger.phone }],
   ])('rejects %s in passenger data', async (_label, invalidPassenger) => {
     const response = await request(app)
@@ -148,10 +181,101 @@ describe('Seat hold and booking API validation', () => {
     expect(createBooking).not.toHaveBeenCalled()
   })
 
-  test('does not allow a public client to choose HOTLINE or COUNTER source', async () => {
+  test('does not let a public client write staffNote or createdById', async () => {
     const response = await request(app)
       .post('/api/v1/public/bookings')
-      .send({ tripId, holdToken, passenger, source: 'HOTLINE' })
+      .send({
+        tripId,
+        holdToken,
+        passenger,
+        staffNote: 'Ghi chú giả',
+        createdById: adminId,
+      })
+
+    expect(response.statusCode).toBe(400)
+    expect(createBooking).not.toHaveBeenCalled()
+  })
+
+  test('ignores a fake source and always delegates public booking as ONLINE', async () => {
+    const payload = { tripId, holdToken, passenger, source: 'HOTLINE' }
+    const response = await request(app)
+      .post('/api/v1/public/bookings')
+      .send(payload)
+
+    expect(response.statusCode).toBe(201)
+    expect(createBooking).toHaveBeenCalledWith(payload, undefined, {
+      source: 'ONLINE',
+      actor: null,
+    })
+  })
+
+  test.each([
+    ['ADMIN', adminId, 'HOTLINE'],
+    ['ADMIN', adminId, 'COUNTER'],
+    ['STAFF', staffId, 'HOTLINE'],
+    ['STAFF', staffId, 'COUNTER'],
+  ])('%s creates a managed %s booking', async (role, actorId, source) => {
+    const token = jwt.sign({ userId: actorId, role }, process.env.JWT_SECRET)
+    const payload = {
+      tripId,
+      tripSeatIds,
+      source,
+      passenger,
+      customerNote: 'Đón tại cổng',
+      staffNote: 'Khách đã xác nhận',
+    }
+    const response = await request(app)
+      .post('/api/v1/admin/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+
+    expect(response.statusCode).toBe(201)
+    expect(createBooking).toHaveBeenCalledWith(
+      payload,
+      null,
+      expect.objectContaining({
+        source,
+        createdById: actorId,
+        actor: expect.objectContaining({ id: actorId, role }),
+        staffNote: payload.staffNote,
+      }),
+    )
+  })
+
+  test('Guest and CUSTOMER cannot call the managed booking API', async () => {
+    const payload = { tripId, tripSeatIds, source: 'HOTLINE', passenger }
+    const customerToken = jwt.sign(
+      { userId, role: 'CUSTOMER' },
+      process.env.JWT_SECRET,
+    )
+    const [guestResponse, customerResponse] = await Promise.all([
+      request(app).post('/api/v1/admin/bookings').send(payload),
+      request(app)
+        .post('/api/v1/admin/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send(payload),
+    ])
+
+    expect(guestResponse.statusCode).toBe(401)
+    expect(customerResponse.statusCode).toBe(403)
+    expect(createBooking).not.toHaveBeenCalled()
+  })
+
+  test('managed API rejects createdById and derives it from authentication', async () => {
+    const token = jwt.sign(
+      { userId: staffId, role: 'STAFF' },
+      process.env.JWT_SECRET,
+    )
+    const response = await request(app)
+      .post('/api/v1/admin/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        tripId,
+        tripSeatIds,
+        source: 'HOTLINE',
+        passenger,
+        createdById: adminId,
+      })
 
     expect(response.statusCode).toBe(400)
     expect(createBooking).not.toHaveBeenCalled()

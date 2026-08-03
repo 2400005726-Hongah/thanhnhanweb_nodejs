@@ -98,7 +98,8 @@ function BookingPage() {
     if (!/^(?:\+84|84|0)(?:3|5|7|8|9)[0-9]{8}$/.test(phone)) {
       return 'Số điện thoại Việt Nam không hợp lệ.'
     }
-    if (passenger.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(passenger.email)) {
+    if (!passenger.email.trim()) return 'Email là bắt buộc khi đặt vé Online.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(passenger.email)) {
       return 'Email không hợp lệ.'
     }
     return ''
@@ -269,7 +270,7 @@ function BookingPage() {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="email">
-                    Email <span className="text-muted">(không bắt buộc)</span>
+                    Email
                   </label>
                   <input
                     className="form-control"
@@ -280,6 +281,7 @@ function BookingPage() {
                     onChange={updatePassenger}
                     maxLength="255"
                     autoComplete="email"
+                    required
                   />
                 </div>
               </div>
@@ -339,7 +341,7 @@ function BookingPage() {
                 <strong>{formatCurrency(hold.totalAmount)}</strong>
               </div>
               <p className="summary-note">
-                Booking sẽ ở trạng thái chờ thanh toán. Task này chưa thu tiền.
+                Booking sẽ ở trạng thái chờ thanh toán trong thời hạn được hệ thống quy định.
               </p>
             </aside>
           </div>

@@ -332,6 +332,7 @@ model Booking {
   @@index([customerId, createdAt], map: "bookings_customer_created_idx")
   @@index([customerId, status], map: "bookings_customer_status_idx")
   @@index([tripId, status], map: "bookings_trip_status_idx")
+  @@index([source, status, paymentStatus, expiresAt], map: "bookings_source_status_payment_expiry_idx")
   @@index([source, createdAt], map: "bookings_source_created_idx")
   @@index([passengerPhone, bookingCode], map: "bookings_phone_code_idx")
   @@index([cancelledById])

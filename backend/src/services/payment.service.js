@@ -150,6 +150,9 @@ const simulatePaymentAttempt = (
     ) {
       throw new HttpError('Booking đã được thanh toán hoặc không còn hợp lệ', 409)
     }
+    if (booking.expiresAt && booking.expiresAt <= new Date()) {
+      throw new HttpError('Booking đã hết thời hạn thanh toán', 409)
+    }
 
     const paidAt = new Date()
     const payment = await transaction.payment.create({
@@ -172,7 +175,11 @@ const simulatePaymentAttempt = (
 
     await transaction.booking.update({
       where: { id: booking.id },
-      data: { status: 'CONFIRMED', paymentStatus: 'SUCCESS' },
+      data: {
+        status: 'CONFIRMED',
+        paymentStatus: 'SUCCESS',
+        expiresAt: null,
+      },
     })
 
     const updatedBooking = await transaction.booking.findUnique({

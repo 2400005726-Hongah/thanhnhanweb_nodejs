@@ -46,6 +46,16 @@ const parseBookingCancelBeforeMinutes = (value) => {
   return minutes
 }
 
+const parsePositiveInteger = (value, fallback, name, maximum = 1440) => {
+  const parsed = Number(value ?? fallback)
+
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > maximum) {
+    throw new Error(`${name} phải là số nguyên từ 1 đến ${maximum}`)
+  }
+
+  return parsed
+}
+
 const env = Object.freeze({
   port: parsePort(process.env.PORT),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -56,6 +66,22 @@ const env = Object.freeze({
   seatHoldMinutes: parseSeatHoldMinutes(process.env.SEAT_HOLD_MINUTES),
   bookingCancelBeforeMinutes: parseBookingCancelBeforeMinutes(
     process.env.BOOKING_CANCEL_BEFORE_MINUTES,
+  ),
+  bookingPaymentExpiresMinutes: parsePositiveInteger(
+    process.env.BOOKING_PAYMENT_EXPIRES_MINUTES,
+    15,
+    'BOOKING_PAYMENT_EXPIRES_MINUTES',
+  ),
+  bookingCleanupIntervalMinutes: parsePositiveInteger(
+    process.env.BOOKING_CLEANUP_INTERVAL_MINUTES,
+    1,
+    'BOOKING_CLEANUP_INTERVAL_MINUTES',
+  ),
+  bookingCleanupBatchSize: parsePositiveInteger(
+    process.env.BOOKING_CLEANUP_BATCH_SIZE,
+    50,
+    'BOOKING_CLEANUP_BATCH_SIZE',
+    500,
   ),
   bcryptSaltRounds: parseBcryptSaltRounds(process.env.BCRYPT_SALT_ROUNDS),
   adminFullName: process.env.ADMIN_FULL_NAME || '',

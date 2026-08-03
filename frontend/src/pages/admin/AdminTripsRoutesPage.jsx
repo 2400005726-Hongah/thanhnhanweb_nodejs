@@ -374,8 +374,8 @@ function AdminTripsRoutesPage() {
                   <td>
                     <div className="admin-row-actions">
                       <Link to={`/chuyen-xe/${trip.id}`}>Sơ đồ ghế</Link>
-                      <Link to={`/dat-ve/${trip.id}`}>Tại quầy</Link>
-                      <Link to={`/dat-ve/${trip.id}`}>Hotline</Link>
+                      <Link to={`/admin/dat-ve-tai-quay/${trip.id}`}>Tại quầy</Link>
+                      <Link to={`/admin/dat-ve-hotline/${trip.id}`}>Hotline</Link>
                       <button onClick={() => editTrip(trip)} type="button">Sửa</button>
                       {canDeleteTrips && (
                         <button className="is-danger" onClick={() => removeTrip(trip)} type="button">Xóa</button>
