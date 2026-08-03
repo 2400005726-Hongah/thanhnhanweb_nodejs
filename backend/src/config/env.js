@@ -56,6 +56,13 @@ const parsePositiveInteger = (value, fallback, name, maximum = 1440) => {
   return parsed
 }
 
+const parseBoolean = (value, fallback, name) => {
+  const normalized = String(value ?? fallback).trim().toLowerCase()
+  if (['true', '1', 'yes'].includes(normalized)) return true
+  if (['false', '0', 'no'].includes(normalized)) return false
+  throw new Error(`${name} phải là true hoặc false`)
+}
+
 const env = Object.freeze({
   port: parsePort(process.env.PORT),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -83,6 +90,14 @@ const env = Object.freeze({
     'BOOKING_CLEANUP_BATCH_SIZE',
     500,
   ),
+  emailEnabled: parseBoolean(process.env.EMAIL_ENABLED, false, 'EMAIL_ENABLED'),
+  smtpHost: process.env.SMTP_HOST || '',
+  smtpPort: parsePositiveInteger(process.env.SMTP_PORT, 587, 'SMTP_PORT', 65535),
+  smtpSecure: parseBoolean(process.env.SMTP_SECURE, false, 'SMTP_SECURE'),
+  smtpUser: process.env.SMTP_USER || '',
+  smtpPassword: process.env.SMTP_PASSWORD || '',
+  emailFromName: process.env.EMAIL_FROM_NAME || 'Nhà xe Thành Nhân',
+  emailFromAddress: process.env.EMAIL_FROM_ADDRESS || '',
   bcryptSaltRounds: parseBcryptSaltRounds(process.env.BCRYPT_SALT_ROUNDS),
   adminFullName: process.env.ADMIN_FULL_NAME || '',
   adminEmail: process.env.ADMIN_EMAIL || '',

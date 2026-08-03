@@ -13,6 +13,7 @@ import {
 import { getSeatTypeLabel } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import { getPaymentOptionsForSource } from '../utils/paymentLabels.js'
 
 const emptyPassenger = { fullName: '', phone: '', email: '' }
 
@@ -29,6 +30,7 @@ function BookingPage() {
   const [detail, setDetail] = useState(null)
   const [passenger, setPassenger] = useState(emptyPassenger)
   const [customerNote, setCustomerNote] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER')
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
     hold ? getRemainingSeconds(hold.holdExpiresAt) : 0,
   )
@@ -127,6 +129,7 @@ function BookingPage() {
           email: passenger.email.trim() || undefined,
         },
         customerNote: customerNote.trim() || undefined,
+        paymentMethod,
       })
       releaseOnExit.current = false
       clearSeatHold(tripId)
@@ -299,6 +302,28 @@ function BookingPage() {
                 value={customerNote}
               />
 
+              <label className="form-label mt-3" htmlFor="paymentMethod">
+                Phương thức thanh toán
+              </label>
+              <select
+                className="form-select"
+                id="paymentMethod"
+                onChange={(event) => setPaymentMethod(event.target.value)}
+                required
+                value={paymentMethod}
+              >
+                {getPaymentOptionsForSource('ONLINE').map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="form-text">
+                {paymentMethod === 'PAY_AT_BUS'
+                  ? 'Thanh toán trực tiếp khi lên xe.'
+                  : 'Phương thức điện tử được mô phỏng trong phạm vi đồ án; không kết nối cổng thanh toán thật.'}
+              </p>
+
               <div className="booking-form-actions">
                 <button
                   className="btn btn-outline-secondary"
@@ -341,7 +366,9 @@ function BookingPage() {
                 <strong>{formatCurrency(hold.totalAmount)}</strong>
               </div>
               <p className="summary-note">
-                Booking sẽ ở trạng thái chờ thanh toán trong thời hạn được hệ thống quy định.
+                {paymentMethod === 'PAY_AT_BUS'
+                  ? 'Vé được xác nhận và giữ ghế; quý khách thanh toán khi lên xe.'
+                  : 'Thanh toán mô phỏng thành công sẽ xác nhận vé ngay sau khi đặt.'}
               </p>
             </aside>
           </div>

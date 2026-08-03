@@ -8,6 +8,10 @@ import {
 import { getApiErrorMessage } from '../services/apiClient.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import {
+  PAYMENT_STATUS_LABELS,
+  getPaymentMethodLabel,
+} from '../utils/paymentLabels.js'
 
 const bookingStatusLabel = {
   PENDING: 'Chờ xác nhận',
@@ -15,13 +19,6 @@ const bookingStatusLabel = {
   CANCELLED: 'Đã hủy',
   EXPIRED: 'Đã hết hạn',
   COMPLETED: 'Đã hoàn thành',
-}
-
-const paymentStatusLabel = {
-  PENDING: 'Chờ thanh toán',
-  SUCCESS: 'Đã thanh toán',
-  FAILED: 'Thanh toán thất bại',
-  REFUNDED: 'Đã hoàn tiền',
 }
 
 const initialResult = {
@@ -155,7 +152,7 @@ function MyBookingsPage() {
           </select>
           <select name="paymentStatus" value={filters.paymentStatus} onChange={updateFilter} className="form-select">
             <option value="">Mọi trạng thái thanh toán</option>
-            {Object.entries(paymentStatusLabel).map(([value, label]) => (
+            {Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
@@ -202,7 +199,7 @@ function MyBookingsPage() {
                       {bookingStatusLabel[booking.status] || booking.status}
                     </span>
                     <span className={`status-badge status-badge--${booking.paymentStatus.toLowerCase()}`}>
-                      {paymentStatusLabel[booking.paymentStatus] || booking.paymentStatus}
+                      {PAYMENT_STATUS_LABELS[booking.paymentStatus] || booking.paymentStatus}
                     </span>
                   </div>
                 </div>
@@ -212,7 +209,7 @@ function MyBookingsPage() {
                   <div><span>Xe</span><strong>{booking.trip.bus.busName}</strong></div>
                   <div><span>Ghế</span><strong>{booking.seats.map((seat) => seat.seatCode).join(', ')}</strong></div>
                   <div><span>Tổng tiền</span><strong>{formatCurrency(booking.totalAmount)}</strong></div>
-                  <div><span>Phương thức</span><strong>{booking.payment?.paymentMethod || 'Chưa thanh toán'}</strong></div>
+                  <div><span>Phương thức</span><strong>{getPaymentMethodLabel(booking.payment?.paymentMethod)}</strong></div>
                   <div><span>Hạn hủy</span><strong>{booking.canCancel ? formatDateTime(booking.cancelDeadline) : 'Đã hết hiệu lực'}</strong></div>
                 </div>
 

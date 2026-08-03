@@ -41,7 +41,6 @@ const hydratedBooking = () => ({
   trip,
   items,
   payments: payments
-    .filter((payment) => payment.status === 'SUCCESS')
     .map(({ paymentMethod, amount, transactionCode, status, paidAt }) => ({
       paymentMethod,
       amount,
@@ -78,7 +77,7 @@ const transaction = {
       payments.find(
         (payment) =>
           payment.bookingId === where.bookingId &&
-          payment.status === where.status,
+          (!where.status || payment.status === where.status),
       ) || null,
     ),
     create: jest.fn(async ({ data }) => {
@@ -93,11 +92,13 @@ const transaction = {
       const payment = { id: randomUUID(), ...data }
       payments.push(payment)
       return {
+        id: payment.id,
         paymentMethod: payment.paymentMethod,
         amount: payment.amount,
         transactionCode: payment.transactionCode,
         status: payment.status,
         paidAt: payment.paidAt,
+        createdAt: new Date(),
       }
     }),
   },
@@ -120,7 +121,7 @@ const prisma = {
 
 jest.unstable_mockModule('../src/config/prisma.js', () => ({ default: prisma }))
 
-const { lookupBooking, simulatePayment } = await import(
+const { createInitialPayment, lookupBooking, simulatePayment } = await import(
   '../src/services/payment.service.js'
 )
 
@@ -128,6 +129,7 @@ beforeEach(() => {
   booking = {
     id: bookingId,
     bookingCode,
+    source: 'ONLINE',
     userId: null,
     tripId: randomUUID(),
     passengerFullName: 'Khách Task 8',
@@ -277,5 +279,59 @@ describe('Public booking lookup service', () => {
     expect(result.booking.status).toBe('CONFIRMED')
     expect(result.payment.status).toBe('SUCCESS')
     expect(result.payment.amount).toBe(320000)
+  })
+
+  test('returns pending PAY_AT_BUS information without pretending it is paid', async () => {
+    payments.push({
+      id: randomUUID(),
+      bookingId,
+      paymentMethod: 'PAY_AT_BUS',
+      amount: 320000,
+      transactionCode: null,
+      status: 'PENDING',
+      paidAt: null,
+    })
+    booking.status = 'CONFIRMED'
+    booking.paymentStatus = 'PENDING'
+    booking.expiresAt = null
+
+    const result = await lookupBooking({ bookingCode, phone })
+
+    expect(result.booking).toMatchObject({
+      status: 'CONFIRMED',
+      paymentStatus: 'PENDING',
+    })
+    expect(result.payment).toEqual({
+      paymentMethod: 'PAY_AT_BUS',
+      amount: 320000,
+      transactionCode: null,
+      status: 'PENDING',
+      paidAt: null,
+    })
+  })
+})
+
+describe('Initial Payment duplicate protection', () => {
+  test('does not create a second Payment for the same booking', async () => {
+    const input = {
+      database: transaction,
+      bookingId,
+      source: 'COUNTER',
+      paymentMethod: 'CASH_COUNTER',
+      amount: 320000,
+      actor: { id: randomUUID(), role: 'STAFF' },
+    }
+
+    await createInitialPayment(input)
+
+    await expect(createInitialPayment(input)).rejects.toMatchObject({
+      statusCode: 409,
+    })
+    expect(payments).toHaveLength(1)
+    expect(payments[0]).toMatchObject({
+      amount: 320000,
+      status: 'SUCCESS',
+      paymentMethod: 'CASH_COUNTER',
+    })
   })
 })

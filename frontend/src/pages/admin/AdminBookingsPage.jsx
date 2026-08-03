@@ -10,6 +10,10 @@ import {
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
+import {
+  getPaymentMethodLabel,
+  getPaymentStatusLabel,
+} from '../../utils/paymentLabels.js'
 
 function AdminBookingsPage() {
   const [bookings, setBookings] = useState([])
@@ -108,14 +112,20 @@ function AdminBookingsPage() {
             <table className="admin-table">
               <thead><tr><th>Mã vé</th><th>Hành khách</th><th>Hành trình</th><th>Ghế</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
               <tbody>
-                {bookings.map((booking) => (
+                {bookings.map((booking) => {
+                  const payment = booking.payments?.[0]
+                  return (
                   <tr key={booking.id}>
                     <td><strong>{booking.bookingCode}</strong><small>{formatDateTime(booking.createdAt)}</small></td>
                     <td>{booking.passengerFullName}<small>{booking.passengerPhone}</small></td>
                     <td>{booking.trip.route.routeName}<small>{formatDateTime(booking.trip.departureTime)}</small></td>
                     <td>{booking.items.map((item) => item.seatCode).join(', ')}</td>
                     <td>{formatCurrency(booking.totalAmount)}</td>
-                    <td><span className={`status-badge status-badge--${booking.status.toLowerCase()}`}>{booking.status}</span><small>{booking.paymentStatus}</small></td>
+                    <td>
+                      <span className={`status-badge status-badge--${booking.status.toLowerCase()}`}>{booking.status}</span>
+                      <small>{getPaymentStatusLabel(booking.paymentStatus)}</small>
+                      <small>{getPaymentMethodLabel(payment?.paymentMethod)}</small>
+                    </td>
                     <td>
                       <div className="admin-row-actions">
                         {['PENDING', 'CONFIRMED'].includes(booking.status) && (
@@ -128,7 +138,8 @@ function AdminBookingsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

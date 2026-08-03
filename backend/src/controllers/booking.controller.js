@@ -5,6 +5,7 @@ import {
 } from '../services/booking.service.js'
 import { listMyBookings as listMyBookingsService } from '../services/bookingHistory.service.js'
 import { cancelBooking as cancelBookingService } from '../services/cancellation.service.js'
+import { attachEmailDelivery } from '../services/bookingEmail.service.js'
 
 const holdSeats = async (request, response, next) => {
   try {
@@ -40,14 +41,18 @@ const releaseSeatHold = async (request, response, next) => {
 
 const createBooking = async (request, response, next) => {
   try {
-    const data = await createBookingService(
+    const bookingResult = await createBookingService(
       request.body,
       request.user?.id,
       { source: 'ONLINE', actor: request.user || null },
     )
+    const data = await attachEmailDelivery(bookingResult, request.user || null)
+    const payAtBus = data.booking.payment?.paymentMethod === 'PAY_AT_BUS'
     response.status(201).json({
       success: true,
-      message: 'Tạo booking thành công',
+      message: payAtBus
+        ? 'Vé đã được đặt thành công. Quý khách vui lòng thanh toán khi lên xe.'
+        : 'Tạo booking và thanh toán mô phỏng thành công',
       data,
     })
   } catch (error) {
@@ -57,15 +62,19 @@ const createBooking = async (request, response, next) => {
 
 const createManagedBooking = async (request, response, next) => {
   try {
-    const data = await createBookingService(request.body, null, {
+    const bookingResult = await createBookingService(request.body, null, {
       source: request.body.source,
       createdById: request.user.id,
       actor: request.user,
       staffNote: request.body.staffNote,
     })
+    const data = await attachEmailDelivery(bookingResult, request.user)
+    const payAtBus = data.booking.payment?.paymentMethod === 'PAY_AT_BUS'
     response.status(201).json({
       success: true,
-      message: 'Tạo booking quản trị thành công',
+      message: payAtBus
+        ? 'Vé đã được đặt thành công. Quý khách vui lòng thanh toán khi lên xe.'
+        : 'Tạo booking quản trị và thanh toán thành công',
       data,
     })
   } catch (error) {

@@ -1,9 +1,11 @@
 import { randomBytes } from 'node:crypto'
 
+import { assertPaymentMethodAllowed } from '../config/paymentMethods.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
 import { normalizePhone } from '../utils/normalize.js'
 import { getCancellationState } from './cancellation.service.js'
+import { writeAuditLog } from './auditLog.service.js'
 
 const TRANSACTION_OPTIONS = { maxWait: 5000, timeout: 15000 }
 
@@ -49,15 +51,15 @@ const publicBookingInclude = {
     orderBy: { seatCode: 'asc' },
   },
   payments: {
-    where: { status: { in: ['SUCCESS', 'REFUNDED'] } },
     select: {
+      id: true,
       paymentMethod: true,
       amount: true,
       transactionCode: true,
       status: true,
       paidAt: true,
     },
-    orderBy: { paidAt: 'desc' },
+    orderBy: { createdAt: 'desc' },
     take: 1,
   },
 }
@@ -75,6 +77,7 @@ const serializePayment = (payment) =>
 
 const serializePublicBooking = (booking) => ({
   bookingCode: booking.bookingCode,
+  source: booking.source,
   status: booking.status,
   paymentStatus: booking.paymentStatus,
   totalAmount: toSafeNumber(booking.totalAmount, 'tổng tiền'),
@@ -108,6 +111,103 @@ const lockBookingByCode = (database, bookingCode) =>
 const generateTransactionCode = () =>
   `PAY${randomBytes(10).toString('hex').toUpperCase()}`
 
+const getInitialPaymentPlan = (source, paymentMethod, now = new Date()) => {
+  if (!paymentMethod) {
+    return null
+  }
+
+  assertPaymentMethodAllowed(source, paymentMethod)
+  const pending = paymentMethod === 'PAY_AT_BUS'
+
+  return {
+    bookingStatus: 'CONFIRMED',
+    bookingPaymentStatus: pending ? 'PENDING' : 'SUCCESS',
+    bookingExpiresAt: null,
+    paymentStatus: pending ? 'PENDING' : 'SUCCESS',
+    paidAt: pending ? null : now,
+    transactionCode: pending ? null : generateTransactionCode(),
+  }
+}
+
+const paymentAuditAction = (status) =>
+  status === 'SUCCESS' ? 'PAYMENT_SUCCESS' : 'PAYMENT_PENDING'
+
+const createInitialPayment = async ({
+  database,
+  bookingId,
+  source,
+  paymentMethod,
+  amount,
+  actor,
+  now = new Date(),
+  plan: suppliedPlan,
+}) => {
+  const plan = suppliedPlan || getInitialPaymentPlan(source, paymentMethod, now)
+  if (!plan) return null
+
+  const existingPayment = await database.payment.findFirst({
+    where: { bookingId },
+    select: { id: true },
+  })
+  if (existingPayment) {
+    throw new HttpError('Booking đã có thông tin thanh toán', 409)
+  }
+
+  const payment = await database.payment.create({
+    data: {
+      bookingId,
+      paymentMethod,
+      amount,
+      transactionCode: plan.transactionCode,
+      status: plan.paymentStatus,
+      paidAt: plan.paidAt,
+    },
+    select: {
+      id: true,
+      paymentMethod: true,
+      amount: true,
+      transactionCode: true,
+      status: true,
+      paidAt: true,
+      createdAt: true,
+    },
+  })
+
+  const auditContext = {
+    userId: actor?.id || null,
+    role: actor?.role || null,
+    actorName: actor?.fullName,
+    entityType: 'PAYMENT',
+    entityId: payment.id,
+    metadata: {
+      bookingId,
+      paymentMethod,
+      status: plan.paymentStatus,
+    },
+  }
+  await writeAuditLog(
+    {
+      ...auditContext,
+      action: 'CREATE_PAYMENT',
+      description: `Tạo Payment ${paymentMethod}`,
+    },
+    database,
+  )
+  await writeAuditLog(
+    {
+      ...auditContext,
+      action: paymentAuditAction(plan.paymentStatus),
+      description:
+        plan.paymentStatus === 'SUCCESS'
+          ? 'Thanh toán mô phỏng đã được ghi nhận'
+          : 'Payment chờ thanh toán tại nhà xe',
+    },
+    database,
+  )
+
+  return { payment, plan }
+}
+
 const findMatchingBooking = (database, bookingCode, phone, include) =>
   database.booking.findFirst({
     where: {
@@ -138,6 +238,7 @@ const simulatePaymentAttempt = (
     if (paymentMethod !== 'SIMULATED') {
       throw new HttpError('Task này chỉ hỗ trợ phương thức SIMULATED', 400)
     }
+    assertPaymentMethodAllowed(booking.source, paymentMethod)
 
     const successfulPayment = await transaction.payment.findFirst({
       where: { bookingId: booking.id, status: 'SUCCESS' },
@@ -165,6 +266,7 @@ const simulatePaymentAttempt = (
         paidAt,
       },
       select: {
+        id: true,
         paymentMethod: true,
         amount: true,
         transactionCode: true,
@@ -181,6 +283,34 @@ const simulatePaymentAttempt = (
         expiresAt: null,
       },
     })
+
+    const auditContext = {
+      userId: null,
+      role: null,
+      entityType: 'PAYMENT',
+      entityId: payment.id,
+      metadata: {
+        bookingId: booking.id,
+        paymentMethod: 'SIMULATED',
+        status: 'SUCCESS',
+      },
+    }
+    await writeAuditLog(
+      {
+        ...auditContext,
+        action: 'CREATE_PAYMENT',
+        description: 'Tạo Payment SIMULATED',
+      },
+      transaction,
+    )
+    await writeAuditLog(
+      {
+        ...auditContext,
+        action: 'PAYMENT_SUCCESS',
+        description: 'Thanh toán mô phỏng đã được ghi nhận',
+      },
+      transaction,
+    )
 
     const updatedBooking = await transaction.booking.findUnique({
       where: { id: booking.id },
@@ -243,6 +373,8 @@ const lookupBooking = async ({ bookingCode, phone }) => {
 }
 
 export {
+  createInitialPayment,
+  getInitialPaymentPlan,
   lookupBooking,
   normalizeBookingCode,
   serializePublicBooking,

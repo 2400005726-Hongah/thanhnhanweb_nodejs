@@ -27,6 +27,10 @@ const phase4MigrationPath = new URL(
   '../prisma/migrations/20260803000100_phase4_booking_expiry_cleanup/migration.sql',
   import.meta.url,
 )
+const phase5MigrationPath = new URL(
+  '../prisma/migrations/20260803000200_phase5_payment_methods/migration.sql',
+  import.meta.url,
+)
 
 const [
   schema,
@@ -37,6 +41,7 @@ const [
   customerPhase2Migration,
   phase3Migration,
   phase4Migration,
+  phase5Migration,
 ] = await Promise.all([
   readFile(schemaPath, 'utf8'),
   readFile(seedPath, 'utf8'),
@@ -46,6 +51,7 @@ const [
   readFile(customerPhase2MigrationPath, 'utf8'),
   readFile(phase3MigrationPath, 'utf8'),
   readFile(phase4MigrationPath, 'utf8'),
+  readFile(phase5MigrationPath, 'utf8'),
 ])
 
 const tables = [
@@ -175,6 +181,18 @@ describe('Supabase SQL assets', () => {
     )
     expect(phase4Migration).not.toMatch(
       /drop\s+|truncate|delete\s+from|update\s+public\./i,
+    )
+  })
+
+  test('prepares only the missing Phase 5 PaymentMethod enum values', () => {
+    expect(phase5Migration).toContain(
+      `ALTER TYPE "public"."payment_method" ADD VALUE IF NOT EXISTS 'CASH_COUNTER'`,
+    )
+    expect(phase5Migration).toContain(
+      `ALTER TYPE "public"."payment_method" ADD VALUE IF NOT EXISTS 'CARD_POS'`,
+    )
+    expect(phase5Migration).not.toMatch(
+      /drop\s+|truncate|delete\s+from|update\s+public\.|insert\s+into/i,
     )
   })
 })

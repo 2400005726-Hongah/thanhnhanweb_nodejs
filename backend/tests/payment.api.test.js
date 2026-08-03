@@ -26,6 +26,8 @@ const lookupBooking = jest.fn(async () => publicResult)
 
 jest.unstable_mockModule('../src/config/prisma.js', () => ({ default: {} }))
 jest.unstable_mockModule('../src/services/payment.service.js', () => ({
+  createInitialPayment: jest.fn(),
+  getInitialPaymentPlan: jest.fn(),
   lookupBooking,
   simulatePayment,
 }))

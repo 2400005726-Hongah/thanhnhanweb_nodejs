@@ -25,6 +25,18 @@ const releaseSeatHold = jest.fn(async () => ({ releasedSeatCount: 2 }))
 const createBooking = jest.fn(async () => ({
   booking: { bookingCode: 'TNTESTBOOKING', status: 'PENDING' },
 }))
+const attachEmailDelivery = jest.fn(async (result) => ({
+  ...result,
+  emailSent: false,
+  emailStatus: 'SKIPPED',
+  emailWarning: null,
+  booking: {
+    ...result.booking,
+    emailSent: false,
+    emailStatus: 'SKIPPED',
+    emailWarning: null,
+  },
+}))
 const prisma = {
   user: {
     findUnique: jest.fn(async ({ where }) =>
@@ -63,6 +75,9 @@ jest.unstable_mockModule('../src/services/booking.service.js', () => ({
   createBooking,
   holdSeats,
   releaseSeatHold,
+}))
+jest.unstable_mockModule('../src/services/bookingEmail.service.js', () => ({
+  attachEmailDelivery,
 }))
 
 const { default: app } = await import('../src/app.js')
@@ -123,6 +138,7 @@ describe('Seat hold and booking API validation', () => {
       holdToken,
       passenger,
       customerNote: 'Đón tại cổng chính',
+      paymentMethod: 'BANK_TRANSFER',
     }
     const response = await request(app)
       .post('/api/v1/public/bookings')
@@ -135,13 +151,53 @@ describe('Seat hold and booking API validation', () => {
     })
   })
 
+  test('keeps HTTP 201 and exposes a safe warning when Email delivery fails', async () => {
+    attachEmailDelivery.mockResolvedValueOnce({
+      booking: {
+        bookingCode: 'TNTESTBOOKING',
+        status: 'CONFIRMED',
+        paymentStatus: 'SUCCESS',
+        payment: { paymentMethod: 'BANK_TRANSFER', status: 'SUCCESS' },
+        emailSent: false,
+        emailStatus: 'FAILED',
+        emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
+      },
+      emailSent: false,
+      emailStatus: 'FAILED',
+      emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
+    })
+
+    const response = await request(app)
+      .post('/api/v1/public/bookings')
+      .send({
+        tripId,
+        holdToken,
+        passenger,
+        paymentMethod: 'BANK_TRANSFER',
+      })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.body.data).toMatchObject({
+      emailSent: false,
+      emailStatus: 'FAILED',
+      emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
+      booking: { status: 'CONFIRMED', paymentStatus: 'SUCCESS' },
+    })
+    expect(JSON.stringify(response.body)).not.toMatch(/SMTP_PASSWORD|stack/i)
+  })
+
   test('attaches an active user when a valid JWT is supplied', async () => {
     const token = jwt.sign(
       { userId, role: 'CUSTOMER' },
       process.env.JWT_SECRET,
       { expiresIn: '1h' },
     )
-    const payload = { tripId, holdToken, passenger }
+    const payload = {
+      tripId,
+      holdToken,
+      passenger,
+      paymentMethod: 'BANK_TRANSFER',
+    }
     const response = await request(app)
       .post('/api/v1/public/bookings')
       .set('Authorization', `Bearer ${token}`)
@@ -166,7 +222,12 @@ describe('Seat hold and booking API validation', () => {
   ])('rejects %s in passenger data', async (_label, invalidPassenger) => {
     const response = await request(app)
       .post('/api/v1/public/bookings')
-      .send({ tripId, holdToken, passenger: invalidPassenger })
+      .send({
+        tripId,
+        holdToken,
+        passenger: invalidPassenger,
+        paymentMethod: 'BANK_TRANSFER',
+      })
 
     expect(response.statusCode).toBe(400)
     expect(createBooking).not.toHaveBeenCalled()
@@ -175,7 +236,14 @@ describe('Seat hold and booking API validation', () => {
   test('rejects server-owned booking fields from the client', async () => {
     const response = await request(app)
       .post('/api/v1/public/bookings')
-      .send({ tripId, holdToken, passenger, totalAmount: 1, status: 'CONFIRMED' })
+      .send({
+        tripId,
+        holdToken,
+        passenger,
+        paymentMethod: 'BANK_TRANSFER',
+        totalAmount: 1,
+        status: 'CONFIRMED',
+      })
 
     expect(response.statusCode).toBe(400)
     expect(createBooking).not.toHaveBeenCalled()
@@ -188,6 +256,7 @@ describe('Seat hold and booking API validation', () => {
         tripId,
         holdToken,
         passenger,
+        paymentMethod: 'BANK_TRANSFER',
         staffNote: 'Ghi chú giả',
         createdById: adminId,
       })
@@ -197,7 +266,13 @@ describe('Seat hold and booking API validation', () => {
   })
 
   test('ignores a fake source and always delegates public booking as ONLINE', async () => {
-    const payload = { tripId, holdToken, passenger, source: 'HOTLINE' }
+    const payload = {
+      tripId,
+      holdToken,
+      passenger,
+      paymentMethod: 'BANK_TRANSFER',
+      source: 'HOTLINE',
+    }
     const response = await request(app)
       .post('/api/v1/public/bookings')
       .send(payload)
@@ -223,6 +298,7 @@ describe('Seat hold and booking API validation', () => {
       passenger,
       customerNote: 'Đón tại cổng',
       staffNote: 'Khách đã xác nhận',
+      paymentMethod: source === 'COUNTER' ? 'CASH_COUNTER' : 'BANK_TRANSFER',
     }
     const response = await request(app)
       .post('/api/v1/admin/bookings')
@@ -243,7 +319,13 @@ describe('Seat hold and booking API validation', () => {
   })
 
   test('Guest and CUSTOMER cannot call the managed booking API', async () => {
-    const payload = { tripId, tripSeatIds, source: 'HOTLINE', passenger }
+    const payload = {
+      tripId,
+      tripSeatIds,
+      source: 'HOTLINE',
+      passenger,
+      paymentMethod: 'BANK_TRANSFER',
+    }
     const customerToken = jwt.sign(
       { userId, role: 'CUSTOMER' },
       process.env.JWT_SECRET,
@@ -274,8 +356,48 @@ describe('Seat hold and booking API validation', () => {
         tripSeatIds,
         source: 'HOTLINE',
         passenger,
+        paymentMethod: 'BANK_TRANSFER',
         createdById: adminId,
       })
+
+    expect(response.statusCode).toBe(400)
+    expect(createBooking).not.toHaveBeenCalled()
+  })
+
+  test('public client cannot choose CASH_COUNTER or set paymentStatus', async () => {
+    const [cashResponse, statusResponse] = await Promise.all([
+      request(app).post('/api/v1/public/bookings').send({
+        tripId,
+        holdToken,
+        passenger,
+        paymentMethod: 'CASH_COUNTER',
+      }),
+      request(app).post('/api/v1/public/bookings').send({
+        tripId,
+        holdToken,
+        passenger,
+        paymentMethod: 'BANK_TRANSFER',
+        paymentStatus: 'SUCCESS',
+      }),
+    ])
+
+    expect(cashResponse.statusCode).toBe(400)
+    expect(statusResponse.statusCode).toBe(400)
+    expect(createBooking).not.toHaveBeenCalled()
+  })
+
+  test.each([
+    ['HOTLINE', 'CARD_POS'],
+    ['COUNTER', 'SIMULATED'],
+  ])('managed API rejects %s with %s', async (source, paymentMethod) => {
+    const token = jwt.sign(
+      { userId: staffId, role: 'STAFF' },
+      process.env.JWT_SECRET,
+    )
+    const response = await request(app)
+      .post('/api/v1/admin/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ tripId, tripSeatIds, source, passenger, paymentMethod })
 
     expect(response.statusCode).toBe(400)
     expect(createBooking).not.toHaveBeenCalled()

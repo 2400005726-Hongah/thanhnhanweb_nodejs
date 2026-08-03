@@ -126,12 +126,14 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 export const PaymentMethod = {
   CASH: 'CASH',
   COUNTER_CASH: 'COUNTER_CASH',
+  CASH_COUNTER: 'CASH_COUNTER',
   BANK_TRANSFER: 'BANK_TRANSFER',
   BANK_QR: 'BANK_QR',
   MOMO: 'MOMO',
   ZALOPAY: 'ZALOPAY',
   VNPAY: 'VNPAY',
   POS: 'POS',
+  CARD_POS: 'CARD_POS',
   PAY_AT_BUS: 'PAY_AT_BUS',
   SIMULATED: 'SIMULATED'
 } as const

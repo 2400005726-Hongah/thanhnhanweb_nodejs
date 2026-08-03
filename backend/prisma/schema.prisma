@@ -112,12 +112,14 @@ enum PaymentStatus {
 enum PaymentMethod {
   CASH
   COUNTER_CASH
+  CASH_COUNTER
   BANK_TRANSFER
   BANK_QR
   MOMO
   ZALOPAY
   VNPAY
   POS
+  CARD_POS
   PAY_AT_BUS
   SIMULATED
 

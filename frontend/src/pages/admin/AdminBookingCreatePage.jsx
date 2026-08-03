@@ -10,6 +10,7 @@ import { getTripDetail, getTripSeats } from '../../services/publicTrip.service.j
 import { saveBookingResult } from '../../utils/bookingSession.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
+import { getPaymentOptionsForSource } from '../../utils/paymentLabels.js'
 
 const sourceContent = {
   HOTLINE: {
@@ -31,6 +32,9 @@ function AdminBookingCreatePage({ source }) {
   const [passenger, setPassenger] = useState({ fullName: '', phone: '', email: '' })
   const [customerNote, setCustomerNote] = useState('')
   const [staffNote, setStaffNote] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState(
+    source === 'COUNTER' ? 'CASH_COUNTER' : 'BANK_TRANSFER',
+  )
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -96,6 +100,7 @@ function AdminBookingCreatePage({ source }) {
         },
         customerNote: customerNote.trim() || undefined,
         staffNote: staffNote.trim() || undefined,
+        paymentMethod,
       })
       if (data.customerWarning) window.alert(data.customerWarning)
       saveBookingResult(data.booking)
@@ -168,6 +173,15 @@ function AdminBookingCreatePage({ source }) {
             <label className="admin-field mb-3"><span>Email (không bắt buộc)</span><input className="form-control" type="email" maxLength="255" value={passenger.email} onChange={(event) => setPassenger((current) => ({ ...current, email: event.target.value }))} /></label>
             <label className="admin-field mb-3"><span>Ghi chú khách hàng</span><textarea className="form-control" rows="2" maxLength="500" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} /></label>
             <label className="admin-field mb-3"><span>Ghi chú nhân viên</span><textarea className="form-control" rows="3" maxLength="1000" value={staffNote} onChange={(event) => setStaffNote(event.target.value)} /></label>
+            <label className="admin-field mb-3">
+              <span>Phương thức thanh toán</span>
+              <select className="form-select" required value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>
+                {getPaymentOptionsForSource(source).map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              {paymentMethod === 'PAY_AT_BUS' && <small>Khách thanh toán trực tiếp khi lên xe.</small>}
+            </label>
             <div className="summary-row"><span>Ghế/phòng</span><strong>{[...selected.values()].map((seat) => seat.seatCode).join(', ') || 'Chưa chọn'}</strong></div>
             <div className="summary-total"><span>Tổng tiền máy chủ</span><strong>{formatCurrency(total)}</strong></div>
             <button className="btn btn-primary w-100 mt-3" disabled={!selected.size || submitting} type="submit">

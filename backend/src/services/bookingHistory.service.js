@@ -51,7 +51,6 @@ const bookingHistoryInclude = {
     orderBy: { seatCode: 'asc' },
   },
   payments: {
-    where: { status: { in: ['SUCCESS', 'REFUNDED'] } },
     select: {
       paymentMethod: true,
       status: true,
@@ -70,6 +69,7 @@ const serializeHistoryBooking = (booking, now = new Date()) => {
   return {
     id: booking.id,
     bookingCode: booking.bookingCode,
+    source: booking.source,
     passengerFullName: booking.passengerFullName,
     passengerPhone: booking.passengerPhone,
     passengerEmail: booking.passengerEmail,

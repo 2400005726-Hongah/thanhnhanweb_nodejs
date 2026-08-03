@@ -34,6 +34,7 @@ const trip = {
 let seats
 let bookings
 let bookingItems
+let payments
 let customers
 let auditLogs
 let currentTrip
@@ -43,6 +44,7 @@ const cloneState = () => ({
   seats: seats.map((seat) => ({ ...seat })),
   bookings: bookings.map((booking) => ({ ...booking })),
   bookingItems: bookingItems.map((item) => ({ ...item })),
+  payments: payments.map((payment) => ({ ...payment })),
   customers: customers.map((customer) => ({ ...customer })),
   auditLogs: auditLogs.map((log) => ({ ...log })),
 })
@@ -51,6 +53,7 @@ const restoreState = (snapshot) => {
   seats = snapshot.seats
   bookings = snapshot.bookings
   bookingItems = snapshot.bookingItems
+  payments = snapshot.payments
   customers = snapshot.customers
   auditLogs = snapshot.auditLogs
 }
@@ -125,6 +128,9 @@ const transaction = {
         items: bookingItems
           .filter((item) => item.bookingId === booking.id)
           .sort((left, right) => left.seatCode.localeCompare(right.seatCode)),
+        payments: payments
+          .filter((payment) => payment.bookingId === booking.id)
+          .sort((left, right) => right.createdAt - left.createdAt),
       }
     }),
   },
@@ -149,6 +155,16 @@ const transaction = {
       if (failBookingItems) throw new Error('booking item failure')
       bookingItems.push(...data)
       return { count: data.length }
+    }),
+  },
+  payment: {
+    findFirst: jest.fn(async ({ where }) =>
+      payments.find((payment) => payment.bookingId === where.bookingId) || null,
+    ),
+    create: jest.fn(async ({ data }) => {
+      const payment = { id: randomUUID(), createdAt: new Date(), ...data }
+      payments.push(payment)
+      return { ...payment }
     }),
   },
   auditLog: {
@@ -208,6 +224,7 @@ beforeEach(() => {
   seats = resetSeats()
   bookings = []
   bookingItems = []
+  payments = []
   customers = []
   auditLogs = []
   currentTrip = { ...trip }
@@ -512,5 +529,130 @@ describe('Booking transaction service', () => {
     ).rejects.toMatchObject({ statusCode: 409 })
     expect(bookings).toHaveLength(1)
     expect(bookingItems).toHaveLength(1)
+  })
+
+  test.each([
+    'BANK_TRANSFER',
+    'BANK_QR',
+    'MOMO',
+    'ZALOPAY',
+    'VNPAY',
+  ])('creates one SUCCESS %s Payment using the server total', async (paymentMethod) => {
+    const hold = await holdSeats(tripId, [seatIdA])
+    const result = await createBooking({
+      tripId,
+      holdToken: hold.holdToken,
+      passenger,
+      paymentMethod,
+      totalAmount: 1,
+    })
+
+    expect(result.booking).toMatchObject({
+      status: 'CONFIRMED',
+      paymentStatus: 'SUCCESS',
+      expiresAt: null,
+      payment: {
+        paymentMethod,
+        amount: 300000,
+        status: 'SUCCESS',
+      },
+    })
+    expect(payments).toHaveLength(1)
+    expect(payments[0].transactionCode).toMatch(/^PAY[A-F0-9]{20}$/)
+    expect(seats[0].status).toBe('BOOKED')
+  })
+
+  test.each([
+    ['COUNTER', 'CASH_COUNTER'],
+    ['COUNTER', 'CARD_POS'],
+    ['HOTLINE', 'BANK_QR'],
+  ])('allows %s booking to use %s', async (source, paymentMethod) => {
+    const actorId = randomUUID()
+    const result = await createBooking(
+      { tripId, tripSeatIds: [seatIdA], passenger, paymentMethod },
+      null,
+      {
+        source,
+        createdById: actorId,
+        actor: { id: actorId, role: 'STAFF', fullName: 'Nhân viên' },
+      },
+    )
+
+    expect(result.booking.payment).toMatchObject({
+      paymentMethod,
+      status: 'SUCCESS',
+      amount: 300000,
+    })
+    expect(bookings[0].createdById).toBe(actorId)
+  })
+
+  test.each(['ONLINE', 'HOTLINE', 'COUNTER'])(
+    'creates a confirmed but unpaid PAY_AT_BUS booking for %s',
+    async (source) => {
+      const actorId = source === 'ONLINE' ? null : randomUUID()
+      const hold =
+        source === 'ONLINE' ? await holdSeats(tripId, [seatIdA]) : null
+      const result = await createBooking(
+        {
+          tripId,
+          ...(hold
+            ? { holdToken: hold.holdToken }
+            : { tripSeatIds: [seatIdA] }),
+          passenger,
+          paymentMethod: 'PAY_AT_BUS',
+        },
+        null,
+        {
+          source,
+          createdById: actorId,
+          actor: actorId ? { id: actorId, role: 'STAFF' } : null,
+        },
+      )
+
+      expect(result.booking).toMatchObject({
+        status: 'CONFIRMED',
+        paymentStatus: 'PENDING',
+        expiresAt: null,
+        payment: {
+          paymentMethod: 'PAY_AT_BUS',
+          status: 'PENDING',
+          transactionCode: null,
+          paidAt: null,
+        },
+      })
+      expect(seats[0].status).toBe('BOOKED')
+      expect(auditLogs).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ action: 'PAYMENT_PENDING' }),
+        ]),
+      )
+    },
+  )
+
+  test.each([
+    ['ONLINE', 'CASH_COUNTER'],
+    ['HOTLINE', 'CARD_POS'],
+    ['COUNTER', 'SIMULATED'],
+  ])('rejects source %s with method %s', async (source, paymentMethod) => {
+    const actorId = source === 'ONLINE' ? null : randomUUID()
+    const hold =
+      source === 'ONLINE' ? await holdSeats(tripId, [seatIdA]) : null
+
+    await expect(
+      createBooking(
+        {
+          tripId,
+          ...(hold
+            ? { holdToken: hold.holdToken }
+            : { tripSeatIds: [seatIdA] }),
+          passenger,
+          paymentMethod,
+        },
+        null,
+        { source, createdById: actorId },
+      ),
+    ).rejects.toMatchObject({ statusCode: 400 })
+    expect(bookings).toHaveLength(0)
+    expect(payments).toHaveLength(0)
   })
 })

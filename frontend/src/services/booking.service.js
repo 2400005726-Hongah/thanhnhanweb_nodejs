@@ -17,7 +17,13 @@ const releaseSeatHold = async (tripId, holdToken) =>
     }),
   )
 
-const createBooking = async ({ tripId, holdToken, passenger, customerNote }) => {
+const createBooking = async ({
+  tripId,
+  holdToken,
+  passenger,
+  customerNote,
+  paymentMethod,
+}) => {
   const client = getAuthSession()?.token ? authApiClient : apiClient
 
   return unwrap(
@@ -26,6 +32,7 @@ const createBooking = async ({ tripId, holdToken, passenger, customerNote }) => 
       holdToken,
       passenger,
       customerNote: customerNote || undefined,
+      paymentMethod,
     }),
   )
 }

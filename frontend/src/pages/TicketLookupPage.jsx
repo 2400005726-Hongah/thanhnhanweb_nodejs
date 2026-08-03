@@ -8,6 +8,10 @@ import {
 import { getApiErrorMessage } from '../services/apiClient.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import {
+  getPaymentMethodLabel,
+  getPaymentStatusLabel,
+} from '../utils/paymentLabels.js'
 
 const bookingStatusLabel = {
   PENDING: 'Chờ xác nhận',
@@ -15,13 +19,6 @@ const bookingStatusLabel = {
   CANCELLED: 'Đã hủy',
   EXPIRED: 'Đã hết hạn',
   COMPLETED: 'Đã hoàn thành',
-}
-
-const paymentStatusLabel = {
-  PENDING: 'Chờ thanh toán',
-  SUCCESS: 'Đã thanh toán',
-  FAILED: 'Thanh toán thất bại',
-  REFUNDED: 'Đã hoàn tiền',
 }
 
 function TicketLookupPage() {
@@ -213,7 +210,7 @@ function TicketLookupPage() {
                   {bookingStatusLabel[result.booking.status] || result.booking.status}
                 </span>
                 <span className={`status-badge status-badge--${result.booking.paymentStatus.toLowerCase()}`}>
-                  {paymentStatusLabel[result.booking.paymentStatus] || result.booking.paymentStatus}
+                  {getPaymentStatusLabel(result.booking.paymentStatus)}
                 </span>
               </div>
             </div>
@@ -225,19 +222,20 @@ function TicketLookupPage() {
               <div><span>Xe</span><strong>{result.booking.trip.bus.busName}</strong></div>
               <div><span>Ghế</span><strong>{result.booking.seats.map((seat) => seat.seatCode).join(', ')}</strong></div>
               <div><span>Tổng tiền</span><strong className="price-text">{formatCurrency(result.booking.totalAmount)}</strong></div>
+              <div><span>Nguồn đặt</span><strong>{result.booking.source}</strong></div>
             </div>
 
             {result.payment ? (
               <div className="lookup-payment-block">
-                <div><span>Mã giao dịch</span><strong>{result.payment.transactionCode}</strong></div>
-                <div><span>Phương thức</span><strong>{result.payment.paymentMethod}</strong></div>
-                <div><span>Đã thanh toán</span><strong>{formatCurrency(result.payment.amount)}</strong></div>
-                <div><span>Thời gian</span><strong>{formatDateTime(result.payment.paidAt)}</strong></div>
+                <div><span>Phương thức</span><strong>{getPaymentMethodLabel(result.payment.paymentMethod)}</strong></div>
+                <div><span>Trạng thái</span><strong>{getPaymentStatusLabel(result.payment.status)}</strong></div>
+                <div><span>Số tiền</span><strong>{formatCurrency(result.payment.amount)}</strong></div>
+                {result.payment.transactionCode && <div><span>Mã giao dịch</span><strong>{result.payment.transactionCode}</strong></div>}
+                {result.payment.paidAt && <div><span>Thời gian</span><strong>{formatDateTime(result.payment.paidAt)}</strong></div>}
               </div>
             ) : (
               <div className="pending-payment-note mt-4">
-                <strong>Booking chưa thanh toán</strong>
-                <span>Bạn có thể thanh toán tại trang xác nhận booking.</span>
+                <strong>Chưa có thông tin thanh toán</strong>
               </div>
             )}
 

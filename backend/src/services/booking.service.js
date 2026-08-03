@@ -6,6 +6,10 @@ import HttpError from '../utils/HttpError.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
 import { writeAuditLog } from './auditLog.service.js'
 import { findOrCreateBookableCustomer } from './customer.service.js'
+import {
+  createInitialPayment,
+  getInitialPaymentPlan,
+} from './payment.service.js'
 
 const TRANSACTION_OPTIONS = {
   isolationLevel: 'Serializable',
@@ -76,6 +80,16 @@ const serializeBooking = (booking) => ({
   expiresAt: booking.expiresAt,
   createdAt: booking.createdAt,
   customerNote: booking.customerNote,
+  payment: booking.payments?.[0]
+    ? {
+        id: booking.payments[0].id,
+        paymentMethod: booking.payments[0].paymentMethod,
+        amount: toSafeNumber(booking.payments[0].amount, 'số tiền thanh toán'),
+        transactionCode: booking.payments[0].transactionCode,
+        status: booking.payments[0].status,
+        paidAt: booking.payments[0].paidAt,
+      }
+    : null,
   passenger: {
     fullName: booking.passengerFullName,
     phone: booking.passengerPhone,
@@ -394,6 +408,19 @@ const bookingInclude = {
     },
     orderBy: { seatCode: 'asc' },
   },
+  payments: {
+    select: {
+      id: true,
+      paymentMethod: true,
+      amount: true,
+      transactionCode: true,
+      status: true,
+      paidAt: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+  },
 }
 
 const createBookingAttempt = (payload, userId, bookingCode, context) =>
@@ -418,6 +445,11 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     const tripSeatIds = seats.map((seat) => seat.id)
 
     const totalAmount = calculateTotal(seats)
+    const paymentPlan = getInitialPaymentPlan(
+      context.source,
+      payload.paymentMethod,
+      now,
+    )
     const { customer, violations } = await findOrCreateBookableCustomer(
       transaction,
       payload.passenger,
@@ -440,10 +472,11 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
         staffNote: context.staffNote,
         createdById: context.createdById,
         totalAmount,
-        status: 'PENDING',
-        paymentStatus: 'PENDING',
-        expiresAt:
-          context.source === 'ONLINE'
+        status: paymentPlan?.bookingStatus || 'PENDING',
+        paymentStatus: paymentPlan?.bookingPaymentStatus || 'PENDING',
+        expiresAt: paymentPlan
+          ? paymentPlan.bookingExpiresAt
+          : context.source === 'ONLINE'
             ? new Date(
                 now.getTime() +
                   env.bookingPaymentExpiresMinutes * 60 * 1000,
@@ -483,6 +516,20 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     if (updatedSeats.count !== tripSeatIds.length) {
       throw new HttpError('Ghế giữ không còn hợp lệ để tạo booking', 409)
     }
+
+    await createInitialPayment({
+      database: transaction,
+      bookingId: booking.id,
+      source: context.source,
+      paymentMethod: payload.paymentMethod,
+      amount: totalAmount,
+      actor:
+        context.source === 'ONLINE'
+          ? context.actor || (userId ? { id: userId, role: 'CUSTOMER' } : null)
+          : context.actor,
+      now,
+      plan: paymentPlan,
+    })
 
     await writeAuditLog(
       {
@@ -539,9 +586,16 @@ const createBooking = async (payload, userId = null, bookingContext = {}) => {
         error.code === 'P2002' &&
         target.some((field) => String(field).includes('bookingCode'))
       const retryableConflict = error.code === 'P2034'
+      const duplicatedTransactionCode =
+        error.code === 'P2002' &&
+        target.some((field) =>
+          String(field).toLowerCase().includes('transaction'),
+        )
 
       if (
-        (!duplicatedBookingCode && !retryableConflict) ||
+        (!duplicatedBookingCode &&
+          !duplicatedTransactionCode &&
+          !retryableConflict) ||
         attempt === MAX_SERIALIZABLE_RETRIES - 1
       ) {
         throw error

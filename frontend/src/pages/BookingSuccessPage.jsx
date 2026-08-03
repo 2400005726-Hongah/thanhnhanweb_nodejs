@@ -9,6 +9,10 @@ import {
 } from '../utils/bookingSession.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import {
+  getPaymentMethodLabel,
+  getPaymentStatusLabel,
+} from '../utils/paymentLabels.js'
 
 function BookingSuccessPage() {
   const { bookingCode } = useParams()
@@ -84,6 +88,11 @@ function BookingSuccessPage() {
 
   const isPaid =
     booking.status === 'CONFIRMED' && booking.paymentStatus === 'SUCCESS'
+  const isPayAtBus = payment?.paymentMethod === 'PAY_AT_BUS'
+  const canUseLegacyPayment =
+    !payment &&
+    booking.status === 'PENDING' &&
+    booking.paymentStatus === 'PENDING'
 
   return (
     <div className="booking-success-page">
@@ -93,7 +102,11 @@ function BookingSuccessPage() {
           {isPaid ? 'THANH TOÁN THÀNH CÔNG' : 'ĐẶT VÉ THÀNH CÔNG'}
         </span>
         <h1>
-          {isPaid ? 'Booking đã được xác nhận' : 'Đã ghi nhận booking của bạn'}
+          {isPayAtBus
+            ? 'Vé đã được đặt thành công'
+            : isPaid
+              ? 'Booking đã được xác nhận'
+              : 'Đã ghi nhận booking của bạn'}
         </h1>
         <p className="success-copy">
           Vui lòng lưu mã đặt vé để tra cứu trạng thái chuyến đi bất cứ lúc nào.
@@ -106,10 +119,10 @@ function BookingSuccessPage() {
 
         <div className="success-status-row">
           <span className={`status-badge status-badge--${booking.status.toLowerCase()}`}>
-            Booking: {booking.status}
+            Trạng thái vé: {booking.status === 'CONFIRMED' ? 'Đã đặt' : booking.status}
           </span>
           <span className={`status-badge status-badge--${booking.paymentStatus.toLowerCase()}`}>
-            Thanh toán: {booking.paymentStatus}
+            Thanh toán: {getPaymentStatusLabel(booking.paymentStatus)}
           </span>
         </div>
 
@@ -120,25 +133,37 @@ function BookingSuccessPage() {
           <div><span>Số điện thoại</span><strong>{booking.passenger.phone}</strong></div>
           <div><span>Ghế</span><strong>{booking.seats.map((seat) => seat.seatCode).join(', ')}</strong></div>
           <div><span>Tổng tiền</span><strong>{formatCurrency(booking.totalAmount)}</strong></div>
+          <div><span>Nguồn đặt</span><strong>{booking.source}</strong></div>
+          <div><span>Email vé</span><strong>{booking.emailSent ? 'Đã gửi' : booking.emailStatus === 'SKIPPED' ? 'Không có email' : 'Chưa gửi'}</strong></div>
         </div>
 
         {payment && (
           <div className="payment-receipt">
-            <div><span>Mã giao dịch</span><strong>{payment.transactionCode}</strong></div>
-            <div><span>Phương thức</span><strong>{payment.paymentMethod}</strong></div>
-            <div><span>Thời gian</span><strong>{formatDateTime(payment.paidAt)}</strong></div>
+            {payment.transactionCode && <div><span>Mã giao dịch</span><strong>{payment.transactionCode}</strong></div>}
+            <div><span>Hình thức</span><strong>{getPaymentMethodLabel(payment.paymentMethod)}</strong></div>
+            <div><span>Trạng thái</span><strong>{getPaymentStatusLabel(payment.status)}</strong></div>
+            {payment.paidAt && <div><span>Thời gian</span><strong>{formatDateTime(payment.paidAt)}</strong></div>}
           </div>
         )}
 
-        {!isPaid && (
+        {isPayAtBus && (
           <div className="pending-payment-note">
-            <strong>Trạng thái: Chờ thanh toán</strong>
+            <strong>Thanh toán: Chưa thanh toán</strong>
+            <span>Vé đã được đặt thành công. Quý khách vui lòng thanh toán khi lên xe.</span>
           </div>
         )}
+
+        {!isPaid && !isPayAtBus && (
+          <div className="pending-payment-note">
+            <strong>Trạng thái: {getPaymentStatusLabel(booking.paymentStatus)}</strong>
+          </div>
+        )}
+
+        {booking.emailWarning && <div className="alert alert-warning mt-3" role="status">{booking.emailWarning}</div>}
 
         {paymentError && <div className="alert alert-danger mt-3" role="alert">{paymentError}</div>}
 
-        {!isPaid && (
+        {canUseLegacyPayment && (
           <button
             className="btn btn-warning btn-lg w-100 mt-3"
             type="button"

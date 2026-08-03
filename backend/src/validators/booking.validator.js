@@ -1,5 +1,9 @@
 import { body, param, query } from 'express-validator'
 
+import {
+  SOURCE_PAYMENT_METHODS,
+  isPaymentMethodAllowed,
+} from '../config/paymentMethods.js'
 import { isVietnamesePhone } from '../utils/normalize.js'
 import { BOOKING_CODE_PATTERN } from './payment.validator.js'
 
@@ -65,6 +69,9 @@ const createBookingValidator = [
     .trim()
     .isLength({ max: 500 })
     .withMessage('Ghi chú khách hàng không được vượt quá 500 ký tự'),
+  body('paymentMethod')
+    .isIn(SOURCE_PAYMENT_METHODS.ONLINE)
+    .withMessage('Phương thức thanh toán Online không hợp lệ'),
   ...[
     'userId',
     'customerId',
@@ -127,6 +134,11 @@ const createManagedBookingValidator = [
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Ghi chú nhân viên không được vượt quá 1000 ký tự'),
+  body('paymentMethod')
+    .custom((paymentMethod, { req }) =>
+      isPaymentMethodAllowed(req.body.source, paymentMethod),
+    )
+    .withMessage('Phương thức thanh toán không hợp lệ với nguồn đặt vé'),
   ...[
     'holdToken',
     'userId',

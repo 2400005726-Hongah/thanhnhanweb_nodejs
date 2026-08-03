@@ -89,6 +89,8 @@ jest.unstable_mockModule('../src/services/booking.service.js', () => ({
   releaseSeatHold: jest.fn(),
 }))
 jest.unstable_mockModule('../src/services/payment.service.js', () => ({
+  createInitialPayment: jest.fn(),
+  getInitialPaymentPlan: jest.fn(),
   lookupBooking: jest.fn(),
   simulatePayment: jest.fn(),
 }))
