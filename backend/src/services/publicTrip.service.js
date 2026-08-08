@@ -1,6 +1,7 @@
 import prisma from '../config/prisma.js'
 import { isRoomBusType } from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
+import { normalizeWhitespace } from '../utils/normalize.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { getVietnamDateRange, getVietnamDateTime } from '../utils/dateTime.js'
 import {
@@ -86,7 +87,7 @@ const getPublicLocations = async ({ keyword }) => {
       status: 'ACTIVE',
       ...(keyword && {
         OR: ['name', 'province', 'address'].map((field) => ({
-          [field]: { contains: keyword.trim(), mode: 'insensitive' },
+          [field]: { contains: normalizeWhitespace(keyword), mode: 'insensitive' },
         })),
       }),
     },

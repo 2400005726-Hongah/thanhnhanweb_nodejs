@@ -49,7 +49,7 @@ const updateBus = async (request, response, next) => {
 const deleteBus = async (request, response, next) => {
   try {
     const bus = await deactivateBus(request.params.id)
-    response.status(200).json({ success: true, message: 'Khóa xe thành công', data: { bus } })
+    response.status(200).json({ success: true, message: 'Ngừng hoạt động xe thành công', data: { bus } })
   } catch (error) {
     next(error)
   }

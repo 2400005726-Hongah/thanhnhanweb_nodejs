@@ -262,7 +262,7 @@ export type BookingItemWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
   booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
   tripSeat?: Prisma.XOR<Prisma.TripSeatScalarRelationFilter, Prisma.TripSeatWhereInput>
-}, "id" | "bookingId_tripSeatId" | "bookingId_tripSeatId">
+}, "id" | "bookingId_tripSeatId">
 
 export type BookingItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

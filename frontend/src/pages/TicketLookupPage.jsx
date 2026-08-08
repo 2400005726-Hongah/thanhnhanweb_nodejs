@@ -9,16 +9,30 @@ import { getApiErrorMessage } from '../services/apiClient.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
 import {
+  formatPhoneInput,
+  isVietnamesePhone,
+  normalizeBookingCode,
+  normalizePhone,
+} from '../utils/normalizers.js'
+import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
 } from '../utils/paymentLabels.js'
 
 const bookingStatusLabel = {
-  PENDING: 'Chờ xác nhận',
-  CONFIRMED: 'Đã xác nhận',
+  PENDING: 'Chờ xử lý',
+  CONFIRMED: 'Đã đặt',
   CANCELLED: 'Đã hủy',
-  EXPIRED: 'Đã hết hạn',
+  EXPIRED: 'Hết hạn',
   COMPLETED: 'Đã hoàn thành',
+  NO_SHOW: 'Không đi',
+  DELETED: 'Đã xóa',
+}
+
+const sourceLabel = {
+  ONLINE: 'Trực tuyến',
+  HOTLINE: 'Hotline',
+  COUNTER: 'Tại quầy',
 }
 
 function TicketLookupPage() {
@@ -35,14 +49,17 @@ function TicketLookupPage() {
   const [cancelNotice, setCancelNotice] = useState('')
 
   const update = (event) => {
+    const { name, value } = event.target
     setError('')
     setCancelNotice('')
     setForm((current) => ({
       ...current,
-      [event.target.name]:
-        event.target.name === 'bookingCode'
-          ? event.target.value.toUpperCase()
-          : event.target.value,
+      [name]:
+        name === 'bookingCode'
+          ? normalizeBookingCode(value)
+          : name === 'phone'
+            ? formatPhoneInput(value)
+            : value,
     }))
   }
 
@@ -51,7 +68,7 @@ function TicketLookupPage() {
 
     const booking = result.booking
     const message = [
-      `Bạn có chắc muốn hủy booking ${booking.bookingCode}?`,
+      `Bạn có chắc muốn hủy vé ${booking.bookingCode}?`,
       `Chuyến: ${booking.trip.route.routeName}`,
       `Ghế: ${booking.seats.map((seat) => seat.seatCode).join(', ')}`,
       `Tổng tiền: ${formatCurrency(booking.totalAmount)}`,
@@ -73,7 +90,7 @@ function TicketLookupPage() {
     try {
       const cancellation = await cancelGuestBooking(
         booking.bookingCode,
-        form.phone.trim(),
+        normalizePhone(form.phone),
         reason.trim(),
       )
       setResult((current) => ({
@@ -109,14 +126,14 @@ function TicketLookupPage() {
     event.preventDefault()
     if (loading) return
 
-    const bookingCode = form.bookingCode.trim().toUpperCase()
-    const phone = form.phone.trim()
+    const bookingCode = normalizeBookingCode(form.bookingCode)
+    const phone = normalizePhone(form.phone)
     if (!/^TN[A-F0-9]{16}$/.test(bookingCode)) {
       setError('Mã đặt vé không đúng định dạng.')
       return
     }
-    if (!/^(?:\+84|84|0)(?:3|5|7|8|9)[0-9]{8}$/.test(phone.replace(/[\s().-]/g, ''))) {
-      setError('Số điện thoại Việt Nam không hợp lệ.')
+    if (!isVietnamesePhone(phone)) {
+      setError('Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.')
       return
     }
 
@@ -139,7 +156,7 @@ function TicketLookupPage() {
         <div className="container">
           <span className="eyebrow eyebrow--light">THÔNG TIN CHUYẾN ĐI</span>
           <h1>Tra cứu vé</h1>
-          <p>Kiểm tra hành trình và trạng thái thanh toán bằng thông tin booking.</p>
+          <p>Kiểm tra hành trình và trạng thái thanh toán bằng mã vé và số điện thoại.</p>
         </div>
       </section>
 
@@ -168,8 +185,9 @@ function TicketLookupPage() {
               type="tel"
               value={form.phone}
               onChange={update}
-              placeholder="Số điện thoại đã đặt vé"
-              maxLength="20"
+              placeholder="0912 345 678"
+              maxLength="12"
+              inputMode="tel"
               autoComplete="tel"
               required
             />
@@ -193,7 +211,7 @@ function TicketLookupPage() {
         {loading && (
           <div className="lookup-placeholder" role="status">
             <span className="spinner-border text-primary" aria-hidden="true" />
-            <p>Đang tải trạng thái booking mới nhất...</p>
+            <p>Đang tải trạng thái vé mới nhất...</p>
           </div>
         )}
 
@@ -222,7 +240,9 @@ function TicketLookupPage() {
               <div><span>Xe</span><strong>{result.booking.trip.bus.busName}</strong></div>
               <div><span>Ghế</span><strong>{result.booking.seats.map((seat) => seat.seatCode).join(', ')}</strong></div>
               <div><span>Tổng tiền</span><strong className="price-text">{formatCurrency(result.booking.totalAmount)}</strong></div>
-              <div><span>Nguồn đặt</span><strong>{result.booking.source}</strong></div>
+              <div><span>Nguồn đặt</span><strong>{sourceLabel[result.booking.source] || 'Chưa xác định'}</strong></div>
+              <div><span>Điểm đón</span><strong>{result.booking.pickupPoint || 'Theo điểm đi của tuyến'}</strong></div>
+              <div><span>Điểm trả</span><strong>{result.booking.dropoffPoint || 'Theo điểm đến của tuyến'}</strong></div>
             </div>
 
             {result.payment ? (
@@ -242,7 +262,7 @@ function TicketLookupPage() {
             {result.booking.canCancel && (
               <div className="lookup-cancel-block">
                 <div>
-                  <strong>Booking còn trong thời hạn hủy</strong>
+                  <strong>Vé còn trong thời hạn hủy</strong>
                   <span>Hạn hủy: {formatDateTime(result.booking.cancelDeadline)}</span>
                 </div>
                 <button

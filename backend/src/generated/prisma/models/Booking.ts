@@ -46,6 +46,8 @@ export type BookingMinAggregateOutputType = {
   passengerEmail: string | null
   customerNote: string | null
   staffNote: string | null
+  pickupPoint: string | null
+  dropoffPoint: string | null
   totalAmount: runtime.Decimal | null
   status: $Enums.BookingStatus | null
   paymentStatus: $Enums.PaymentStatus | null
@@ -76,6 +78,8 @@ export type BookingMaxAggregateOutputType = {
   passengerEmail: string | null
   customerNote: string | null
   staffNote: string | null
+  pickupPoint: string | null
+  dropoffPoint: string | null
   totalAmount: runtime.Decimal | null
   status: $Enums.BookingStatus | null
   paymentStatus: $Enums.PaymentStatus | null
@@ -106,6 +110,8 @@ export type BookingCountAggregateOutputType = {
   passengerEmail: number
   customerNote: number
   staffNote: number
+  pickupPoint: number
+  dropoffPoint: number
   totalAmount: number
   status: number
   paymentStatus: number
@@ -146,6 +152,8 @@ export type BookingMinAggregateInputType = {
   passengerEmail?: true
   customerNote?: true
   staffNote?: true
+  pickupPoint?: true
+  dropoffPoint?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -176,6 +184,8 @@ export type BookingMaxAggregateInputType = {
   passengerEmail?: true
   customerNote?: true
   staffNote?: true
+  pickupPoint?: true
+  dropoffPoint?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -206,6 +216,8 @@ export type BookingCountAggregateInputType = {
   passengerEmail?: true
   customerNote?: true
   staffNote?: true
+  pickupPoint?: true
+  dropoffPoint?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -323,6 +335,8 @@ export type BookingGroupByOutputType = {
   passengerEmail: string | null
   customerNote: string | null
   staffNote: string | null
+  pickupPoint: string | null
+  dropoffPoint: string | null
   totalAmount: runtime.Decimal
   status: $Enums.BookingStatus
   paymentStatus: $Enums.PaymentStatus
@@ -376,6 +390,8 @@ export type BookingWhereInput = {
   passengerEmail?: Prisma.StringNullableFilter<"Booking"> | string | null
   customerNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -415,6 +431,8 @@ export type BookingOrderByWithRelationInput = {
   passengerEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   customerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupPoint?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -457,6 +475,8 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   passengerEmail?: Prisma.StringNullableFilter<"Booking"> | string | null
   customerNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -496,6 +516,8 @@ export type BookingOrderByWithAggregationInput = {
   passengerEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   customerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupPoint?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -534,6 +556,8 @@ export type BookingScalarWhereWithAggregatesInput = {
   passengerEmail?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   customerNote?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   staffNote?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupPoint?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffPoint?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   totalAmount?: Prisma.DecimalWithAggregatesFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusWithAggregatesFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusWithAggregatesFilter<"Booking"> | $Enums.PaymentStatus
@@ -561,6 +585,8 @@ export type BookingCreateInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -596,6 +622,8 @@ export type BookingUncheckedCreateInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -625,6 +653,8 @@ export type BookingUpdateInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -660,6 +690,8 @@ export type BookingUncheckedUpdateInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -692,6 +724,8 @@ export type BookingCreateManyInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -719,6 +753,8 @@ export type BookingUpdateManyMutationInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -745,6 +781,8 @@ export type BookingUncheckedUpdateManyInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -785,6 +823,8 @@ export type BookingCountOrderByAggregateInput = {
   passengerEmail?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
+  pickupPoint?: Prisma.SortOrder
+  dropoffPoint?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -819,6 +859,8 @@ export type BookingMaxOrderByAggregateInput = {
   passengerEmail?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
+  pickupPoint?: Prisma.SortOrder
+  dropoffPoint?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -849,6 +891,8 @@ export type BookingMinOrderByAggregateInput = {
   passengerEmail?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
+  pickupPoint?: Prisma.SortOrder
+  dropoffPoint?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -1219,6 +1263,8 @@ export type BookingCreateWithoutUserInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1252,6 +1298,8 @@ export type BookingUncheckedCreateWithoutUserInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1291,6 +1339,8 @@ export type BookingCreateWithoutCreatedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1325,6 +1375,8 @@ export type BookingUncheckedCreateWithoutCreatedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1363,6 +1415,8 @@ export type BookingCreateWithoutCancelledByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1397,6 +1451,8 @@ export type BookingUncheckedCreateWithoutCancelledByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1435,6 +1491,8 @@ export type BookingCreateWithoutDeletedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1469,6 +1527,8 @@ export type BookingUncheckedCreateWithoutDeletedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1507,6 +1567,8 @@ export type BookingCreateWithoutNoShowByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1541,6 +1603,8 @@ export type BookingUncheckedCreateWithoutNoShowByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1601,6 +1665,8 @@ export type BookingScalarWhereInput = {
   passengerEmail?: Prisma.StringNullableFilter<"Booking"> | string | null
   customerNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -1692,6 +1758,8 @@ export type BookingCreateWithoutCustomerInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1725,6 +1793,8 @@ export type BookingUncheckedCreateWithoutCustomerInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1780,6 +1850,8 @@ export type BookingCreateWithoutTripInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1813,6 +1885,8 @@ export type BookingUncheckedCreateWithoutTripInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1868,6 +1942,8 @@ export type BookingCreateWithoutItemsInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1902,6 +1978,8 @@ export type BookingUncheckedCreateWithoutItemsInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1946,6 +2024,8 @@ export type BookingUpdateWithoutItemsInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -1980,6 +2060,8 @@ export type BookingUncheckedUpdateWithoutItemsInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2008,6 +2090,8 @@ export type BookingCreateWithoutPaymentsInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2042,6 +2126,8 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2086,6 +2172,8 @@ export type BookingUpdateWithoutPaymentsInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2120,6 +2208,8 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2150,6 +2240,8 @@ export type BookingCreateManyUserInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2180,6 +2272,8 @@ export type BookingCreateManyCreatedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2209,6 +2303,8 @@ export type BookingCreateManyCancelledByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2238,6 +2334,8 @@ export type BookingCreateManyDeletedByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2267,6 +2365,8 @@ export type BookingCreateManyNoShowByInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2293,6 +2393,8 @@ export type BookingUpdateWithoutUserInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2326,6 +2428,8 @@ export type BookingUncheckedUpdateWithoutUserInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2357,6 +2461,8 @@ export type BookingUncheckedUpdateManyWithoutUserInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2384,6 +2490,8 @@ export type BookingUpdateWithoutCreatedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2418,6 +2526,8 @@ export type BookingUncheckedUpdateWithoutCreatedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2449,6 +2559,8 @@ export type BookingUncheckedUpdateManyWithoutCreatedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2475,6 +2587,8 @@ export type BookingUpdateWithoutCancelledByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2509,6 +2623,8 @@ export type BookingUncheckedUpdateWithoutCancelledByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2540,6 +2656,8 @@ export type BookingUncheckedUpdateManyWithoutCancelledByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2566,6 +2684,8 @@ export type BookingUpdateWithoutDeletedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2600,6 +2720,8 @@ export type BookingUncheckedUpdateWithoutDeletedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2631,6 +2753,8 @@ export type BookingUncheckedUpdateManyWithoutDeletedByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2657,6 +2781,8 @@ export type BookingUpdateWithoutNoShowByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2691,6 +2817,8 @@ export type BookingUncheckedUpdateWithoutNoShowByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2722,6 +2850,8 @@ export type BookingUncheckedUpdateManyWithoutNoShowByInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2750,6 +2880,8 @@ export type BookingCreateManyCustomerInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2777,6 +2909,8 @@ export type BookingUpdateWithoutCustomerInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2810,6 +2944,8 @@ export type BookingUncheckedUpdateWithoutCustomerInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2841,6 +2977,8 @@ export type BookingUncheckedUpdateManyWithoutCustomerInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2870,6 +3008,8 @@ export type BookingCreateManyTripInput = {
   passengerEmail?: string | null
   customerNote?: string | null
   staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2897,6 +3037,8 @@ export type BookingUpdateWithoutTripInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2930,6 +3072,8 @@ export type BookingUncheckedUpdateWithoutTripInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2961,6 +3105,8 @@ export type BookingUncheckedUpdateManyWithoutTripInput = {
   passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -3031,6 +3177,8 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   passengerEmail?: boolean
   customerNote?: boolean
   staffNote?: boolean
+  pickupPoint?: boolean
+  dropoffPoint?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3071,6 +3219,8 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   passengerEmail?: boolean
   customerNote?: boolean
   staffNote?: boolean
+  pickupPoint?: boolean
+  dropoffPoint?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3108,6 +3258,8 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   passengerEmail?: boolean
   customerNote?: boolean
   staffNote?: boolean
+  pickupPoint?: boolean
+  dropoffPoint?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3145,6 +3297,8 @@ export type BookingSelectScalar = {
   passengerEmail?: boolean
   customerNote?: boolean
   staffNote?: boolean
+  pickupPoint?: boolean
+  dropoffPoint?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3163,7 +3317,7 @@ export type BookingSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingCode" | "userId" | "customerId" | "tripId" | "source" | "passengerFullName" | "passengerPhone" | "passengerEmail" | "customerNote" | "staffNote" | "totalAmount" | "status" | "paymentStatus" | "expiresAt" | "cancellationReason" | "cancelledAt" | "cancelledById" | "noShowReason" | "noShowAt" | "noShowById" | "deletedReason" | "deletedAt" | "deletedById" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingCode" | "userId" | "customerId" | "tripId" | "source" | "passengerFullName" | "passengerPhone" | "passengerEmail" | "customerNote" | "staffNote" | "pickupPoint" | "dropoffPoint" | "totalAmount" | "status" | "paymentStatus" | "expiresAt" | "cancellationReason" | "cancelledAt" | "cancelledById" | "noShowReason" | "noShowAt" | "noShowById" | "deletedReason" | "deletedAt" | "deletedById" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Booking$userArgs<ExtArgs>
   customer?: boolean | Prisma.Booking$customerArgs<ExtArgs>
@@ -3220,6 +3374,8 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     passengerEmail: string | null
     customerNote: string | null
     staffNote: string | null
+    pickupPoint: string | null
+    dropoffPoint: string | null
     totalAmount: runtime.Decimal
     status: $Enums.BookingStatus
     paymentStatus: $Enums.PaymentStatus
@@ -3679,6 +3835,8 @@ export interface BookingFieldRefs {
   readonly passengerEmail: Prisma.FieldRef<"Booking", 'String'>
   readonly customerNote: Prisma.FieldRef<"Booking", 'String'>
   readonly staffNote: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupPoint: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffPoint: Prisma.FieldRef<"Booking", 'String'>
   readonly totalAmount: Prisma.FieldRef<"Booking", 'Decimal'>
   readonly status: Prisma.FieldRef<"Booking", 'BookingStatus'>
   readonly paymentStatus: Prisma.FieldRef<"Booking", 'PaymentStatus'>

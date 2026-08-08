@@ -190,7 +190,7 @@ describe('Prisma Route, Bus and Seat rules', () => {
     expect(prisma.seat.createMany).toHaveBeenCalledTimes(1)
   })
 
-  test('creates a 22-room bus with single and double rooms', async () => {
+  test('creates 22 physical limousine rooms and defers single/double choice to booking', async () => {
     const bus = await createBus({
       busName: 'Limousine 22',
       licensePlate: '47B-222.22',
@@ -199,8 +199,8 @@ describe('Prisma Route, Bus and Seat rules', () => {
 
     expect(bus.capacity).toBe(22)
     expect(bus.seats).toHaveLength(22)
-    expect(bus.seats.some((seat) => seat.seatType === 'SINGLE_ROOM')).toBe(true)
-    expect(bus.seats.some((seat) => seat.seatType === 'DOUBLE_ROOM')).toBe(true)
+    expect(bus.seats.every((seat) => seat.seatType === 'SINGLE_ROOM')).toBe(true)
+    expect(bus.seats.some((seat) => seat.seatType === 'DOUBLE_ROOM')).toBe(false)
     expect(new Set(bus.seats.map((seat) => seat.seatCode)).size).toBe(22)
   })
 
@@ -279,7 +279,7 @@ describe('Prisma Trip transaction rules', () => {
     expect(prisma.trip.create.mock.calls[0][0].data.ticketPrice).toBeNull()
   })
 
-  test('snapshots limousine room type and server-calculated room price', async () => {
+  test('snapshots physical limousine rooms with the base single-room price', async () => {
     busFound = {
       id: busId,
       busType: 'LIMOUSINE_22',
@@ -304,16 +304,10 @@ describe('Prisma Trip transaction rules', () => {
 
     const data = prisma.tripSeat.createMany.mock.calls[0][0].data
     expect(data).toHaveLength(22)
-    expect(
-      data
-        .filter((seat) => seat.seatType === 'SINGLE_ROOM')
-        .every((seat) => seat.price === 410000),
-    ).toBe(true)
-    expect(
-      data
-        .filter((seat) => seat.seatType === 'DOUBLE_ROOM')
-        .every((seat) => seat.price === 690000),
-    ).toBe(true)
+    // TripSeat represents the physical room. The customer chooses Single/Double
+    // later and booking.service recalculates the final price on the server.
+    expect(data.every((seat) => seat.seatType === 'SINGLE_ROOM')).toBe(true)
+    expect(data.every((seat) => seat.price === 410000)).toBe(true)
   })
 
   test('rejects a trip when the bus has no ACTIVE seats', async () => {

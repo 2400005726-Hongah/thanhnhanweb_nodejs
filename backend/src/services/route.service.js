@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
+import { normalizeRouteName, normalizeWhitespace } from '../utils/normalize.js'
 import {
   buildPagination,
   normalizeText,
@@ -30,6 +31,28 @@ const ensureActiveLocations = async (departureLocationId, arrivalLocationId) => 
       400,
     )
   }
+
+  const locations = await prisma.location.findMany({
+    where: { id: { in: [departureLocationId, arrivalLocationId] } },
+    select: { id: true, name: true },
+  })
+  const byId = new Map(locations.map((location) => [location.id, location]))
+
+  return {
+    departure: byId.get(departureLocationId) || null,
+    arrival: byId.get(arrivalLocationId) || null,
+  }
+}
+
+
+const ensureRouteEndpointsCanChange = async (routeId) => {
+  const tripCount = await prisma.trip.count({ where: { routeId } })
+  if (tripCount > 0) {
+    throw new HttpError(
+      'Không thể đổi điểm đi hoặc điểm đến vì tuyến đã có lịch sử chuyến xe',
+      409,
+    )
+  }
 }
 
 const getRoutes = async ({ query, isAdmin }) => {
@@ -45,7 +68,7 @@ const getRoutes = async ({ query, isAdmin }) => {
     }),
     ...(query.keyword && {
       routeName: {
-        contains: query.keyword.trim(),
+        contains: normalizeWhitespace(query.keyword),
         mode: 'insensitive',
       },
     }),
@@ -78,7 +101,7 @@ const getRouteById = async ({ routeId, isAdmin }) => {
 }
 
 const createRoute = async (payload, actor = null) => {
-  await ensureActiveLocations(
+  const activeLocations = await ensureActiveLocations(
     payload.departureLocation,
     payload.arrivalLocation,
   )
@@ -99,7 +122,10 @@ const createRoute = async (payload, actor = null) => {
 
   const route = await prisma.route.create({
     data: {
-      routeName: normalizeText(payload.routeName),
+      routeName:
+        activeLocations.departure && activeLocations.arrival
+          ? `${activeLocations.departure.name} → ${activeLocations.arrival.name}`
+          : normalizeRouteName(payload.routeName),
       departureLocationId: payload.departureLocation,
       arrivalLocationId: payload.arrivalLocation,
       distanceKm: payload.distanceKm,
@@ -136,7 +162,7 @@ const ensureRouteCanDeactivate = async (routeId) => {
   })
 
   if (futureTripCount > 0) {
-    throw new HttpError('Không thể khóa tuyến đang có chuyến tương lai', 409)
+    throw new HttpError('Không thể ngừng hoạt động tuyến đang có chuyến chưa khởi hành', 409)
   }
 }
 
@@ -151,12 +177,24 @@ const updateRoute = async (routeId, payload, actor = null) => {
     payload.departureLocation || route.departureLocationId
   const arrivalLocationId = payload.arrivalLocation || route.arrivalLocationId
 
+  const endpointsChanged =
+    departureLocationId !== route.departureLocationId ||
+    arrivalLocationId !== route.arrivalLocationId
+
+  if (endpointsChanged) {
+    await ensureRouteEndpointsCanChange(routeId)
+  }
+
+  let activeLocations = null
   if (
     payload.departureLocation ||
     payload.arrivalLocation ||
     payload.status === 'ACTIVE'
   ) {
-    await ensureActiveLocations(departureLocationId, arrivalLocationId)
+    activeLocations = await ensureActiveLocations(
+      departureLocationId,
+      arrivalLocationId,
+    )
   }
 
   const duplicate = await prisma.route.findFirst({
@@ -180,8 +218,11 @@ const updateRoute = async (routeId, payload, actor = null) => {
     data: {
       departureLocationId,
       arrivalLocationId,
-      ...(payload.routeName !== undefined && {
-        routeName: normalizeText(payload.routeName),
+      ...((payload.routeName !== undefined || activeLocations) && {
+        routeName:
+          activeLocations?.departure && activeLocations?.arrival
+            ? `${activeLocations.departure.name} → ${activeLocations.arrival.name}`
+            : normalizeRouteName(payload.routeName ?? route.routeName),
       }),
       ...(payload.distanceKm !== undefined && {
         distanceKm: payload.distanceKm,
@@ -241,7 +282,7 @@ const deactivateRoute = async (routeId, actor = null) => {
       action: 'DELETE_ROUTE',
       entityType: 'ROUTE',
       entityId: routeId,
-      description: 'Xóa mềm tuyến đường',
+      description: 'Ngừng hoạt động tuyến đường',
     })
   }
 

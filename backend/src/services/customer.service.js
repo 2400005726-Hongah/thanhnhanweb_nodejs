@@ -1,5 +1,6 @@
 import HttpError from '../utils/HttpError.js'
 import {
+  isValidFullName,
   isVietnamesePhone,
   normalizeEmail,
   normalizeFullName,
@@ -38,8 +39,14 @@ const normalizeCustomerProfile = (passenger) => {
   const phone = normalizePhone(passenger.phone)
   const email = passenger.email ? normalizeEmail(passenger.email) : null
 
+  if (!isValidFullName(fullName)) {
+    throw new HttpError('Họ tên hành khách không hợp lệ', 400)
+  }
   if (!isVietnamesePhone(phone)) {
     throw new HttpError('Số điện thoại Việt Nam không hợp lệ', 400)
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new HttpError('Email hành khách không hợp lệ', 400)
   }
 
   return { fullName, phone, email }
@@ -64,12 +71,19 @@ const findOrCreateBookableCustomer = async (database, passenger) => {
   })
 
   const violations = await getCustomerViolationSummary(database, customer.id)
-  if (customer.status === 'BLOCKED' || violations.blocked) {
-    throw new HttpError(
-      'Khách hàng đã bị chặn đặt vé do có từ 3 lần vi phạm trở lên',
-      403,
-    )
-  }
+  if (customer.status === 'BLOCKED') {
+  throw new HttpError(
+    'Khách hàng đã bị khóa và không được phép đặt vé mới',
+    403,
+  )
+}
+
+if (violations.blocked) {
+  throw new HttpError(
+    'Khách hàng đã bị chặn đặt vé do có từ 3 lần vi phạm trở lên',
+    403,
+  )
+}
 
   return { customer, violations }
 }

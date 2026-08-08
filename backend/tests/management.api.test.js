@@ -62,7 +62,7 @@ describe('Prisma management authorization and Location API', () => {
       .send({ name: '  Krong   Nang  ', province: 'Dak Lak' })
 
     expect(response.statusCode).toBe(201)
-    expect(response.body.data.location.name).toBe('Krong Nang')
+    expect(response.body.data.location.name).toBe('Krông Năng')
     expect(prisma.location.create).toHaveBeenCalledTimes(1)
   })
 

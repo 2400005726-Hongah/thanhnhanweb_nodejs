@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import {
+  adminLogin,
   changePassword,
   login,
   me,
@@ -18,6 +19,7 @@ const router = Router()
 
 router.post('/register', registerValidator, validate, register)
 router.post('/login', loginValidator, validate, login)
+router.post('/admin/login', loginValidator, validate, adminLogin)
 router.get('/me', authenticate, me)
 router.patch(
   '/change-password',

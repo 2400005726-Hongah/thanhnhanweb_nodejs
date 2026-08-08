@@ -53,7 +53,7 @@ const updateRoute = async (request, response, next) => {
 const deleteRoute = async (request, response, next) => {
   try {
     const route = await deactivateRoute(request.params.id, request.user)
-    response.status(200).json({ success: true, message: 'Khóa tuyến xe thành công', data: { route } })
+    response.status(200).json({ success: true, message: 'Ngừng hoạt động tuyến xe thành công', data: { route } })
   } catch (error) {
     next(error)
   }

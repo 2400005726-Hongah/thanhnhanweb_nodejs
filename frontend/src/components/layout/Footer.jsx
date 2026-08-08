@@ -15,7 +15,7 @@ function Footer() {
             <h2 className="footer-heading">Liên kết</h2>
             <Link to="/tim-chuyen">Tìm chuyến</Link>
             <Link to="/tra-cuu-ve">Tra cứu vé</Link>
-            <Link to="/dang-phat-trien/gioi-thieu">Về chúng tôi</Link>
+            <Link to="/thong-tin/gioi-thieu">Về chúng tôi</Link>
           </div>
           <div className="col-6 col-lg-4">
             <h2 className="footer-heading">Hỗ trợ khách hàng</h2>

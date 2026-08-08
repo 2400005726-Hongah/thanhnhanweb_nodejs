@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
+import { normalizeWhitespace } from '../utils/normalize.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { writeAuditLog } from './auditLog.service.js'
 
@@ -104,7 +105,7 @@ const listNews = async (query, { publicOnly = false } = {}) => {
       : query.status && { status: query.status }),
     ...(query.keyword && {
       OR: ['title', 'summary', 'slug'].map((field) => ({
-        [field]: { contains: query.keyword.trim(), mode: 'insensitive' },
+        [field]: { contains: normalizeWhitespace(query.keyword), mode: 'insensitive' },
       })),
     }),
   }
@@ -144,7 +145,7 @@ const createNews = async (payload, actor) => {
       data: {
         ...normalized,
         summary: normalized.summary || '',
-        thumbnailUrl: payload.thumbnailUrl || null,
+        thumbnailUrl: payload.thumbnailUrl ? normalizeWhitespace(payload.thumbnailUrl) : null,
         status: payload.status || 'DRAFT',
         publishedAt:
           (payload.status || 'DRAFT') === 'PUBLISHED' ? new Date() : null,
@@ -186,7 +187,7 @@ const updateNews = async (newsId, payload, actor) => {
         ...(normalized.summary !== undefined && { summary: normalized.summary }),
         ...(normalized.content !== undefined && { content: normalized.content }),
         ...(payload.thumbnailUrl !== undefined && {
-          thumbnailUrl: payload.thumbnailUrl || null,
+          thumbnailUrl: payload.thumbnailUrl ? normalizeWhitespace(payload.thumbnailUrl) : null,
         }),
         ...(payload.status && { status: payload.status }),
         ...(nextStatus === 'PUBLISHED' &&

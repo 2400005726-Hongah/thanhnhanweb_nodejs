@@ -293,3 +293,282 @@
 .admin-seat-layout > div > div { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; min-width: 260px; }
 .admin-seat-layout span { display: grid; min-width: 54px; padding: .3rem; border: 1px solid var(--line); border-radius: 7px; background: #fff; text-align: center; }
 .admin-seat-layout span small { font-size: .55rem; }
+.ticket-print-sheet {
+  display: none;
+}
+
+.ticket-print-card {
+  width: 100%;
+  border: 2px dashed #222;
+  border-radius: 12px;
+  padding: 24px;
+  background: #fff;
+  color: #111;
+  font-family: Arial, sans-serif;
+}
+
+.ticket-print-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.ticket-print-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.ticket-print-header p {
+  margin: 6px 0 0;
+  font-size: 16px;
+  color: #555;
+}
+
+.ticket-print-code {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #f0f2f4;
+  text-align: center;
+}
+
+.ticket-print-code span {
+  display: block;
+  margin-bottom: 5px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ticket-print-code strong {
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.ticket-print-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-print-row {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px solid #ddd;
+}
+
+.ticket-print-row span {
+  color: #666;
+}
+
+.ticket-print-row strong {
+  color: #111;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ticket-print-row:nth-child(9) strong {
+  font-weight: 800;
+}
+
+.ticket-print-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.ticket-print-footer p {
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 15px;
+}
+
+.ticket-print-footer small {
+  color: #777;
+}
+
+@media print {
+  html,
+  body {
+    width: 100%;
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .ticket-print-sheet,
+  .ticket-print-sheet * {
+    visibility: visible !important;
+  }
+
+  .ticket-print-sheet {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 148mm;
+    min-height: 200mm;
+    margin: 0;
+    padding: 6mm;
+    transform: translateX(-50%);
+    background: #fff;
+  }
+
+  .ticket-print-card {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: auto;
+    border: 1.5px dashed #111;
+    border-radius: 8px;
+    padding: 8mm;
+    box-shadow: none;
+  }
+
+  .ticket-print-header h1 {
+    font-size: 22px;
+  }
+
+  .ticket-print-header p {
+    font-size: 14px;
+  }
+
+  .ticket-print-code {
+    padding: 10px;
+  }
+
+  .ticket-print-code strong {
+    font-size: 17px;
+  }
+
+  .ticket-print-row {
+    grid-template-columns: 40mm 1fr;
+    gap: 4mm;
+    padding: 6px 2px;
+    font-size: 13px;
+  }
+
+  .ticket-print-footer {
+    margin-top: 14px;
+  }
+
+  @page {
+    size: A5 portrait;
+    margin: 0;
+  }
+}
+.passenger-list-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.passenger-list-header h1 {
+  margin-bottom: 8px;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.passenger-list-header h2 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.passenger-list-header p {
+  margin: 3px 0;
+}
+
+.passenger-list-summary {
+  margin-bottom: 20px;
+}
+
+.passenger-list-table {
+  min-width: 1300px;
+}
+
+.passenger-list-signatures {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 42px;
+  padding: 0 40px;
+  text-align: center;
+}
+
+.passenger-list-signatures div {
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  gap: 55px;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .passenger-list-print,
+  .passenger-list-print * {
+    visibility: visible !important;
+  }
+
+  .passenger-list-no-print {
+    display: none !important;
+  }
+
+  .passenger-list-print {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 8mm;
+    background: #fff;
+  }
+
+  .passenger-list-print .admin-panel,
+  .passenger-list-print .admin-stat-card {
+    border: 1px solid #bbb;
+    box-shadow: none;
+  }
+
+  .passenger-list-print .admin-table-wrap {
+    overflow: visible;
+  }
+
+  .passenger-list-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 8px;
+  }
+
+  .passenger-list-table th,
+  .passenger-list-table td {
+    padding: 4px;
+    overflow-wrap: anywhere;
+  }
+
+  .passenger-list-table small {
+    font-size: 7px;
+  }
+
+  .passenger-list-header h1 {
+    font-size: 24px;
+  }
+
+  .passenger-list-header h2 {
+    font-size: 17px;
+  }
+
+  .passenger-list-signatures {
+    break-inside: avoid;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+}

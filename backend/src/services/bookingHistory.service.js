@@ -73,6 +73,8 @@ const serializeHistoryBooking = (booking, now = new Date()) => {
     passengerFullName: booking.passengerFullName,
     passengerPhone: booking.passengerPhone,
     passengerEmail: booking.passengerEmail,
+    pickupPoint: booking.pickupPoint,
+    dropoffPoint: booking.dropoffPoint,
     totalAmount: toSafeNumber(booking.totalAmount, 'tổng tiền'),
     status: booking.status,
     paymentStatus: booking.paymentStatus,

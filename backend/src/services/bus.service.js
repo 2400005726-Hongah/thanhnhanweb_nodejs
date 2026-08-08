@@ -73,9 +73,14 @@ const getBuses = async (query) => {
   }
 
   if (query.keyword) {
-    where.OR = ['busName', 'licensePlate'].map((field) => ({
-      [field]: { contains: query.keyword.trim(), mode: 'insensitive' },
-    }))
+    const textKeyword = normalizeText(query.keyword)
+    const plateKeyword = normalizeLicensePlate(query.keyword)
+    where.OR = [
+      { busName: { contains: textKeyword, mode: 'insensitive' } },
+      ...(plateKeyword
+        ? [{ licensePlate: { contains: plateKeyword, mode: 'insensitive' } }]
+        : []),
+    ]
   }
 
   const [buses, total] = await Promise.all([
@@ -111,7 +116,7 @@ const getBusById = async (busId) => {
 const createBus = async (payload) => {
   if (!isManagedBusType(payload.busType)) {
     throw new HttpError(
-      'Xe mới chỉ hỗ trợ loại SLEEPER_34 hoặc LIMOUSINE_22',
+      'Xe mới chỉ hỗ trợ xe 34 giường hoặc xe 22 phòng',
       400,
     )
   }
@@ -122,7 +127,7 @@ const createBus = async (payload) => {
     Number(payload.capacity) !== capacity
   ) {
     throw new HttpError(
-      `Sức chứa của ${payload.busType} phải là ${capacity}`,
+      `Sức chứa của ${payload.busType === 'LIMOUSINE_22' ? 'xe 22 phòng' : 'xe 34 giường'} phải là ${capacity}`,
       400,
     )
   }
@@ -202,7 +207,7 @@ const updateBus = async (busId, payload) => {
       Number(payload.capacity) !== getBusCapacity(bus.busType)
     ) {
       throw new HttpError(
-        `Sức chứa của ${bus.busType} phải là ${getBusCapacity(bus.busType)}`,
+        `Sức chứa của ${bus.busType === 'LIMOUSINE_22' ? 'xe 22 phòng' : 'xe 34 giường'} phải là ${getBusCapacity(bus.busType)}`,
         400,
       )
     }
@@ -215,8 +220,8 @@ const updateBus = async (busId, payload) => {
   }
   if (
     payload.status &&
-    payload.status !== 'ACTIVE' &&
-    bus.status === 'ACTIVE'
+    payload.status !== bus.status &&
+    payload.status !== 'ACTIVE'
   ) {
     await ensureBusHasNoFutureTrip(busId)
   }

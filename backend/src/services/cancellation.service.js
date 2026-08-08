@@ -1,7 +1,11 @@
 import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
-import { normalizePhone } from '../utils/normalize.js'
+import {
+  normalizeBookingCode,
+  normalizeMultilineText,
+  normalizePhone,
+} from '../utils/normalize.js'
 import { writeAuditLog } from './auditLog.service.js'
 
 const CANCELLABLE_BOOKING_STATUSES = ['PENDING', 'CONFIRMED']
@@ -12,15 +16,12 @@ const TRANSACTION_OPTIONS = {
 }
 const MAX_SERIALIZABLE_RETRIES = 3
 
-const normalizeBookingCode = (bookingCode) =>
-  String(bookingCode || '').trim().toUpperCase()
-
 const normalizeCancellationReason = (reason) => {
   if (typeof reason !== 'string') {
     throw new HttpError('Lý do hủy vé là bắt buộc', 400)
   }
 
-  const normalized = reason.trim()
+  const normalized = normalizeMultilineText(reason)
   if (normalized.length < 5 || normalized.length > 500) {
     throw new HttpError('Lý do hủy vé phải có từ 5 đến 500 ký tự', 400)
   }
@@ -198,7 +199,8 @@ const runCancellationTransaction = ({
         status: 'CANCELLED',
         cancellationReason: reason,
         cancelledAt: now,
-        cancelledById: actor?.id || null,
+        cancelledById:
+          actor?.id || (mode === 'customer' ? userId : null),
         ...(refunded && { paymentStatus: 'REFUNDED' }),
       },
     })
@@ -235,20 +237,27 @@ const runCancellationTransaction = ({
       }
     }
 
-    if (actor) {
-      await writeAuditLog(
-        {
-          userId: actor.id,
-          role: actor.role,
-          action: 'CANCEL_BOOKING',
-          entityType: 'BOOKING',
-          entityId: booking.id,
-          description: `Hủy booking ${booking.bookingCode}`,
-          reason,
+    await writeAuditLog(
+      {
+        userId: actor?.id || (mode === 'customer' ? userId : null),
+        role: actor?.role || (mode === 'customer' ? 'CUSTOMER' : null),
+        actorName:
+          actor?.fullName ||
+          (mode === 'customer' ? 'Khách hàng' : 'Khách tra cứu vé'),
+        action: 'CANCEL_BOOKING',
+        entityType: 'BOOKING',
+        entityId: booking.id,
+        description: `Hủy vé ${booking.bookingCode}`,
+        reason,
+        metadata: {
+          cancellationMode: mode,
+          refunded,
+          refundAmount,
+          releasedSeatCount: releasedSeats.count,
         },
-        transaction,
-      )
-    }
+      },
+      transaction,
+    )
 
     return {
       bookingCode: booking.bookingCode,

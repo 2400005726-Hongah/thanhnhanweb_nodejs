@@ -1,17 +1,22 @@
 import { body, param, query } from 'express-validator'
 
-import { isVietnamesePhone } from '../utils/normalize.js'
+import {
+  isVietnamesePhone,
+  normalizeBookingCode,
+  normalizePhone,
+} from '../utils/normalize.js'
 
 const BOOKING_CODE_PATTERN = /^TN[A-F0-9]{16}$/i
 
 const bookingCodeParamValidator = param('bookingCode')
-  .trim()
+  .customSanitizer(normalizeBookingCode)
   .matches(BOOKING_CODE_PATTERN)
   .withMessage('Mã đặt vé không hợp lệ')
 
 const phoneBodyValidator = body('phone')
   .isString()
   .withMessage('Số điện thoại là bắt buộc')
+  .customSanitizer(normalizePhone)
   .custom(isVietnamesePhone)
   .withMessage('Số điện thoại Việt Nam không hợp lệ')
 
@@ -20,7 +25,7 @@ const simulatePaymentValidator = [
   phoneBodyValidator,
   body('paymentMethod')
     .equals('SIMULATED')
-    .withMessage('Task này chỉ hỗ trợ phương thức SIMULATED'),
+    .withMessage('Chức năng này chỉ hỗ trợ thanh toán mô phỏng'),
   ...['amount', 'status', 'transactionCode', 'bookingId'].map((field) =>
     body(field)
       .not()
@@ -31,12 +36,13 @@ const simulatePaymentValidator = [
 
 const lookupBookingValidator = [
   query('bookingCode')
-    .trim()
+    .customSanitizer(normalizeBookingCode)
     .matches(BOOKING_CODE_PATTERN)
     .withMessage('Mã đặt vé không hợp lệ'),
   query('phone')
     .isString()
     .withMessage('Số điện thoại là bắt buộc')
+    .customSanitizer(normalizePhone)
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại Việt Nam không hợp lệ'),
 ]

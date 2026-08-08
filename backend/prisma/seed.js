@@ -1,11 +1,12 @@
-import { connectDatabase, disconnectDatabase } from '../src/config/database.js'
-import { seedAdmin } from '../src/jobs/seedAdmin.js'
-import { seedData } from '../src/jobs/seedData.js'
+import {
+  connectDatabase,
+  disconnectDatabase,
+} from '../src/config/database.js'
+import { seedOperationalData } from '../src/jobs/seedOperationalData.js'
 
 try {
   await connectDatabase()
-  await seedAdmin()
-  await seedData()
+  await seedOperationalData()
 } catch (error) {
   console.error(`Không thể seed Supabase PostgreSQL: ${error.message}`)
   process.exitCode = 1

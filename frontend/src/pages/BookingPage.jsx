@@ -10,10 +10,20 @@ import {
   getSeatHold,
   saveBookingResult,
 } from '../utils/bookingSession.js'
-import { getSeatTypeLabel } from '../utils/busTypes.js'
+import { getSeatTypeLabel, isRoomBusType } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
 import { getPaymentOptionsForSource } from '../utils/paymentLabels.js'
+import {
+  formatPhoneInput,
+  isValidFullName,
+  isVietnamesePhone,
+  normalizeEmail,
+  normalizeFullName,
+  normalizeMultilineText,
+  normalizePhone,
+  normalizeWhitespace,
+} from '../utils/normalizers.js'
 
 const emptyPassenger = { fullName: '', phone: '', email: '' }
 
@@ -29,6 +39,8 @@ function BookingPage() {
   const [hold] = useState(() => getSeatHold(tripId))
   const [detail, setDetail] = useState(null)
   const [passenger, setPassenger] = useState(emptyPassenger)
+  const [pickupPoint, setPickupPoint] = useState('')
+  const [dropoffPoint, setDropoffPoint] = useState('')
   const [customerNote, setCustomerNote] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER')
   const [remainingSeconds, setRemainingSeconds] = useState(() =>
@@ -86,22 +98,30 @@ function BookingPage() {
   }, [hold, remainingSeconds, tripId])
 
   const updatePassenger = (event) => {
+    const { name, value } = event.target
     setValidation('')
     setPassenger((current) => ({
       ...current,
-      [event.target.name]: event.target.value,
+      [name]: name === 'phone' ? formatPhoneInput(value) : value,
     }))
   }
 
   const validatePassenger = () => {
-    const fullName = passenger.fullName.trim()
-    const phone = passenger.phone.replace(/[\s().-]/g, '')
-    if (fullName.length < 2) return 'Vui lòng nhập đầy đủ họ tên hành khách.'
-    if (!/^(?:\+84|84|0)(?:3|5|7|8|9)[0-9]{8}$/.test(phone)) {
-      return 'Số điện thoại Việt Nam không hợp lệ.'
+    if (!passenger.email.trim()) {
+      return 'Email là bắt buộc khi đặt vé trực tuyến.'
     }
-    if (!passenger.email.trim()) return 'Email là bắt buộc khi đặt vé Online.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(passenger.email)) {
+
+    const fullName = normalizeFullName(passenger.fullName)
+    const phone = normalizePhone(passenger.phone)
+    const email = normalizeEmail(passenger.email)
+
+    if (!isValidFullName(fullName)) {
+      return 'Vui lòng nhập họ tên hợp lệ, không dùng số hoặc ký tự đặc biệt.'
+    }
+    if (!isVietnamesePhone(phone)) {
+      return 'Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.'
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return 'Email không hợp lệ.'
     }
     return ''
@@ -123,12 +143,22 @@ function BookingPage() {
       const data = await createBooking({
         tripId,
         holdToken: hold.holdToken,
+        roomSelections: isRoomBusType(detail.trip.bus.busType)
+          ? hold.seats
+              .filter((seat) => ['SINGLE_ROOM', 'DOUBLE_ROOM'].includes(seat.seatType))
+              .map((seat) => ({
+                tripSeatId: seat.id,
+                roomType: seat.seatType,
+              }))
+          : [],
         passenger: {
-          fullName: passenger.fullName.trim(),
-          phone: passenger.phone.trim(),
-          email: passenger.email.trim() || undefined,
+          fullName: normalizeFullName(passenger.fullName),
+          phone: normalizePhone(passenger.phone),
+          email: normalizeEmail(passenger.email) || undefined,
         },
-        customerNote: customerNote.trim() || undefined,
+        pickupPoint: normalizeWhitespace(pickupPoint) || undefined,
+        dropoffPoint: normalizeWhitespace(dropoffPoint) || undefined,
+        customerNote: normalizeMultilineText(customerNote) || undefined,
         paymentMethod,
       })
       releaseOnExit.current = false
@@ -250,6 +280,12 @@ function BookingPage() {
                 value={passenger.fullName}
                 onChange={updatePassenger}
                 maxLength="100"
+                onBlur={(event) =>
+                  setPassenger((current) => ({
+                    ...current,
+                    fullName: normalizeFullName(event.target.value),
+                  }))
+                }
                 autoComplete="name"
                 required
               />
@@ -266,7 +302,9 @@ function BookingPage() {
                     type="tel"
                     value={passenger.phone}
                     onChange={updatePassenger}
-                    maxLength="20"
+                    maxLength="12"
+                    placeholder="0912 345 678"
+                    inputMode="tel"
                     autoComplete="tel"
                     required
                   />
@@ -283,8 +321,43 @@ function BookingPage() {
                     value={passenger.email}
                     onChange={updatePassenger}
                     maxLength="255"
+                    onBlur={(event) =>
+                      setPassenger((current) => ({
+                        ...current,
+                        email: normalizeEmail(event.target.value),
+                      }))
+                    }
                     autoComplete="email"
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="row g-3 mt-1">
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="pickupPoint">
+                    Điểm đón chi tiết
+                  </label>
+                  <input
+                    className="form-control"
+                    id="pickupPoint"
+                    maxLength="300"
+                    onChange={(event) => setPickupPoint(event.target.value)}
+                    placeholder="Ví dụ: 12 Nguyễn Văn Cừ, Buôn Ma Thuột"
+                    value={pickupPoint}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label" htmlFor="dropoffPoint">
+                    Điểm trả chi tiết
+                  </label>
+                  <input
+                    className="form-control"
+                    id="dropoffPoint"
+                    maxLength="300"
+                    onChange={(event) => setDropoffPoint(event.target.value)}
+                    placeholder="Ví dụ: Bến xe Miền Đông mới"
+                    value={dropoffPoint}
                   />
                 </div>
               </div>
@@ -338,7 +411,7 @@ function BookingPage() {
                   type="submit"
                   disabled={expired || submitting}
                 >
-                  {submitting ? 'Đang tạo booking...' : 'Xác nhận đặt vé'}
+                  {submitting ? 'Đang tạo vé...' : 'Xác nhận đặt vé'}
                 </button>
               </div>
             </form>

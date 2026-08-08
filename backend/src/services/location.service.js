@@ -1,16 +1,89 @@
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
 import {
-  buildPagination,
-  normalizeText,
-  parsePagination,
-} from '../utils/query.js'
+  normalizeAddress,
+  normalizeComparisonKey,
+  normalizeLocationName,
+  normalizeProvince,
+  normalizeWhitespace,
+} from '../utils/normalize.js'
+import { buildPagination, parsePagination } from '../utils/query.js'
 
-const duplicateWhere = (name, province, excludeId) => ({
-  ...(excludeId && { id: { not: excludeId } }),
-  name: { equals: name, mode: 'insensitive' },
-  province: { equals: province, mode: 'insensitive' },
-})
+const LOCATION_PROVINCE_RULES = new Map(
+  [
+    ['Ea Tân', 'Đắk Lắk'],
+    ['Ea Tóh', 'Đắk Lắk'],
+    ['Phú Lộc', 'Đắk Lắk'],
+    ['Dliê Ya', 'Đắk Lắk'],
+    ['Thị trấn Krông Năng', 'Đắk Lắk'],
+    ['Ea Hồ', 'Đắk Lắk'],
+    ['Buôn Hồ', 'Đắk Lắk'],
+    ['Krông Búk', 'Đắk Lắk'],
+    ['Cư M’gar', 'Đắk Lắk'],
+    ['Buôn Ma Thuột', 'Đắk Lắk'],
+    ['Bình Thạnh', 'TP.HCM'],
+    ['Gò Vấp', 'TP.HCM'],
+    ['Phú Nhuận', 'TP.HCM'],
+    ['Quận 1', 'TP.HCM'],
+    ['Quận 3', 'TP.HCM'],
+    ['Quận 5', 'TP.HCM'],
+    ['Quận 6', 'TP.HCM'],
+    ['Quận 10', 'TP.HCM'],
+    ['Quận 11', 'TP.HCM'],
+    ['Quận 12', 'TP.HCM'],
+    ['Tân Bình', 'TP.HCM'],
+    ['Tân Phú', 'TP.HCM'],
+    ['Thủ Đức', 'TP.HCM'],
+    ['Dĩ An', 'Bình Dương'],
+    ['Phú Giáo', 'Bình Dương'],
+    ['Tân Uyên', 'Bình Dương'],
+    ['Thuận An', 'Bình Dương'],
+    ['Chơn Thành', 'Bình Dương'],
+  ].map(([name, province]) => [normalizeComparisonKey(name), province]),
+)
+
+const normalizeLocationPayload = (payload, current = {}) => {
+  const name =
+    payload.name !== undefined
+      ? normalizeLocationName(payload.name)
+      : current.name
+  const province =
+    payload.province !== undefined
+      ? normalizeProvince(payload.province)
+      : current.province
+  const expectedProvince = LOCATION_PROVINCE_RULES.get(
+    normalizeComparisonKey(name),
+  )
+
+  if (
+    expectedProvince &&
+    normalizeComparisonKey(province) !== normalizeComparisonKey(expectedProvince)
+  ) {
+    throw new HttpError(
+      `${name} phải thuộc ${expectedProvince} theo danh mục địa điểm của hệ thống`,
+      400,
+    )
+  }
+
+  return {
+    name,
+    province: expectedProvince || province,
+    address:
+      payload.address !== undefined
+        ? normalizeAddress(payload.address)
+        : current.address ?? null,
+  }
+}
+
+const findDuplicateLocation = async ({ name, province, excludeId }) =>
+  prisma.location.findFirst({
+    where: {
+      ...(excludeId && { id: { not: excludeId } }),
+      name: { equals: name, mode: 'insensitive' },
+      province: { equals: province, mode: 'insensitive' },
+    },
+    select: { id: true },
+  })
 
 const ensureLocationCanDeactivate = async (locationId) => {
   const activeRouteCount = await prisma.route.count({
@@ -25,7 +98,7 @@ const ensureLocationCanDeactivate = async (locationId) => {
 
   if (activeRouteCount > 0) {
     throw new HttpError(
-      'Không thể khóa địa điểm đang được tuyến xe hoạt động sử dụng',
+      'Không thể ngừng hoạt động địa điểm đang được tuyến xe hoạt động sử dụng',
       409,
     )
   }
@@ -39,9 +112,16 @@ const getLocations = async ({ query, isAdmin }) => {
   }
 
   if (query.keyword) {
-    where.OR = ['name', 'province', 'address'].map((field) => ({
-      [field]: { contains: query.keyword.trim(), mode: 'insensitive' },
-    }))
+    const keyword = normalizeWhitespace(query.keyword)
+    const canonicalName = normalizeLocationName(keyword)
+    const canonicalProvince = normalizeProvince(keyword)
+    const terms = [...new Set([keyword, canonicalName, canonicalProvince])]
+
+    where.OR = terms.flatMap((term) =>
+      ['name', 'province', 'address'].map((field) => ({
+        [field]: { contains: term, mode: 'insensitive' },
+      })),
+    )
   }
 
   const [locations, total] = await Promise.all([
@@ -72,22 +152,16 @@ const getLocationById = async ({ locationId, isAdmin }) => {
 }
 
 const createLocation = async (payload) => {
-  const name = normalizeText(payload.name)
-  const province = normalizeText(payload.province)
-  const duplicate = await prisma.location.findFirst({
-    where: duplicateWhere(name, province),
-    select: { id: true },
-  })
+  const normalized = normalizeLocationPayload(payload)
+  const duplicate = await findDuplicateLocation(normalized)
 
   if (duplicate) {
-    throw new HttpError('Địa điểm đã tồn tại trong tỉnh này', 409)
+    throw new HttpError('Địa điểm đã tồn tại trong tỉnh/thành phố này', 409)
   }
 
   return prisma.location.create({
     data: {
-      name,
-      province,
-      address: payload.address ? normalizeText(payload.address) : null,
+      ...normalized,
       status: payload.status || 'ACTIVE',
     },
   })
@@ -100,17 +174,14 @@ const updateLocation = async (locationId, payload) => {
     throw new HttpError('Không tìm thấy địa điểm', 404)
   }
 
-  const name = payload.name ? normalizeText(payload.name) : location.name
-  const province = payload.province
-    ? normalizeText(payload.province)
-    : location.province
-  const duplicate = await prisma.location.findFirst({
-    where: duplicateWhere(name, province, locationId),
-    select: { id: true },
+  const normalized = normalizeLocationPayload(payload, location)
+  const duplicate = await findDuplicateLocation({
+    ...normalized,
+    excludeId: locationId,
   })
 
   if (duplicate) {
-    throw new HttpError('Địa điểm đã tồn tại trong tỉnh này', 409)
+    throw new HttpError('Địa điểm đã tồn tại trong tỉnh/thành phố này', 409)
   }
   if (payload.status === 'INACTIVE' && location.status !== 'INACTIVE') {
     await ensureLocationCanDeactivate(locationId)
@@ -119,11 +190,9 @@ const updateLocation = async (locationId, payload) => {
   return prisma.location.update({
     where: { id: locationId },
     data: {
-      name,
-      province,
-      ...(payload.address !== undefined && {
-        address: payload.address ? normalizeText(payload.address) : null,
-      }),
+      name: normalized.name,
+      province: normalized.province,
+      ...(payload.address !== undefined && { address: normalized.address }),
       ...(payload.status && { status: payload.status }),
     },
   })
@@ -147,9 +216,11 @@ const deactivateLocation = async (locationId) => {
 }
 
 export {
+  LOCATION_PROVINCE_RULES,
   createLocation,
   deactivateLocation,
   getLocationById,
   getLocations,
+  normalizeLocationPayload,
   updateLocation,
 }

@@ -1,4 +1,5 @@
 import {
+  adminLogin as adminLoginService,
   changePassword as changePasswordService,
   getCurrentUser,
   login as loginService,
@@ -26,6 +27,20 @@ const login = async (request, response, next) => {
     response.status(200).json({
       success: true,
       message: 'Đăng nhập thành công',
+      data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const adminLogin = async (request, response, next) => {
+  try {
+    const data = await adminLoginService(request.body)
+
+    response.status(200).json({
+      success: true,
+      message: 'Đăng nhập khu vực quản trị thành công',
       data,
     })
   } catch (error) {
@@ -61,4 +76,4 @@ const changePassword = async (request, response, next) => {
   }
 }
 
-export { changePassword, login, me, register }
+export { adminLogin, changePassword, login, me, register }

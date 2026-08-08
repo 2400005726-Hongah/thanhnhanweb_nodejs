@@ -13,11 +13,17 @@ import {
   updateBookingContact,
   updateCustomer,
 } from '../services/admin.service.js'
+
+import {
+  softDeleteManagedBooking,
+} from '../services/bookingDeletion.service.js'
+
 import * as cancellationService from '../services/cancellation.service.js'
 
 const dashboardSummary = async (request, response, next) => {
   try {
     const summary = await getDashboardSummary(request.user.role)
+
     response.status(200).json({
       success: true,
       message: 'Lấy tổng quan vận hành thành công',
@@ -27,6 +33,7 @@ const dashboardSummary = async (request, response, next) => {
     next(error)
   }
 }
+
 
 const revenueSummary = async (request, response, next) => {
   try {
@@ -101,6 +108,38 @@ const cancelBooking = async (request, response, next) => {
   }
 }
 
+const deleteBooking = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const deletion =
+      await softDeleteManagedBooking({
+        bookingCode:
+          request.params.bookingCode,
+
+        reason:
+          request.body.reason,
+
+        actor:
+          request.user,
+      })
+
+    response.status(200).json({
+      success: true,
+      message:
+        'Xóa mềm vé thành công',
+
+      data: {
+        deletion,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const markNoShow = async (request, response, next) => {
   try {
     const booking = await markBookingNoShow(
@@ -118,6 +157,30 @@ const markNoShow = async (request, response, next) => {
   }
 }
 
+
+const resendTicketEmail = async (request, response, next) => {
+  try {
+    const { resendBookingEmail } = await import(
+      '../services/bookingEmail.service.js'
+    )
+
+    const delivery = await resendBookingEmail(
+      request.params.bookingCode,
+      request.user,
+    )
+
+    response.status(200).json({
+      success: true,
+      message: delivery.emailSent
+        ? 'Đã gửi lại email vé điện tử'
+        : delivery.emailWarning || 'Chưa thể gửi email vé điện tử',
+      data: { delivery },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const listCustomers = async (request, response, next) => {
   try {
     const data = await listCustomersService(request.query)
@@ -125,6 +188,68 @@ const listCustomers = async (request, response, next) => {
       success: true,
       message: 'Lấy danh sách khách hàng thành công',
       data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const showCustomer = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const { getCustomerDetail } = await import(
+      '../services/admin.service.js'
+    )
+
+    const data = await getCustomerDetail(
+      request.params.id,
+      request.query,
+      request.user,
+    )
+
+    response.status(200).json({
+      success: true,
+      message:
+        'Lấy chi tiết khách hàng thành công',
+      data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const changeCustomerStatus = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const { changeCustomerStatus: changeCustomerStatusService } = await import(
+      '../services/admin.service.js'
+    )
+
+    const customer =
+      await changeCustomerStatusService(
+        request.params.id,
+        request.body.status,
+        request.body.reason,
+        request.user,
+      )
+
+    response.status(200).json({
+      success: true,
+
+      message:
+        request.body.status === 'BLOCKED'
+          ? 'Đã khóa khách hàng'
+          : 'Đã mở khóa khách hàng',
+
+      data: {
+        customer,
+      },
     })
   } catch (error) {
     next(error)
@@ -225,8 +350,10 @@ export {
   cancelBooking,
   changeAccountRole,
   changeAccountStatus,
+  changeCustomerStatus,
   createAccount,
   dashboardSummary,
+  deleteBooking,
   editBookingContact,
   editCustomer,
   listAccounts,
@@ -234,6 +361,8 @@ export {
   listCustomers,
   markNoShow,
   revenueSummary,
+  resendTicketEmail,
   showAuditLogs,
   showBooking,
+  showCustomer,
 }

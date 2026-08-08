@@ -9,16 +9,20 @@ function ProtectedRoute({ allowedRoles = [], requiredPermissions = [] }) {
 
   if (!isAuthenticated) {
     const returnUrl = `${location.pathname}${location.search}`
+    const loginPath = location.pathname.startsWith('/admin')
+      ? '/admin/dang-nhap'
+      : '/admin/dang-nhap'
+
     return (
       <Navigate
         replace
-        to={`/dang-nhap?returnUrl=${encodeURIComponent(returnUrl)}`}
+        to={`${loginPath}?returnUrl=${encodeURIComponent(returnUrl)}`}
       />
     )
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-    return <Navigate replace to="/" />
+    return <Navigate replace to="/admin/dang-nhap" />
   }
 
   if (

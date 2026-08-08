@@ -1,6 +1,15 @@
 import { body, param, query } from 'express-validator'
 
-import { isVietnamesePhone } from '../utils/normalize.js'
+import {
+  isValidFullName,
+  isVietnamesePhone,
+  normalizeBookingCode,
+  normalizeEmail,
+  normalizeFullName,
+  normalizeMultilineText,
+  normalizePhone,
+  normalizeWhitespace,
+} from '../utils/normalize.js'
 import { BOOKING_CODE_PATTERN } from './payment.validator.js'
 
 const paginationRules = [
@@ -9,7 +18,7 @@ const paginationRules = [
 ]
 
 const bookingCodeRule = param('bookingCode')
-  .trim()
+  .customSanitizer(normalizeBookingCode)
   .matches(BOOKING_CODE_PATTERN)
   .withMessage('Mã đặt vé không hợp lệ')
 
@@ -23,12 +32,17 @@ const listManagedBookingsValidator = [
       'EXPIRED',
       'COMPLETED',
       'NO_SHOW',
+      'DELETED',
     ]),
+  query('source').optional().isIn(['ONLINE', 'HOTLINE', 'COUNTER']),
   query('paymentStatus')
     .optional()
     .isIn(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']),
   query('trip').optional().isUUID(),
-  query('keyword').optional().trim().isLength({ max: 150 }),
+  query('keyword')
+    .optional()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 150 }),
   query('from').optional().isISO8601(),
   query('to').optional().isISO8601(),
   query('sort').optional().isIn(['asc', 'desc']),
@@ -37,58 +51,85 @@ const listManagedBookingsValidator = [
 
 const bookingCodeValidator = [bookingCodeRule]
 
-const cancelManagedBookingValidator = [
-  bookingCodeRule,
+const reasonRule = (label) =>
   body('reason')
     .isString()
-    .withMessage('Lý do hủy vé là bắt buộc')
-    .trim()
+    .withMessage(`${label} là bắt buộc`)
+    .customSanitizer(normalizeMultilineText)
     .isLength({ min: 5, max: 500 })
-    .withMessage('Lý do hủy vé phải có từ 5 đến 500 ký tự'),
+    .withMessage(`${label} phải có từ 5 đến 500 ký tự`)
+
+const cancelManagedBookingValidator = [
+  bookingCodeRule,
+  reasonRule('Lý do hủy vé'),
+]
+
+const deleteManagedBookingValidator = [
+  bookingCodeRule,
+  reasonRule('Lý do xóa vé'),
 ]
 
 const updateBookingContactValidator = [
   bookingCodeRule,
   body('passengerFullName')
     .optional()
-    .trim()
-    .isLength({ min: 2, max: 100 }),
+    .customSanitizer(normalizeFullName)
+    .custom(isValidFullName)
+    .withMessage('Họ tên hành khách không hợp lệ'),
   body('passengerPhone')
     .optional()
+    .customSanitizer(normalizePhone)
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại không hợp lệ'),
+  body('pickupPoint')
+    .optional({ values: 'falsy' })
+    .isString()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 300 }),
+  body('dropoffPoint')
+    .optional({ values: 'falsy' })
+    .isString()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 300 }),
   body('passengerEmail')
     .optional({ values: 'falsy' })
+    .customSanitizer(normalizeEmail)
     .isEmail()
     .isLength({ max: 255 }),
   body()
     .custom((value) =>
-      ['passengerFullName', 'passengerPhone', 'passengerEmail'].some(
-        (field) => value[field] !== undefined,
-      ),
+      [
+        'passengerFullName',
+        'passengerPhone',
+        'passengerEmail',
+        'pickupPoint',
+        'dropoffPoint',
+      ].some((field) => value[field] !== undefined),
     )
     .withMessage('Cần cung cấp ít nhất một trường cần cập nhật'),
 ]
 
 const markNoShowValidator = [
   bookingCodeRule,
-  body('reason')
-    .isString()
-    .trim()
-    .isLength({ min: 5, max: 500 })
-    .withMessage('Lý do Không đi phải có từ 5 đến 500 ký tự'),
+  reasonRule('Lý do khách không đi'),
 ]
 
 const listUsersValidator = [
-  query('role').optional().isIn(['CUSTOMER', 'ADMIN', 'STAFF']),
+  query('role').optional().isIn(['ADMIN', 'STAFF']),
   query('status').optional().isIn(['ACTIVE', 'INACTIVE']),
-  query('keyword').optional().trim().isLength({ max: 150 }),
+  query('keyword')
+    .optional()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 150 }),
   ...paginationRules,
 ]
 
 const listCustomersValidator = [
   query('status').optional().isIn(['ACTIVE', 'BLOCKED']),
-  query('keyword').optional().trim().isLength({ max: 150 }),
+  query('keyword')
+    .optional()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 150 }),
   ...paginationRules,
 ]
 
@@ -96,10 +137,36 @@ const userIdValidator = [
   param('id').isUUID().withMessage('ID tài khoản không hợp lệ'),
 ]
 
+const customerIdValidator = [
+  param('id').isUUID().withMessage('ID khách hàng không hợp lệ'),
+]
+
+const changeCustomerStatusValidator = [
+  ...customerIdValidator,
+  body('status')
+    .isIn(['ACTIVE', 'BLOCKED'])
+    .withMessage('Trạng thái khách hàng không hợp lệ'),
+  body('reason')
+    .optional({ values: 'falsy' })
+    .customSanitizer(normalizeMultilineText)
+    .custom((value, { req }) => {
+      if (req.body.status !== 'BLOCKED') return true
+      return typeof value === 'string' && value.length >= 5 && value.length <= 500
+    })
+    .withMessage('Lý do khóa phải có từ 5 đến 500 ký tự'),
+]
+
 const createManagedUserValidator = [
-  body('fullName').trim().isLength({ min: 2, max: 100 }),
-  body('email').trim().isEmail().isLength({ max: 255 }),
+  body('fullName')
+    .customSanitizer(normalizeFullName)
+    .custom(isValidFullName)
+    .withMessage('Họ tên không hợp lệ'),
+  body('email')
+    .customSanitizer(normalizeEmail)
+    .isEmail()
+    .isLength({ max: 255 }),
   body('phone')
+    .customSanitizer(normalizePhone)
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại không hợp lệ'),
   body('password')
@@ -109,7 +176,7 @@ const createManagedUserValidator = [
     .withMessage('Mật khẩu phải có ít nhất 8 ký tự, gồm chữ và số'),
   body('role')
     .isIn(['ADMIN', 'STAFF'])
-    .withMessage('Chỉ được tạo tài khoản ADMIN hoặc STAFF'),
+    .withMessage('Chỉ được tạo tài khoản Chủ xe hoặc Nhân viên'),
   body('status').optional().isIn(['ACTIVE', 'INACTIVE']),
 ]
 
@@ -120,15 +187,24 @@ const changeUserStatusValidator = [
 
 const changeUserRoleValidator = [
   ...userIdValidator,
-  body('role').isIn(['CUSTOMER', 'ADMIN', 'STAFF']),
+  body('role').isIn(['ADMIN', 'STAFF']),
 ]
 
 const updateCustomerValidator = [
-  ...userIdValidator,
-  body('fullName').optional().trim().isLength({ min: 2, max: 100 }),
-  body('email').optional().isEmail().isLength({ max: 255 }),
+  ...customerIdValidator,
+  body('fullName')
+    .optional()
+    .customSanitizer(normalizeFullName)
+    .custom(isValidFullName)
+    .withMessage('Họ tên không hợp lệ'),
+  body('email')
+    .optional({ values: 'falsy' })
+    .customSanitizer(normalizeEmail)
+    .isEmail()
+    .isLength({ max: 255 }),
   body('phone')
     .optional()
+    .customSanitizer(normalizePhone)
     .custom(isVietnamesePhone)
     .withMessage('Số điện thoại không hợp lệ'),
 ]
@@ -140,8 +216,14 @@ const revenueValidator = [
 
 const auditLogValidator = [
   query('role').optional().isIn(['ADMIN', 'STAFF']),
-  query('action').optional().trim().isLength({ max: 100 }),
-  query('entityType').optional().trim().isLength({ max: 100 }),
+  query('action')
+    .optional()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 100 }),
+  query('entityType')
+    .optional()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 100 }),
   ...paginationRules,
 ]
 
@@ -149,9 +231,12 @@ export {
   auditLogValidator,
   bookingCodeValidator,
   cancelManagedBookingValidator,
+  changeCustomerStatusValidator,
   changeUserRoleValidator,
   changeUserStatusValidator,
   createManagedUserValidator,
+  customerIdValidator,
+  deleteManagedBookingValidator,
   listCustomersValidator,
   listManagedBookingsValidator,
   listUsersValidator,

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 
+import { listPublicNews, showPublicNews } from '../controllers/news.controller.js'
 import {
   cancelGuestBooking,
   createBooking,
@@ -36,6 +37,8 @@ import {
 
 const router = Router()
 
+router.get('/news', listPublicNews)
+router.get('/news/:id', showPublicNews)
 router.get('/locations', publicLocationValidator, validate, getPublicLocations)
 router.get('/trips/search', searchTripValidator, validate, searchPublicTrips)
 router.get('/bookings/lookup', lookupBookingValidator, validate, lookupBooking)

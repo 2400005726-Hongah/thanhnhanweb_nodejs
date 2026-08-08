@@ -1,12 +1,20 @@
-import { getAuthSession } from '../utils/authStorage.js'
+import {
+  normalizeBookingCode,
+  normalizeEmail,
+  normalizeFullName,
+  normalizeMultilineText,
+  normalizePhone,
+  normalizeWhitespace,
+} from '../utils/normalizers.js'
 import apiClient, { authApiClient } from './apiClient.js'
 
 const unwrap = (response) => response.data.data
 
-const holdSeats = async (tripId, tripSeatIds) =>
+const holdSeats = async (tripId, tripSeatIds, roomSelections = []) =>
   unwrap(
     await apiClient.post(`/public/trips/${tripId}/seats/hold`, {
       tripSeatIds,
+      ...(roomSelections.length && { roomSelections }),
     }),
   )
 
@@ -21,17 +29,25 @@ const createBooking = async ({
   tripId,
   holdToken,
   passenger,
+  pickupPoint,
+  dropoffPoint,
   customerNote,
   paymentMethod,
+  roomSelections = [],
 }) => {
-  const client = getAuthSession()?.token ? authApiClient : apiClient
-
   return unwrap(
-    await client.post('/public/bookings', {
+    await apiClient.post('/public/bookings', {
       tripId,
       holdToken,
-      passenger,
-      customerNote: customerNote || undefined,
+      ...(roomSelections.length && { roomSelections }),
+      passenger: {
+        fullName: normalizeFullName(passenger?.fullName),
+        phone: normalizePhone(passenger?.phone),
+        email: normalizeEmail(passenger?.email),
+      },
+      pickupPoint: normalizeWhitespace(pickupPoint) || undefined,
+      dropoffPoint: normalizeWhitespace(dropoffPoint) || undefined,
+      customerNote: normalizeMultilineText(customerNote) || undefined,
       paymentMethod,
     }),
   )
@@ -40,15 +56,18 @@ const createBooking = async ({
 const simulatePayment = async (bookingCode, phone) =>
   unwrap(
     await apiClient.post(
-      `/public/bookings/${bookingCode}/payments/simulate`,
-      { phone, paymentMethod: 'SIMULATED' },
+      `/public/bookings/${normalizeBookingCode(bookingCode)}/payments/simulate`,
+      { phone: normalizePhone(phone), paymentMethod: 'SIMULATED' },
     ),
   )
 
 const lookupBooking = async (bookingCode, phone) =>
   unwrap(
     await apiClient.get('/public/bookings/lookup', {
-      params: { bookingCode, phone },
+      params: {
+        bookingCode: normalizeBookingCode(bookingCode),
+        phone: normalizePhone(phone),
+      },
     }),
   )
 
@@ -57,15 +76,21 @@ const getMyBookings = async (params) =>
 
 const cancelMyBooking = async (bookingCode, reason) =>
   unwrap(
-    await authApiClient.post(`/bookings/${bookingCode}/cancel`, { reason }),
+    await authApiClient.post(
+      `/bookings/${normalizeBookingCode(bookingCode)}/cancel`,
+      { reason: normalizeMultilineText(reason) },
+    ),
   )
 
 const cancelGuestBooking = async (bookingCode, phone, reason) =>
   unwrap(
-    await apiClient.post(`/public/bookings/${bookingCode}/cancel`, {
-      phone,
-      reason,
-    }),
+    await apiClient.post(
+      `/public/bookings/${normalizeBookingCode(bookingCode)}/cancel`,
+      {
+        phone: normalizePhone(phone),
+        reason: normalizeMultilineText(reason),
+      },
+    ),
   )
 
 export {

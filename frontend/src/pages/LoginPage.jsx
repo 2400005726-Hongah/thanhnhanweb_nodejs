@@ -8,6 +8,7 @@ import {
 import BrandLogo from '../components/common/BrandLogo.jsx'
 import { useAuth } from '../contexts/authContext.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
+import { formatPhoneInput, normalizeEmail } from '../utils/normalizers.js'
 
 const getSafeReturnUrl = (value) =>
   value?.startsWith('/') && !value.startsWith('//') ? value : '/ve-cua-toi'
@@ -21,10 +22,16 @@ function LoginPage() {
   const [error, setError] = useState('')
 
   const update = (event) => {
+    const { name, value } = event.target
+    const identifier =
+      name === 'identifier' && !/[A-Za-z@]/.test(value)
+        ? formatPhoneInput(value)
+        : value
+
     setError('')
     setForm((current) => ({
       ...current,
-      [event.target.name]: event.target.value,
+      [name]: name === 'identifier' ? identifier : value,
     }))
   }
 
@@ -80,6 +87,15 @@ function LoginPage() {
             name="identifier"
             onChange={update}
             required
+            placeholder="Email hoặc 0912 345 678"
+            onBlur={(event) => {
+              if (event.target.value.includes('@')) {
+                setForm((current) => ({
+                  ...current,
+                  identifier: normalizeEmail(event.target.value),
+                }))
+              }
+            }}
             value={form.identifier}
           />
           <label className="form-label" htmlFor="password">

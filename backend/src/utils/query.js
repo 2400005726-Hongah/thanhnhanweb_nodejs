@@ -1,3 +1,5 @@
+import { normalizeWhitespace } from './normalize.js'
+
 const parsePagination = (query, defaultLimit = 10) => {
   const page = Math.max(Number.parseInt(query.page, 10) || 1, 1)
   const limit = Math.min(
@@ -18,10 +20,6 @@ const buildPagination = (total, page, limit) => ({
 const escapeRegex = (value) =>
   String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-const normalizeText = (value) =>
-  String(value || '')
-    .trim()
-    .replace(/\s+/g, ' ')
+const normalizeText = (value) => normalizeWhitespace(value)
 
 export { buildPagination, escapeRegex, normalizeText, parsePagination }
-

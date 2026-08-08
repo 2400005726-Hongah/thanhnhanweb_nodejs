@@ -6,6 +6,7 @@ import prisma from '../config/prisma.js'
 import {
   isVietnamesePhone,
   normalizeEmail,
+  normalizeFullName,
   normalizePhone,
 } from '../utils/normalize.js'
 import { hashPassword } from '../utils/password.js'
@@ -61,7 +62,7 @@ const seedAdmin = async () => {
 
   const admin = await prisma.user.create({
     data: {
-      fullName: env.adminFullName.trim(),
+      fullName: normalizeFullName(env.adminFullName),
       email,
       phone,
       passwordHash: await hashPassword(env.adminPassword),

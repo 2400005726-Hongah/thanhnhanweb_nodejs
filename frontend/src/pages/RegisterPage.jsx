@@ -4,6 +4,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/common/BrandLogo.jsx'
 import { useAuth } from '../contexts/authContext.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
+import {
+  formatPhoneInput,
+  isValidFullName,
+  isVietnamesePhone,
+  normalizeEmail,
+  normalizeFullName,
+  normalizePhone,
+} from '../utils/normalizers.js'
 
 const initialForm = {
   fullName: '',
@@ -21,10 +29,11 @@ function RegisterPage() {
   const [error, setError] = useState('')
 
   const update = (event) => {
+    const { name, value } = event.target
     setError('')
     setForm((current) => ({
       ...current,
-      [event.target.name]: event.target.value,
+      [name]: name === 'phone' ? formatPhoneInput(value) : value,
     }))
   }
 
@@ -32,6 +41,18 @@ function RegisterPage() {
     event.preventDefault()
     if (loading) return
 
+    const fullName = normalizeFullName(form.fullName)
+    const email = normalizeEmail(form.email)
+    const phone = normalizePhone(form.phone)
+
+    if (!isValidFullName(fullName)) {
+      setError('Họ tên không hợp lệ.')
+      return
+    }
+    if (!isVietnamesePhone(phone)) {
+      setError('Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.')
+      return
+    }
     if (form.password !== form.confirmPassword) {
       setError('Xác nhận mật khẩu không khớp.')
       return
@@ -41,9 +62,9 @@ function RegisterPage() {
     setError('')
     try {
       await signUp({
-        fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
+        fullName,
+        email,
+        phone,
         password: form.password,
         confirmPassword: form.confirmPassword,
       })
@@ -81,6 +102,12 @@ function RegisterPage() {
                 onChange={update}
                 required
                 value={form.fullName}
+                onBlur={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    fullName: normalizeFullName(event.target.value),
+                  }))
+                }
               />
             </div>
             <div>
@@ -93,6 +120,12 @@ function RegisterPage() {
                 onChange={update}
                 required
                 type="email"
+                onBlur={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    email: normalizeEmail(event.target.value),
+                  }))
+                }
                 value={form.email}
               />
             </div>
@@ -106,6 +139,9 @@ function RegisterPage() {
                 onChange={update}
                 required
                 type="tel"
+                inputMode="tel"
+                maxLength="12"
+                placeholder="0912 345 678"
                 value={form.phone}
               />
             </div>

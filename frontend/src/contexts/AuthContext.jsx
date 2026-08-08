@@ -6,10 +6,7 @@ import {
 } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import {
-  login as loginRequest,
-  register as registerRequest,
-} from '../services/auth.service.js'
+import { adminLogin as adminLoginRequest } from '../services/auth.service.js'
 import {
   AUTH_UNAUTHORIZED_EVENT,
   clearAuthSession,
@@ -18,18 +15,27 @@ import {
 } from '../utils/authStorage.js'
 import { AuthContext } from './authContext.js'
 
+const getInitialAdminSession = () => {
+  const current = getAuthSession()
+  if (current?.user && ['ADMIN', 'STAFF'].includes(current.user.role)) {
+    return current
+  }
+  if (current) clearAuthSession()
+  return null
+}
+
 function AuthProvider({ children }) {
-  const [session, setSession] = useState(() => getAuthSession())
+  const [session, setSession] = useState(getInitialAdminSession)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
     const handleUnauthorized = () => {
       setSession(null)
-
-      if (location.pathname !== '/dang-nhap') {
+      const isAdminLogin = location.pathname === '/admin/dang-nhap'
+      if (!isAdminLogin) {
         const returnUrl = `${location.pathname}${location.search}`
-        navigate(`/dang-nhap?returnUrl=${encodeURIComponent(returnUrl)}`, {
+        navigate(`/admin/dang-nhap?returnUrl=${encodeURIComponent(returnUrl)}`, {
           replace: true,
         })
       }
@@ -46,22 +52,16 @@ function AuthProvider({ children }) {
     return nextSession
   }, [])
 
-  const signIn = useCallback(
+  const signInAdmin = useCallback(
     async (credentials) =>
-      persistSession(await loginRequest(credentials)),
-    [persistSession],
-  )
-
-  const signUp = useCallback(
-    async (payload) =>
-      persistSession(await registerRequest(payload)),
+      persistSession(await adminLoginRequest(credentials)),
     [persistSession],
   )
 
   const signOut = useCallback(() => {
     clearAuthSession()
     setSession(null)
-    navigate('/', { replace: true })
+    navigate('/admin/dang-nhap', { replace: true })
   }, [navigate])
 
   const value = useMemo(
@@ -69,11 +69,10 @@ function AuthProvider({ children }) {
       isAuthenticated: Boolean(session?.token),
       token: session?.token || null,
       user: session?.user || null,
-      signIn,
+      signInAdmin,
       signOut,
-      signUp,
     }),
-    [session, signIn, signOut, signUp],
+    [session, signInAdmin, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

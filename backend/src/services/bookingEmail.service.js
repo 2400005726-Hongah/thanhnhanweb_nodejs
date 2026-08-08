@@ -1,5 +1,7 @@
 import prisma from '../config/prisma.js'
 import { buildBookingEmail } from '../templates/bookingEmail.template.js'
+import HttpError from '../utils/HttpError.js'
+import { normalizeBookingCode } from '../utils/normalize.js'
 import { writeAuditLog } from './auditLog.service.js'
 import { sendEmail } from './emailTransport.service.js'
 
@@ -95,6 +97,82 @@ const sendBookingEmailAfterCommit = async (
   }
 }
 
+
+const bookingEmailInclude = {
+  trip: {
+    include: {
+      route: {
+        include: {
+          departureLocation: true,
+          arrivalLocation: true,
+        },
+      },
+      bus: true,
+    },
+  },
+  items: {
+    orderBy: { seatCode: 'asc' },
+  },
+  payments: {
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+  },
+}
+
+const serializeBookingForEmail = (booking) => ({
+  id: booking.id,
+  bookingCode: booking.bookingCode,
+  source: booking.source,
+  paymentStatus: booking.paymentStatus,
+  totalAmount: Number(booking.totalAmount || 0),
+  pickupPoint: booking.pickupPoint,
+  dropoffPoint: booking.dropoffPoint,
+  passenger: {
+    fullName: booking.passengerFullName,
+    phone: booking.passengerPhone,
+    email: booking.passengerEmail,
+  },
+  trip: {
+    id: booking.trip.id,
+    departureTime: booking.trip.departureTime,
+    expectedArrivalTime: booking.trip.expectedArrivalTime,
+    route: booking.trip.route,
+    bus: booking.trip.bus,
+  },
+  seats: booking.items.map((item) => ({
+    id: item.tripSeatId,
+    seatCode: item.seatCode,
+    seatType: item.seatType,
+    price: Number(item.price || 0),
+  })),
+  payment: booking.payments[0]
+    ? {
+        ...booking.payments[0],
+        amount: Number(booking.payments[0].amount || 0),
+      }
+    : null,
+})
+
+const resendBookingEmail = async (bookingCode, actor = null, transporter) => {
+  const booking = await prisma.booking.findUnique({
+    where: { bookingCode: normalizeBookingCode(bookingCode) },
+    include: bookingEmailInclude,
+  })
+
+  if (!booking) {
+    throw new HttpError('Không tìm thấy vé', 404)
+  }
+  if (!booking.passengerEmail) {
+    throw new HttpError('Vé chưa có địa chỉ email để gửi', 409)
+  }
+
+  return sendBookingEmailAfterCommit(
+    serializeBookingForEmail(booking),
+    actor,
+    transporter,
+  )
+}
+
 const attachEmailDelivery = async (bookingResult, actor, transporter) => {
   const delivery = await sendBookingEmailAfterCommit(
     bookingResult.booking,
@@ -108,4 +186,9 @@ const attachEmailDelivery = async (bookingResult, actor, transporter) => {
   }
 }
 
-export { attachEmailDelivery, sendBookingEmailAfterCommit }
+export {
+  attachEmailDelivery,
+  resendBookingEmail,
+  sendBookingEmailAfterCommit,
+  serializeBookingForEmail,
+}

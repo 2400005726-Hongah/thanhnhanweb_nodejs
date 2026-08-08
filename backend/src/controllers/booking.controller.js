@@ -9,10 +9,17 @@ import { attachEmailDelivery } from '../services/bookingEmail.service.js'
 
 const holdSeats = async (request, response, next) => {
   try {
-    const data = await holdSeatsService(
-      request.params.tripId,
-      request.body.tripSeatIds,
-    )
+    const roomSelections = request.body.roomSelections || []
+    const data = roomSelections.length
+      ? await holdSeatsService(
+          request.params.tripId,
+          request.body.tripSeatIds,
+          roomSelections,
+        )
+      : await holdSeatsService(
+          request.params.tripId,
+          request.body.tripSeatIds,
+        )
     response.status(201).json({
       success: true,
       message: 'Giữ ghế thành công',

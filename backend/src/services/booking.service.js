@@ -1,11 +1,17 @@
 import { randomBytes } from 'node:crypto'
 
+import { isRoomBusType } from '../config/busCatalog.js'
 import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
+import { normalizeMultilineText, normalizeWhitespace } from '../utils/normalize.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
 import { writeAuditLog } from './auditLog.service.js'
 import { findOrCreateBookableCustomer } from './customer.service.js'
+import {
+  getTripSeatPrice,
+  resolveTripPricing,
+} from './tripPricing.service.js'
 import {
   createInitialPayment,
   getInitialPaymentPlan,
@@ -19,10 +25,18 @@ const TRANSACTION_OPTIONS = {
 const BOOKING_SOURCES = ['ONLINE', 'HOTLINE', 'COUNTER']
 const MAX_SERIALIZABLE_RETRIES = 3
 
-const normalizeNote = (value, fieldName, maxLength) => {
+const normalizeNote = (
+  value,
+  fieldName,
+  maxLength,
+  { multiline = false } = {},
+) => {
   if (value === undefined || value === null || value === '') return null
 
-  const normalized = String(value).trim()
+  const normalized = multiline
+    ? normalizeMultilineText(value)
+    : normalizeWhitespace(value)
+
   if (normalized.length > maxLength) {
     throw new HttpError(`${fieldName} không được vượt quá ${maxLength} ký tự`, 400)
   }
@@ -49,7 +63,7 @@ const normalizeBookingContext = (context = {}) => {
     staffNote:
       source === 'ONLINE'
         ? null
-        : normalizeNote(context.staffNote, 'Ghi chú nhân viên', 1000),
+        : normalizeNote(context.staffNote, 'Ghi chú nhân viên', 1000, { multiline: true }),
   }
 }
 
@@ -80,6 +94,8 @@ const serializeBooking = (booking) => ({
   expiresAt: booking.expiresAt,
   createdAt: booking.createdAt,
   customerNote: booking.customerNote,
+  pickupPoint: booking.pickupPoint,
+  dropoffPoint: booking.dropoffPoint,
   payment: booking.payments?.[0]
     ? {
         id: booking.payments[0].id,
@@ -142,6 +158,21 @@ const ensureOpenFutureTrip = async (database, tripId, now) => {
       id: true,
       status: true,
       departureTime: true,
+      ticketPrice: true,
+      singleRoomPrice: true,
+      doubleRoomPrice: true,
+      bus: {
+        select: {
+          busType: true,
+        },
+      },
+      route: {
+        select: {
+          defaultTicketPrice: true,
+          defaultSingleRoomPrice: true,
+          defaultDoubleRoomPrice: true,
+        },
+      },
     },
   })
 
@@ -166,7 +197,56 @@ const calculateTotal = (seats) => {
   return totalAmount
 }
 
-const holdSeats = async (tripId, tripSeatIds) => {
+const ROOM_TYPES = new Set(['SINGLE_ROOM', 'DOUBLE_ROOM'])
+
+const applyRoomSelections = (trip, seats, roomSelections = []) => {
+  if (!isRoomBusType(trip.bus?.busType)) {
+    if (roomSelections?.length) {
+      throw new HttpError('Chỉ xe Limousine 22 phòng mới được chọn loại phòng', 400)
+    }
+    return seats
+  }
+
+  if (!Array.isArray(roomSelections) || roomSelections.length !== seats.length) {
+    throw new HttpError('Vui lòng chọn Phòng đơn hoặc Phòng đôi cho từng phòng', 400)
+  }
+
+  const selectionsBySeat = new Map()
+  for (const selection of roomSelections) {
+    if (
+      !selection ||
+      !ROOM_TYPES.has(selection.roomType) ||
+      !selection.tripSeatId ||
+      selectionsBySeat.has(selection.tripSeatId)
+    ) {
+      throw new HttpError('Lựa chọn loại phòng không hợp lệ', 400)
+    }
+    selectionsBySeat.set(selection.tripSeatId, selection.roomType)
+  }
+
+  if (seats.some((seat) => !selectionsBySeat.has(seat.id))) {
+    throw new HttpError('Mỗi phòng đã chọn phải có đúng một loại Phòng đơn/Phòng đôi', 400)
+  }
+
+  const pricing = resolveTripPricing({
+    busType: trip.bus.busType,
+    route: trip.route,
+    ticketPrice: trip.ticketPrice,
+    singleRoomPrice: trip.singleRoomPrice,
+    doubleRoomPrice: trip.doubleRoomPrice,
+  })
+
+  return seats.map((seat) => {
+    const selectedType = selectionsBySeat.get(seat.id)
+    return {
+      ...seat,
+      seatType: selectedType,
+      price: getTripSeatPrice(pricing, selectedType),
+    }
+  })
+}
+
+const holdSeats = async (tripId, tripSeatIds, roomSelections = []) => {
   const uniqueSeatIds = [...new Set(tripSeatIds)]
   const holdToken = randomBytes(32).toString('hex')
 
@@ -216,6 +296,8 @@ const holdSeats = async (tripId, tripSeatIds) => {
       )
     }
 
+    const pricedSeats = applyRoomSelections(trip, seats, roomSelections)
+
     const updated = await transaction.tripSeat.updateMany({
       where: {
         tripId,
@@ -240,8 +322,8 @@ const holdSeats = async (tripId, tripSeatIds) => {
         id: trip.id,
         departureTime: trip.departureTime,
       },
-      seats: seats.map((seat) => ({ ...serializeSeat(seat), status: 'HELD' })),
-      totalAmount: calculateTotal(seats),
+      seats: pricedSeats.map((seat) => ({ ...serializeSeat(seat), status: 'HELD' })),
+      totalAmount: calculateTotal(pricedSeats),
     }
   }, TRANSACTION_OPTIONS)
 }
@@ -427,7 +509,7 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
   prisma.$transaction(async (transaction) => {
     const now = new Date()
     await lockTrip(transaction, payload.tripId)
-    await ensureOpenFutureTrip(transaction, payload.tripId, now)
+    const trip = await ensureOpenFutureTrip(transaction, payload.tripId, now)
 
     if (context.source === 'ONLINE' && !payload.passenger?.email) {
       throw new HttpError('Email là bắt buộc khi đặt vé Online', 400)
@@ -442,9 +524,10 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
             payload.tripSeatIds,
             now,
           )
-    const tripSeatIds = seats.map((seat) => seat.id)
+    const pricedSeats = applyRoomSelections(trip, seats, payload.roomSelections || [])
+    const tripSeatIds = pricedSeats.map((seat) => seat.id)
 
-    const totalAmount = calculateTotal(seats)
+    const totalAmount = calculateTotal(pricedSeats)
     const paymentPlan = getInitialPaymentPlan(
       context.source,
       payload.paymentMethod,
@@ -468,8 +551,11 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
           payload.customerNote,
           'Ghi chú khách hàng',
           500,
+          { multiline: true },
         ),
         staffNote: context.staffNote,
+        pickupPoint: normalizeNote(payload.pickupPoint, 'Điểm đón chi tiết', 300),
+        dropoffPoint: normalizeNote(payload.dropoffPoint, 'Điểm trả chi tiết', 300),
         createdById: context.createdById,
         totalAmount,
         status: paymentPlan?.bookingStatus || 'PENDING',
@@ -487,7 +573,7 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     })
 
     await transaction.bookingItem.createMany({
-      data: seats.map((seat) => ({
+      data: pricedSeats.map((seat) => ({
         bookingId: booking.id,
         tripSeatId: seat.id,
         seatCode: seat.seatCode,

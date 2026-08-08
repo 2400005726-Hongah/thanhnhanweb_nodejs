@@ -4,6 +4,8 @@ import {
   changeTripStatus,
   createTrip,
   deleteTrip,
+  showTripPassengers,
+  showTripCompletionPreview,
   listTrips,
   showTrip,
   updateTrip,
@@ -26,6 +28,26 @@ import {
 const router = Router()
 
 router.get('/', optionalAuthenticate, listTripValidator, validate, listTrips)
+router.get(
+  '/:id/completion-preview',
+  authenticate,
+  authorizePermissions(
+    PERMISSIONS.EDIT_TRIPS,
+  ),
+  tripIdValidator,
+  validate,
+  showTripCompletionPreview,
+)
+router.get(
+  '/:id/passengers',
+  authenticate,
+  authorizePermissions(
+    PERMISSIONS.VIEW_BOOKINGS,
+  ),
+  tripIdValidator,
+  validate,
+  showTripPassengers,
+)
 router.get('/:id', optionalAuthenticate, tripIdValidator, validate, showTrip)
 router.post(
   '/',

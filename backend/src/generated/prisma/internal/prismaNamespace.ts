@@ -1569,6 +1569,8 @@ export const BookingScalarFieldEnum = {
   passengerEmail: 'passengerEmail',
   customerNote: 'customerNote',
   staffNote: 'staffNote',
+  pickupPoint: 'pickupPoint',
+  dropoffPoint: 'dropoffPoint',
   totalAmount: 'totalAmount',
   status: 'status',
   paymentStatus: 'paymentStatus',

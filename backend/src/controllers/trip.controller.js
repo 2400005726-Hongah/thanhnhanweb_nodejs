@@ -3,6 +3,8 @@ import {
   changeTripStatus as changeTripStatusService,
   createTrip as createTripService,
   getTripById,
+  getTripCompletionPreview,
+  getTripPassengerList,
   getTrips,
   updateTrip as updateTripService,
 } from '../services/trip.service.js'
@@ -53,8 +55,54 @@ const changeTripStatus = async (request, response, next) => {
       request.params.id,
       request.body.status,
       request.user,
+      {
+        confirmCollectUnpaid:
+          request.body.confirmCollectUnpaid === true,
+      },
     )
     response.status(200).json({ success: true, message: 'Cập nhật trạng thái chuyến thành công', data: { trip } })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const showTripCompletionPreview = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const preview =
+      await getTripCompletionPreview(
+        request.params.id,
+      )
+
+    response.status(200).json({
+      success: true,
+      message: 'Kiểm tra điều kiện hoàn thành chuyến thành công',
+      data: { preview },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const showTripPassengers = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const data = await getTripPassengerList(
+      request.params.id,
+      request.user,
+    )
+
+    response.status(200).json({
+      success: true,
+      message: 'Lấy danh sách hành khách thành công',
+      data,
+    })
   } catch (error) {
     next(error)
   }
@@ -69,4 +117,13 @@ const deleteTrip = async (request, response, next) => {
   }
 }
 
-export { changeTripStatus, createTrip, deleteTrip, listTrips, showTrip, updateTrip }
+export {
+  changeTripStatus,
+  createTrip,
+  deleteTrip,
+  listTrips,
+  showTrip,
+  showTripCompletionPreview,
+  showTripPassengers,
+  updateTrip,
+}

@@ -32,14 +32,16 @@ describe('Phase 3 centralized bus templates', () => {
     expect(getBusCapacity('LIMOUSINE_22')).toBe(22)
     expect(rooms).toHaveLength(22)
     expect(new Set(rooms.map((room) => room.seatCode)).size).toBe(22)
-    expect(rooms.filter((room) => room.floor === 1)).toHaveLength(11)
-    expect(rooms.filter((room) => room.floor === 2)).toHaveLength(11)
-    expect(
-      rooms.filter((room) => room.seatType === 'SINGLE_ROOM'),
-    ).toHaveLength(18)
-    expect(
-      rooms.filter((room) => room.seatType === 'DOUBLE_ROOM'),
-    ).toHaveLength(4)
+    expect(rooms.filter((room) => room.floor === 1)).toHaveLength(10)
+    expect(rooms.filter((room) => room.floor === 2)).toHaveLength(12)
+    expect(rooms.map((room) => room.seatCode)).toEqual([
+      'DA1', 'DA2', 'DA3', 'DA4', 'DA5',
+      'DB1', 'DB2', 'DB3', 'DB4', 'DB5',
+      'TA1', 'TA2', 'TA3', 'TA4', 'TA5', 'TA6',
+      'TB1', 'TB2', 'TB3', 'TB4', 'TB5', 'TB6',
+    ])
+    // Phòng vật lý không bị cố định đơn/đôi; loại phòng được chọn khi đặt vé.
+    expect(rooms.every((room) => room.seatType === 'SINGLE_ROOM')).toBe(true)
   })
 
   test('keeps legacy bus types readable but outside managed templates', () => {

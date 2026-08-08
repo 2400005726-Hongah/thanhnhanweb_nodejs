@@ -11,6 +11,7 @@ import {
 } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
+import { getStatusLabel } from '../../utils/uiLabels.js'
 
 const initialForm = {
   title: '',
@@ -177,7 +178,7 @@ function AdminNewsPage() {
                 {items.map((news) => (
                   <tr key={news.id}>
                     <td><strong>{news.title}</strong><small>/{news.slug}</small></td>
-                    <td><span className={`status-badge status-badge--${news.status.toLowerCase()}`}>{news.status}</span></td>
+                    <td><span className={`status-badge status-badge--${news.status.toLowerCase()}`}>{getStatusLabel(news.status)}</span></td>
                     <td>{news.createdBy?.fullName}</td>
                     <td>{formatDateTime(news.updatedAt)}</td>
                     <td>

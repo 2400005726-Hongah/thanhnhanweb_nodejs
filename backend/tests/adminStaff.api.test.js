@@ -58,7 +58,26 @@ const tripService = {
   createTrip: jest.fn(async () => ({ id: tripId })),
   updateTrip: jest.fn(async () => ({ id: tripId })),
   changeTripStatus: jest.fn(async () => ({ id: tripId })),
-  cancelTrip: jest.fn(async () => ({ id: tripId, status: 'CANCELLED' })),
+  cancelTrip: jest.fn(async () => ({
+    id: tripId,
+    status: 'CANCELLED',
+  })),
+
+  getTripCompletionPreview: jest.fn(async () => ({
+    preview: {
+      canComplete: true,
+      missingPaymentCount: 0,
+      abnormalPaymentCount: 0,
+      unpaidBookingCount: 0,
+      unpaidAmount: 0,
+    },
+  })),
+  getTripPassengerList: jest.fn(async () => ({
+  trip: {
+    id: tripId,
+  },
+  passengers: [],
+})),
 }
 const routeService = {
   getRoutes: jest.fn(async () => ({ routes: [], pagination: {} })),

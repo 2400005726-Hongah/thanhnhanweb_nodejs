@@ -5,8 +5,9 @@ import {
 } from '../config/permissions.js'
 import HttpError from '../utils/HttpError.js'
 import { generateToken } from '../utils/jwt.js'
-import { normalizeEmail, normalizePhone } from '../utils/normalize.js'
+import { normalizeEmail, normalizeFullName, normalizePhone } from '../utils/normalize.js'
 import { comparePassword, hashPassword } from '../utils/password.js'
+import { writeAuditLog } from './auditLog.service.js'
 
 const serializeUser = (user) => ({
   id: user.id,
@@ -53,7 +54,7 @@ const register = async ({ fullName, email, phone, password }) => {
 
   const user = await prisma.user.create({
     data: {
-      fullName: fullName.trim(),
+      fullName: normalizeFullName(fullName),
       email: normalizedEmail,
       phone: normalizedPhone,
       passwordHash: await hashPassword(password),
@@ -97,6 +98,51 @@ const login = async ({ identifier, password }) => {
   }
 }
 
+const adminLogin = async ({ identifier, password }) => {
+  const isEmail = identifier.includes('@')
+  const normalizedIdentifier = isEmail
+    ? normalizeEmail(identifier)
+    : normalizePhone(identifier)
+  const user = await prisma.user.findUnique({
+    where: isEmail
+      ? { email: normalizedIdentifier }
+      : { phone: normalizedIdentifier },
+  })
+  const isPasswordCorrect = user
+    ? await comparePassword(password, user.passwordHash)
+    : false
+
+  if (!user || !isPasswordCorrect) {
+    throw new HttpError('Thông tin đăng nhập không chính xác', 401)
+  }
+  if (user.status !== 'ACTIVE') {
+    throw new HttpError('Tài khoản đã bị vô hiệu hóa', 403)
+  }
+  if (!['ADMIN', 'STAFF'].includes(user.role)) {
+    throw new HttpError('Tài khoản này không có quyền truy cập khu vực quản trị', 403)
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  })
+
+  await writeAuditLog({
+    userId: updatedUser.id,
+    role: updatedUser.role,
+    actorName: updatedUser.fullName,
+    action: 'ADMIN_LOGIN',
+    entityType: 'AUTH',
+    entityId: updatedUser.id,
+    description: `${updatedUser.fullName} đăng nhập khu vực quản trị`,
+  })
+
+  return {
+    user: serializeUser(updatedUser),
+    token: generateToken(updatedUser),
+  }
+}
+
 const getCurrentUser = (user) => serializeUser(user)
 
 const changePassword = async ({ userId, currentPassword, newPassword }) => {
@@ -118,4 +164,4 @@ const changePassword = async ({ userId, currentPassword, newPassword }) => {
   })
 }
 
-export { changePassword, getCurrentUser, login, register, serializeUser }
+export { adminLogin, changePassword, getCurrentUser, login, register, serializeUser }

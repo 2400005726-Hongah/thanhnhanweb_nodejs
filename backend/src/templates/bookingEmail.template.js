@@ -2,6 +2,7 @@ import {
   PAYMENT_METHOD_LABELS,
   PAYMENT_STATUS_LABELS,
 } from '../config/paymentMethods.js'
+import { formatLicensePlate, formatVietnamesePhone } from '../utils/normalize.js'
 
 const escapeHtml = (value) =>
   String(value ?? '')
@@ -32,6 +33,12 @@ const getPaymentInstruction = (payment) =>
       ? 'Thanh toán đã được ghi nhận.'
       : 'Vui lòng kiểm tra trạng thái thanh toán trước chuyến đi.'
 
+const SOURCE_LABELS = {
+  ONLINE: 'Trực tuyến',
+  HOTLINE: 'Hotline',
+  COUNTER: 'Tại quầy',
+}
+
 const buildBookingEmail = (booking) => {
   const payment = booking.payment
   const paymentMethod =
@@ -49,13 +56,16 @@ const buildBookingEmail = (booking) => {
   const instruction = getPaymentInstruction(payment)
   const details = {
     passengerName: booking.passenger.fullName,
+    passengerPhone: formatVietnamesePhone(booking.passenger.phone),
     bookingCode: booking.bookingCode,
     routeName: booking.trip.route.routeName,
     departureTime: formatVietnamDateTime(booking.trip.departureTime),
-    busName: `${booking.trip.bus.busName} - ${booking.trip.bus.licensePlate}`,
+    busName: `${booking.trip.bus.busName} - ${formatLicensePlate(booking.trip.bus.licensePlate)}`,
     seatsText,
     totalAmount: formatCurrency(booking.totalAmount),
-    source: booking.source,
+    source: SOURCE_LABELS[booking.source] || 'Chưa xác định',
+    pickupPoint: booking.pickupPoint || 'Theo điểm đi của tuyến',
+    dropoffPoint: booking.dropoffPoint || 'Theo điểm đến của tuyến',
     paymentMethod,
     paymentStatus,
   }
@@ -63,6 +73,7 @@ const buildBookingEmail = (booking) => {
   const text = [
     'NHÀ XE THÀNH NHÂN - VÉ ĐIỆN TỬ',
     `Hành khách: ${details.passengerName}`,
+    `Số điện thoại: ${details.passengerPhone}`,
     `Mã đặt vé: ${details.bookingCode}`,
     `Tuyến: ${details.routeName}`,
     `Khởi hành: ${details.departureTime}`,
@@ -70,6 +81,8 @@ const buildBookingEmail = (booking) => {
     `Ghế/phòng: ${details.seatsText}`,
     `Tổng tiền: ${details.totalAmount}`,
     `Nguồn đặt: ${details.source}`,
+    `Điểm đón: ${details.pickupPoint}`,
+    `Điểm trả: ${details.dropoffPoint}`,
     `Phương thức: ${details.paymentMethod}`,
     `Trạng thái thanh toán: ${details.paymentStatus}`,
     instruction,
@@ -78,6 +91,7 @@ const buildBookingEmail = (booking) => {
 
   const rows = [
     ['Hành khách', details.passengerName],
+    ['Số điện thoại', details.passengerPhone],
     ['Mã đặt vé', details.bookingCode],
     ['Tuyến đường', details.routeName],
     ['Khởi hành', details.departureTime],
@@ -85,6 +99,8 @@ const buildBookingEmail = (booking) => {
     ['Ghế/phòng', details.seatsText],
     ['Tổng tiền', details.totalAmount],
     ['Nguồn đặt', details.source],
+    ['Điểm đón', details.pickupPoint],
+    ['Điểm trả', details.dropoffPoint],
     ['Phương thức', details.paymentMethod],
     ['Trạng thái thanh toán', details.paymentStatus],
   ]

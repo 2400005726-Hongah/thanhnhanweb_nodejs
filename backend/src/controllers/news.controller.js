@@ -7,6 +7,36 @@ import {
   updateNews as updateNewsService,
 } from '../services/news.service.js'
 
+
+const listPublicNews = async (request, response, next) => {
+  try {
+    const data = await listNewsService(request.query, { publicOnly: true })
+    response.status(200).json({
+      success: true,
+      message: 'Lấy danh sách tin tức thành công',
+      data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const showPublicNews = async (request, response, next) => {
+  try {
+    const news = await getNewsById(request.params.id)
+    if (news.status !== 'PUBLISHED' || (news.publishedAt && news.publishedAt > new Date())) {
+      return response.status(404).json({ success: false, message: 'Không tìm thấy tin tức', errors: [] })
+    }
+    response.status(200).json({
+      success: true,
+      message: 'Lấy tin tức thành công',
+      data: { news },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const listNews = async (request, response, next) => {
   try {
     const data = await listNewsService(request.query)
@@ -98,6 +128,8 @@ export {
   createNews,
   deleteNews,
   listNews,
+  listPublicNews,
+  showPublicNews,
   showNews,
   updateNews,
 }

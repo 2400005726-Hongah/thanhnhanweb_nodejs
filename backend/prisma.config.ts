@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { defineConfig, env } from 'prisma/config'
 
+import { getPrismaCliDatabaseUrl } from './src/config/databaseConnection.js'
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
@@ -8,6 +10,6 @@ export default defineConfig({
     seed: 'node prisma/seed.js',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: getPrismaCliDatabaseUrl(env('DATABASE_URL')),
   },
 })

@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { assertPaymentMethodAllowed } from '../config/paymentMethods.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
-import { normalizePhone } from '../utils/normalize.js'
+import { normalizeBookingCode, normalizePhone } from '../utils/normalize.js'
 import { getCancellationState } from './cancellation.service.js'
 import { writeAuditLog } from './auditLog.service.js'
 
@@ -16,9 +16,6 @@ const toSafeNumber = (value, fieldName) => {
   }
   return number
 }
-
-const normalizeBookingCode = (bookingCode) =>
-  String(bookingCode || '').trim().toUpperCase()
 
 const publicBookingInclude = {
   trip: {
@@ -81,6 +78,8 @@ const serializePublicBooking = (booking) => ({
   status: booking.status,
   paymentStatus: booking.paymentStatus,
   totalAmount: toSafeNumber(booking.totalAmount, 'tổng tiền'),
+  pickupPoint: booking.pickupPoint,
+  dropoffPoint: booking.dropoffPoint,
   passenger: {
     fullName: booking.passengerFullName,
     phone: booking.passengerPhone,

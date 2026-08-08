@@ -9,10 +9,27 @@ import {
 } from '../utils/bookingSession.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import { formatPhoneInput } from '../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
 } from '../utils/paymentLabels.js'
+
+const BOOKING_STATUS_LABELS = {
+  PENDING: 'Chờ xử lý',
+  CONFIRMED: 'Đã đặt',
+  CANCELLED: 'Đã hủy',
+  EXPIRED: 'Hết hạn',
+  COMPLETED: 'Đã hoàn thành',
+  NO_SHOW: 'Không đi',
+  DELETED: 'Đã xóa',
+}
+
+const SOURCE_LABELS = {
+  ONLINE: 'Trực tuyến',
+  HOTLINE: 'Hotline',
+  COUNTER: 'Tại quầy',
+}
 
 function BookingSuccessPage() {
   const { bookingCode } = useParams()
@@ -72,8 +89,8 @@ function BookingSuccessPage() {
     return (
       <div className="simple-page">
         <div className="status-symbol">?</div>
-        <span className="eyebrow">KHÔNG CÓ THÔNG TIN BOOKING</span>
-        <h1>Tra cứu lại booking của bạn</h1>
+        <span className="eyebrow">KHÔNG CÓ THÔNG TIN VÉ</span>
+        <h1>Tra cứu lại vé của bạn</h1>
         <p>Nhập mã đặt vé và số điện thoại để xem trạng thái mới nhất.</p>
         <Link
           className="btn btn-primary"
@@ -105,8 +122,8 @@ function BookingSuccessPage() {
           {isPayAtBus
             ? 'Vé đã được đặt thành công'
             : isPaid
-              ? 'Booking đã được xác nhận'
-              : 'Đã ghi nhận booking của bạn'}
+              ? 'Vé đã được xác nhận'
+              : 'Đã ghi nhận vé của bạn'}
         </h1>
         <p className="success-copy">
           Vui lòng lưu mã đặt vé để tra cứu trạng thái chuyến đi bất cứ lúc nào.
@@ -119,7 +136,7 @@ function BookingSuccessPage() {
 
         <div className="success-status-row">
           <span className={`status-badge status-badge--${booking.status.toLowerCase()}`}>
-            Trạng thái vé: {booking.status === 'CONFIRMED' ? 'Đã đặt' : booking.status}
+            Trạng thái vé: {BOOKING_STATUS_LABELS[booking.status] || 'Không xác định'}
           </span>
           <span className={`status-badge status-badge--${booking.paymentStatus.toLowerCase()}`}>
             Thanh toán: {getPaymentStatusLabel(booking.paymentStatus)}
@@ -130,10 +147,12 @@ function BookingSuccessPage() {
           <div><span>Hành trình</span><strong>{booking.trip.route.routeName}</strong></div>
           <div><span>Khởi hành</span><strong>{formatDateTime(booking.trip.departureTime)}</strong></div>
           <div><span>Hành khách</span><strong>{booking.passenger.fullName}</strong></div>
-          <div><span>Số điện thoại</span><strong>{booking.passenger.phone}</strong></div>
+          <div><span>Số điện thoại</span><strong>{formatPhoneInput(booking.passenger.phone)}</strong></div>
           <div><span>Ghế</span><strong>{booking.seats.map((seat) => seat.seatCode).join(', ')}</strong></div>
           <div><span>Tổng tiền</span><strong>{formatCurrency(booking.totalAmount)}</strong></div>
-          <div><span>Nguồn đặt</span><strong>{booking.source}</strong></div>
+          <div><span>Nguồn đặt</span><strong>{SOURCE_LABELS[booking.source] || 'Chưa xác định'}</strong></div>
+          <div><span>Điểm đón</span><strong>{booking.pickupPoint || 'Theo điểm đi của tuyến'}</strong></div>
+          <div><span>Điểm trả</span><strong>{booking.dropoffPoint || 'Theo điểm đến của tuyến'}</strong></div>
           <div><span>Email vé</span><strong>{booking.emailSent ? 'Đã gửi' : booking.emailStatus === 'SKIPPED' ? 'Không có email' : 'Chưa gửi'}</strong></div>
         </div>
 

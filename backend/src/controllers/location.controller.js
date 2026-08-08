@@ -51,7 +51,7 @@ const updateLocation = async (request, response, next) => {
 const deleteLocation = async (request, response, next) => {
   try {
     const location = await deactivateLocation(request.params.id)
-    response.status(200).json({ success: true, message: 'Khóa địa điểm thành công', data: { location } })
+    response.status(200).json({ success: true, message: 'Ngừng hoạt động địa điểm thành công', data: { location } })
   } catch (error) {
     next(error)
   }

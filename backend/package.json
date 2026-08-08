@@ -16,7 +16,9 @@
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "seed:admin": "node src/jobs/seedAdmin.js",
-    "seed:data": "node src/jobs/seedData.js"
+    "seed:data": "node src/jobs/seedData.js",
+    "db:normalize:check": "node src/jobs/normalizeExistingData.js",
+    "db:normalize:apply": "node src/jobs/normalizeExistingData.js --apply"
   },
   "keywords": [
     "express",

@@ -304,6 +304,8 @@ model Booking {
   passengerEmail     String?       @map("passenger_email")
   customerNote       String?       @map("customer_note")
   staffNote          String?       @map("staff_note")
+  pickupPoint        String?       @map("pickup_point")
+  dropoffPoint       String?       @map("dropoff_point")
   totalAmount        Decimal       @map("total_amount") @db.Decimal(12, 2)
   status             BookingStatus @default(PENDING)
   paymentStatus      PaymentStatus @default(PENDING) @map("payment_status")
@@ -357,7 +359,6 @@ model BookingItem {
   tripSeat   TripSeat @relation(fields: [tripSeatId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   @@unique([bookingId, tripSeatId])
-  @@unique([bookingId, tripSeatId], map: "booking_items_booking_trip_seat_key")
   @@index([bookingId])
   @@index([tripSeatId])
   @@map("booking_items")

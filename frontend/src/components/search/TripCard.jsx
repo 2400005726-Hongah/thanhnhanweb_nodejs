@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime, formatTime } from '../../utils/formatDateTime.js'
+import { formatLicensePlate } from '../../utils/normalizers.js'
 import {
   getBusTypeLabel,
   isRoomBusType,
@@ -21,7 +22,7 @@ function TripCard({ trip }) {
         <div><strong>{formatTime(trip.expectedArrivalTime)}</strong><span>{trip.route.arrivalLocation.name}</span></div>
       </div>
       <div className="trip-card__bus">
-        <span>Xe</span><strong>{trip.bus.busName}</strong><small>Biển số {trip.bus.licensePlate}</small>
+        <span>Xe</span><strong>{trip.bus.busName}</strong><small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
       </div>
       <div className="trip-card__price">
         <span>

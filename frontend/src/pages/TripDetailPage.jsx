@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ErrorState, LoadingState } from '../components/common/StatusState.jsx'
+import RoomTypeDialog from '../components/seats/RoomTypeDialog.jsx'
 import SeatMap from '../components/seats/SeatMap.jsx'
 import { holdSeats } from '../services/booking.service.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
@@ -14,6 +15,9 @@ import {
 } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
+import { formatLicensePlate } from '../utils/normalizers.js'
+
+const MAX_SELECTED = 6
 
 function TripDetailPage() {
   const { tripId } = useParams()
@@ -21,6 +25,7 @@ function TripDetailPage() {
   const [detail, setDetail] = useState(null)
   const [seatData, setSeatData] = useState(null)
   const [selected, setSelected] = useState(new Map())
+  const [roomChoiceSeat, setRoomChoiceSeat] = useState(null)
   const [loading, setLoading] = useState(true)
   const [holding, setHolding] = useState(false)
   const [error, setError] = useState('')
@@ -34,6 +39,7 @@ function TripDetailPage() {
         setDetail(tripDetail)
         setSeatData(seats)
         setSelected(new Map())
+        setRoomChoiceSeat(null)
       })
       .catch((requestError) => setError(getApiErrorMessage(requestError)))
       .finally(() => setLoading(false))
@@ -43,20 +49,68 @@ function TripDetailPage() {
     load()
   }, [load])
 
+  const roomBus = detail ? isRoomBusType(detail.trip.bus.busType) : false
+
   const toggleSeat = (seat) => {
     if (seat.status !== 'AVAILABLE') return
     setNotice(null)
+
+    if (selected.has(seat.id)) {
+      setSelected((current) => {
+        const next = new Map(current)
+        next.delete(seat.id)
+        return next
+      })
+      return
+    }
+
+    if (selected.size >= MAX_SELECTED) {
+      setNotice({
+        type: 'warning',
+        message: `Mỗi vé chỉ được chọn tối đa ${MAX_SELECTED} vị trí.`,
+      })
+      return
+    }
+
+    if (roomBus) {
+      setRoomChoiceSeat(seat)
+      return
+    }
+
+    setSelected((current) => new Map(current).set(seat.id, seat))
+  }
+
+  const chooseRoomType = (roomType) => {
+    if (!roomChoiceSeat || !detail) return
+    const price = roomType === 'DOUBLE_ROOM'
+      ? detail.trip.doubleRoomPrice
+      : detail.trip.singleRoomPrice
+
     setSelected((current) => {
       const next = new Map(current)
-      if (next.has(seat.id)) next.delete(seat.id)
-      else next.set(seat.id, seat)
+      next.set(roomChoiceSeat.id, {
+        ...roomChoiceSeat,
+        seatType: roomType,
+        price,
+      })
       return next
     })
+    setRoomChoiceSeat(null)
   }
 
   const total = useMemo(
-    () => [...selected.values()].reduce((sum, seat) => sum + seat.price, 0),
+    () => [...selected.values()].reduce((sum, seat) => sum + Number(seat.price || 0), 0),
     [selected],
+  )
+
+  const roomSelections = useMemo(
+    () => roomBus
+      ? [...selected.values()].map((seat) => ({
+          tripSeatId: seat.id,
+          roomType: seat.seatType,
+        }))
+      : [],
+    [roomBus, selected],
   )
 
   const continueBooking = async () => {
@@ -65,7 +119,11 @@ function TripDetailPage() {
     setHolding(true)
     setNotice(null)
     try {
-      const hold = await holdSeats(tripId, [...selected.keys()])
+      const hold = await holdSeats(
+        tripId,
+        [...selected.keys()],
+        roomSelections,
+      )
       saveSeatHold(tripId, hold)
       navigate(`/dat-ve/${tripId}`)
     } catch (requestError) {
@@ -78,7 +136,7 @@ function TripDetailPage() {
           setSeatData(seats)
           setSelected(new Map())
         } catch {
-          // The original conflict message remains the most useful feedback.
+          // Giữ thông báo xung đột ban đầu.
         }
       }
     } finally {
@@ -93,16 +151,15 @@ function TripDetailPage() {
       </div>
     )
   }
-  if (error) {
+  if (error || !detail || !seatData) {
     return (
       <div className="container page-content">
-        <ErrorState message={error} onRetry={load} />
+        <ErrorState message={error || 'Không tải được chuyến xe.'} onRetry={load} />
       </div>
     )
   }
 
   const trip = detail.trip
-  const roomBus = isRoomBusType(trip.bus.busType)
 
   return (
     <div className="page-surface">
@@ -115,6 +172,7 @@ function TripDetailPage() {
           <p>{formatDateTime(trip.departureTime)}</p>
         </div>
       </section>
+
       <div className="container page-content">
         <section className="trip-detail-card">
           <div className="detail-route">
@@ -133,6 +191,7 @@ function TripDetailPage() {
               <small>{trip.route.arrivalLocation.address}</small>
             </div>
           </div>
+
           <div className="detail-meta">
             <div>
               <span>Khởi hành</span>
@@ -146,7 +205,7 @@ function TripDetailPage() {
               <span>Phương tiện</span>
               <strong>{trip.bus.busName}</strong>
               <small>
-                {getBusTypeLabel(trip.bus.busType)} · {trip.bus.licensePlate}
+                {getBusTypeLabel(trip.bus.busType)} · {formatLicensePlate(trip.bus.licensePlate)}
               </small>
             </div>
             <div>
@@ -156,26 +215,37 @@ function TripDetailPage() {
                   <strong className="price-text">
                     Đơn: {formatCurrency(trip.singleRoomPrice)}
                   </strong>
-                  <small>
-                    Đôi: {formatCurrency(trip.doubleRoomPrice)}
-                  </small>
+                  <small>Đôi: {formatCurrency(trip.doubleRoomPrice)}</small>
                 </>
               ) : (
-                <strong className="price-text">
-                  {formatCurrency(trip.ticketPrice)}
-                </strong>
+                <strong className="price-text">{formatCurrency(trip.ticketPrice)}</strong>
               )}
             </div>
           </div>
         </section>
+
+        {roomBus && (
+          <section className="room-pricing-guide">
+            <div>
+              <strong>Phòng đơn</strong>
+              <span>Tối đa 1 khách</span>
+              <b>{formatCurrency(trip.singleRoomPrice)}</b>
+            </div>
+            <div>
+              <strong>Phòng đôi</strong>
+              <span>Tối đa 2 khách</span>
+              <b>{formatCurrency(trip.doubleRoomPrice)}</b>
+            </div>
+          </section>
+        )}
 
         <div className="row g-4 align-items-start" id="so-do-ghe">
           <div className="col-xl-8">
             <section className="content-card">
               <div className="content-card__heading">
                 <div>
-                  <span className="eyebrow">SƠ ĐỒ GHẾ</span>
-                  <h2>Chọn vị trí của bạn</h2>
+                  <span className="eyebrow">SƠ ĐỒ {roomBus ? 'PHÒNG' : 'GHẾ'}</span>
+                  <h2>{roomBus ? 'Chọn phòng và loại phòng' : 'Chọn vị trí của bạn'}</h2>
                 </div>
                 <span className="availability-pill">
                   Còn {seatData.summary.available}/{seatData.summary.total} vị trí
@@ -185,10 +255,12 @@ function TripDetailPage() {
                 busType={trip.bus.busType}
                 floors={seatData.floors}
                 selectedIds={new Set(selected.keys())}
+                selectedSeats={selected}
                 onToggle={toggleSeat}
               />
             </section>
           </div>
+
           <div className="col-xl-4">
             <aside className="booking-summary">
               <span className="eyebrow">LỰA CHỌN CỦA BẠN</span>
@@ -198,17 +270,14 @@ function TripDetailPage() {
                 <strong>
                   {selected.size
                     ? [...selected.values()]
-                        .map(
-                          (seat) =>
-                            `${seat.seatCode} (${getSeatTypeLabel(seat.seatType)})`,
-                        )
+                        .map((seat) => `${seat.seatCode} (${getSeatTypeLabel(seat.seatType)})`)
                         .join(', ')
                     : 'Chưa chọn'}
                 </strong>
               </div>
               <div className="summary-row">
                 <span>Số lượng</span>
-                <strong>{selected.size} vị trí</strong>
+                <strong>{selected.size}/{MAX_SELECTED} vị trí</strong>
               </div>
               <div className="summary-total">
                 <span>Tổng tạm tính</span>
@@ -218,8 +287,9 @@ function TripDetailPage() {
                 className="btn btn-warning btn-lg w-100"
                 disabled={!selected.size || holding}
                 onClick={continueBooking}
+                type="button"
               >
-                {holding ? 'Đang giữ ghế...' : 'Tiếp tục đặt vé'}
+                {holding ? 'Đang giữ vị trí...' : 'Tiếp tục đặt vé'}
               </button>
               {notice && (
                 <div className={`alert alert-${notice.type} mt-3 mb-0`} role="alert">
@@ -227,13 +297,21 @@ function TripDetailPage() {
                 </div>
               )}
               <p className="summary-note">
-                Hệ thống sẽ giữ ghế trong 10 phút sau khi bạn tiếp tục.
-                Tổng tiền chính thức luôn được máy chủ tính lại.
+                Hệ thống giữ vị trí trong 10 phút. Giá phòng đơn/phòng đôi
+                được máy chủ kiểm tra lại trước khi tạo vé.
               </p>
             </aside>
           </div>
         </div>
       </div>
+
+      <RoomTypeDialog
+        seat={roomChoiceSeat}
+        singleRoomPrice={trip.singleRoomPrice}
+        doubleRoomPrice={trip.doubleRoomPrice}
+        onChoose={chooseRoomType}
+        onClose={() => setRoomChoiceSeat(null)}
+      />
     </div>
   )
 }
