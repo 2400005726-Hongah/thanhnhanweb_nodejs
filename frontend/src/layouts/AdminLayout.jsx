@@ -5,6 +5,9 @@ import {
 } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 
+import BrandLogo from '../components/common/BrandLogo.jsx'
+import './AdminSidebarLight.css'
+
 import {
   useAuth,
 } from '../contexts/authContext.js'
@@ -36,15 +39,13 @@ const menuItems = [
     label: 'Địa điểm',
     to: '/admin/dia-diem',
     permission:
-      PERMISSIONS.MANAGE_USERS,
+      PERMISSIONS.EDIT_ROUTES,
   },
   {
     icon: 'route',
     label: 'Chuyến xe & Tuyến đường',
-    to:
-      '/admin/chuyen-xe-tuyen-duong',
-    permission:
-      PERMISSIONS.VIEW_TRIPS,
+    to: '/admin/chuyen-xe',
+    permission: PERMISSIONS.VIEW_TRIPS,
   },
   {
     icon: 'ticket',
@@ -182,6 +183,26 @@ function AdminLayout() {
           : location.pathname.startsWith(item.to),
       )
 
+    if (location.pathname === '/admin/xe/them') return 'Thêm xe'
+    if (/\/admin\/xe\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa xe'
+    if (/\/admin\/xe\/[^/]+\/xoa$/.test(location.pathname)) return 'Ngừng hoạt động xe'
+    if (location.pathname === '/admin/chuyen-xe/them') return 'Thêm chuyến mới'
+    if (/\/admin\/chuyen-xe\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa chuyến'
+    if (/\/admin\/chuyen-xe\/[^/]+\/huy$/.test(location.pathname)) return 'Hủy chuyến'
+    if (/\/admin\/ve-xe\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa vé xe'
+    if (/\/admin\/ve-xe\/[^/]+\/xoa$/.test(location.pathname)) return 'Xóa vé xe'
+    if (/\/admin\/khach-hang\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa khách hàng'
+    if (/\/admin\/khach-hang\/[^/]+\/xoa$/.test(location.pathname)) return 'Xóa/Lưu trữ khách hàng'
+    if (location.pathname.includes('/admin/dia-diem/') && location.pathname.endsWith('/them')) return 'Thêm địa điểm'
+    if (location.pathname.includes('/admin/dia-diem/') && location.pathname.endsWith('/sua')) return 'Sửa địa điểm'
+    if (location.pathname.includes('/admin/dia-diem/') && location.pathname.endsWith('/xoa')) return 'Xóa địa điểm'
+    if (location.pathname === '/admin/tin-tuc/them') return 'Thêm tin tức'
+    if (/\/admin\/tin-tuc\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa tin tức'
+    if (/\/admin\/tin-tuc\/[^/]+\/xoa$/.test(location.pathname)) return 'Xóa tin tức'
+    if (location.pathname === '/admin/tai-khoan/them') return 'Thêm tài khoản'
+    if (/\/admin\/tai-khoan\/[^/]+\/sua$/.test(location.pathname)) return 'Sửa tài khoản'
+    if (/\/admin\/tai-khoan\/[^/]+\/xoa$/.test(location.pathname)) return 'Xóa tài khoản'
+
     if (location.pathname.includes('/hanh-khach')) {
       return 'Danh sách hành khách'
     }
@@ -214,18 +235,23 @@ function AdminLayout() {
 
       <aside className="admin-sidebar">
         <NavLink
+          aria-label="Về trang tổng quan quản trị Nhà xe Thành Nhân"
           className="admin-brand"
           onClick={closeMenu}
           to="/admin"
         >
-          <span className="admin-brand-mark">
-            <AdminIcon name="bus" />
-          </span>
-
-          <span>
+          <BrandLogo
+            alt="Nhà xe Thành Nhân"
+            variant="header"
+          />
+          <span className="admin-brand-copy">
             <strong>Thành Nhân</strong>
-            <small>Admin</small>
-          </span>
+            <small>
+              {user?.role === 'STAFF'
+                ? 'NHÂN VIÊN HỆ THỐNG'
+                : 'LIMOUSINE'}
+            </small>
+          </span>c
         </NavLink>
 
         <nav aria-label="Điều hướng quản lý">
@@ -275,17 +301,23 @@ function AdminLayout() {
           </div>
 
           <div className="admin-topbar-user">
-            <span className="admin-role-badge">
-              {user?.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'}
-            </span>
+            <div className="admin-user-avatar" aria-hidden="true">
+              {(user?.fullName || ROLE_LABELS[user?.role] || 'N')
+                .trim()
+                .charAt(0)
+                .toUpperCase()}
+            </div>
 
-            <span className="admin-user-icon" aria-hidden="true">●</span>
-
-            <strong>
-              {user?.fullName ||
-                ROLE_LABELS[user?.role] ||
-                'Người dùng'}
-            </strong>
+            <div className="admin-user-meta">
+              <strong>
+                {user?.fullName ||
+                  ROLE_LABELS[user?.role] ||
+                  'Người dùng'}
+              </strong>
+              <small>
+                {ROLE_LABELS[user?.role] || 'Người dùng quản trị'}
+              </small>
+            </div>
           </div>
         </header>
 

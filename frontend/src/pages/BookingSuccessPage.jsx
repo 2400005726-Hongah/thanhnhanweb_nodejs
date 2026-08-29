@@ -9,7 +9,7 @@ import {
 } from '../utils/bookingSession.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
-import { formatPhoneInput } from '../utils/normalizers.js'
+import { formatBookingCode, formatPhoneInput } from '../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
@@ -126,12 +126,12 @@ function BookingSuccessPage() {
               : 'Đã ghi nhận vé của bạn'}
         </h1>
         <p className="success-copy">
-          Vui lòng lưu mã đặt vé để tra cứu trạng thái chuyến đi bất cứ lúc nào.
+          Vui lòng lưu mã vé hoặc mã giao dịch để tra cứu trạng thái chuyến đi bất cứ lúc nào.
         </p>
 
         <div className="booking-code-block">
-          <span>Mã đặt vé</span>
-          <strong>{booking.bookingCode}</strong>
+          <span>Mã vé</span>
+          <strong>{formatBookingCode(booking.bookingCode)}</strong>
         </div>
 
         <div className="success-status-row">
@@ -153,7 +153,18 @@ function BookingSuccessPage() {
           <div><span>Nguồn đặt</span><strong>{SOURCE_LABELS[booking.source] || 'Chưa xác định'}</strong></div>
           <div><span>Điểm đón</span><strong>{booking.pickupPoint || 'Theo điểm đi của tuyến'}</strong></div>
           <div><span>Điểm trả</span><strong>{booking.dropoffPoint || 'Theo điểm đến của tuyến'}</strong></div>
-          <div><span>Email vé</span><strong>{booking.emailSent ? 'Đã gửi' : booking.emailStatus === 'SKIPPED' ? 'Không có email' : 'Chưa gửi'}</strong></div>
+          <div>
+            <span>Email vé</span>
+            <strong>
+              {booking.emailSent
+                ? 'Đã gửi'
+                : booking.emailStatus === 'SKIPPED'
+                  ? 'Không có email'
+                  : booking.emailStatus === 'QUEUED'
+                    ? 'Đang gửi'
+                    : 'Chưa gửi'}
+            </strong>
+          </div>
         </div>
 
         {payment && (

@@ -84,9 +84,6 @@ function AdminRevenuePage() {
     load(range)
   }
 
-  if (loading && !data) return <LoadingState label="Đang tổng hợp báo cáo thống kê..." />
-  if (error && !data) return <ErrorState message={error} onRetry={() => load(appliedFilters)} />
-
   const report = data || {}
   const summary = report.summary || {
     revenue: report.revenue || 0,
@@ -111,6 +108,12 @@ function AdminRevenuePage() {
         <button className="btn btn-outline-secondary" onClick={() => applyPreset(currentYearRange())} type="button">Năm nay</button>
       </form>
 
+      {loading && !data ? (
+        <LoadingState label="Đang tải dữ liệu thống kê..." />
+      ) : error && !data ? (
+        <ErrorState message={error} onRetry={() => load(appliedFilters)} />
+      ) : (
+        <>
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="stats-rule-note">
@@ -168,6 +171,39 @@ function AdminRevenuePage() {
       </div>
 
       <section className="admin-panel stats-table-panel">
+        <div className="admin-panel-heading">
+          <div><h2>Thống kê theo tỉnh/thành</h2></div>
+          <small>{report.provincePerformance?.length || 0} hành trình cấp tỉnh</small>
+        </div>
+        <div className="table-responsive">
+          <table className="table admin-table align-middle">
+            <thead>
+              <tr>
+                <th>Tỉnh/Thành đi</th>
+                <th>Tỉnh/Thành đến</th>
+                <th>Số chuyến</th>
+                <th>Số vé</th>
+                <th>Khách thực tế</th>
+                <th>Doanh thu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(report.provincePerformance || []).map((item) => (
+                <tr key={item.key}>
+                  <td><strong>{item.departureProvinceName}</strong></td>
+                  <td><strong>{item.arrivalProvinceName}</strong></td>
+                  <td>{item.trips}</td>
+                  <td>{item.bookings}</td>
+                  <td>{item.actualPassengerSeats}</td>
+                  <td><strong className="text-danger">{formatCurrency(item.revenue)}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="admin-panel stats-table-panel">
         <div className="admin-panel-heading"><div><h2>Hiệu quả theo tuyến đường</h2></div><small>{report.routePerformance?.length || 0} tuyến có chuyến trong khoảng đã chọn</small></div>
         <div className="table-responsive">
           <table className="table admin-table align-middle">
@@ -208,6 +244,8 @@ function AdminRevenuePage() {
           </table>
         </div>
       </section>
+        </>
+      )}
     </>
   )
 }

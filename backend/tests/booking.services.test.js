@@ -75,6 +75,18 @@ const updateSeats = (where, data) => {
 const transaction = {
   $queryRaw: jest.fn(async (strings, ...values) => {
     const sql = strings.join(' ')
+    if (sql.includes('audit_logs')) {
+      const [requestFingerprint] = values
+      const log = [...auditLogs]
+        .reverse()
+        .find(
+          (item) =>
+            item.action === 'CREATE_BOOKING' &&
+            item.entityType === 'BOOKING' &&
+            item.metadata?.requestFingerprint === requestFingerprint,
+        )
+      return log ? [{ entity_id: log.entityId }] : []
+    }
     if (sql.includes('held_by')) {
       const [lockedTripId, holdToken] = values
       return seats
@@ -368,14 +380,27 @@ describe('Booking transaction service', () => {
     expect(seats[0].heldBy).toBe(hold.holdToken)
   })
 
-  test('prevents a second booking from using seats already BOOKED', async () => {
+  test('returns the committed booking when the same Online request is retried', async () => {
     const hold = await holdSeats(tripId, [seatIdA])
-    await createBooking({ tripId, holdToken: hold.holdToken, passenger })
+    const first = await createBooking({
+      tripId,
+      holdToken: hold.holdToken,
+      passenger,
+      paymentMethod: 'BANK_QR',
+    })
 
-    await expect(
-      createBooking({ tripId, holdToken: hold.holdToken, passenger }),
-    ).rejects.toMatchObject({ statusCode: 409 })
+    const retried = await createBooking({
+      tripId,
+      holdToken: hold.holdToken,
+      passenger,
+      paymentMethod: 'BANK_QR',
+    })
+
+    expect(retried.recovered).toBe(true)
+    expect(retried.booking.id).toBe(first.booking.id)
     expect(bookings).toHaveLength(1)
+    expect(bookingItems).toHaveLength(1)
+    expect(payments).toHaveLength(1)
   })
 
   test('allows an AVAILABLE seat to be booked again while preserving its historical BookingItem', async () => {
@@ -558,7 +583,7 @@ describe('Booking transaction service', () => {
       },
     })
     expect(payments).toHaveLength(1)
-    expect(payments[0].transactionCode).toMatch(/^PAY[A-F0-9]{20}$/)
+    expect(payments[0].transactionCode).toMatch(/^TN\d{9}$/)
     expect(seats[0].status).toBe('BOOKED')
   })
 
@@ -616,7 +641,7 @@ describe('Booking transaction service', () => {
         payment: {
           paymentMethod: 'PAY_AT_BUS',
           status: 'PENDING',
-          transactionCode: null,
+          transactionCode: expect.stringMatching(/^TN\d{9}$/),
           paidAt: null,
         },
       })

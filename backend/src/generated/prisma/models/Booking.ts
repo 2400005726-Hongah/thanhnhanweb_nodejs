@@ -48,6 +48,18 @@ export type BookingMinAggregateOutputType = {
   staffNote: string | null
   pickupPoint: string | null
   dropoffPoint: string | null
+  pickupLocationId: string | null
+  dropoffLocationId: string | null
+  pickupServicePointId: string | null
+  dropoffServicePointId: string | null
+  pickupServiceMode: string | null
+  dropoffServiceMode: string | null
+  pickupKind: string | null
+  dropoffKind: string | null
+  pickupRequestedAddress: string | null
+  dropoffRequestedAddress: string | null
+  smsSent: boolean | null
+  smsSentAt: Date | null
   totalAmount: runtime.Decimal | null
   status: $Enums.BookingStatus | null
   paymentStatus: $Enums.PaymentStatus | null
@@ -80,6 +92,18 @@ export type BookingMaxAggregateOutputType = {
   staffNote: string | null
   pickupPoint: string | null
   dropoffPoint: string | null
+  pickupLocationId: string | null
+  dropoffLocationId: string | null
+  pickupServicePointId: string | null
+  dropoffServicePointId: string | null
+  pickupServiceMode: string | null
+  dropoffServiceMode: string | null
+  pickupKind: string | null
+  dropoffKind: string | null
+  pickupRequestedAddress: string | null
+  dropoffRequestedAddress: string | null
+  smsSent: boolean | null
+  smsSentAt: Date | null
   totalAmount: runtime.Decimal | null
   status: $Enums.BookingStatus | null
   paymentStatus: $Enums.PaymentStatus | null
@@ -112,6 +136,18 @@ export type BookingCountAggregateOutputType = {
   staffNote: number
   pickupPoint: number
   dropoffPoint: number
+  pickupLocationId: number
+  dropoffLocationId: number
+  pickupServicePointId: number
+  dropoffServicePointId: number
+  pickupServiceMode: number
+  dropoffServiceMode: number
+  pickupKind: number
+  dropoffKind: number
+  pickupRequestedAddress: number
+  dropoffRequestedAddress: number
+  smsSent: number
+  smsSentAt: number
   totalAmount: number
   status: number
   paymentStatus: number
@@ -154,6 +190,18 @@ export type BookingMinAggregateInputType = {
   staffNote?: true
   pickupPoint?: true
   dropoffPoint?: true
+  pickupLocationId?: true
+  dropoffLocationId?: true
+  pickupServicePointId?: true
+  dropoffServicePointId?: true
+  pickupServiceMode?: true
+  dropoffServiceMode?: true
+  pickupKind?: true
+  dropoffKind?: true
+  pickupRequestedAddress?: true
+  dropoffRequestedAddress?: true
+  smsSent?: true
+  smsSentAt?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -186,6 +234,18 @@ export type BookingMaxAggregateInputType = {
   staffNote?: true
   pickupPoint?: true
   dropoffPoint?: true
+  pickupLocationId?: true
+  dropoffLocationId?: true
+  pickupServicePointId?: true
+  dropoffServicePointId?: true
+  pickupServiceMode?: true
+  dropoffServiceMode?: true
+  pickupKind?: true
+  dropoffKind?: true
+  pickupRequestedAddress?: true
+  dropoffRequestedAddress?: true
+  smsSent?: true
+  smsSentAt?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -218,6 +278,18 @@ export type BookingCountAggregateInputType = {
   staffNote?: true
   pickupPoint?: true
   dropoffPoint?: true
+  pickupLocationId?: true
+  dropoffLocationId?: true
+  pickupServicePointId?: true
+  dropoffServicePointId?: true
+  pickupServiceMode?: true
+  dropoffServiceMode?: true
+  pickupKind?: true
+  dropoffKind?: true
+  pickupRequestedAddress?: true
+  dropoffRequestedAddress?: true
+  smsSent?: true
+  smsSentAt?: true
   totalAmount?: true
   status?: true
   paymentStatus?: true
@@ -337,6 +409,18 @@ export type BookingGroupByOutputType = {
   staffNote: string | null
   pickupPoint: string | null
   dropoffPoint: string | null
+  pickupLocationId: string | null
+  dropoffLocationId: string | null
+  pickupServicePointId: string | null
+  dropoffServicePointId: string | null
+  pickupServiceMode: string | null
+  dropoffServiceMode: string | null
+  pickupKind: string | null
+  dropoffKind: string | null
+  pickupRequestedAddress: string | null
+  dropoffRequestedAddress: string | null
+  smsSent: boolean
+  smsSentAt: Date | null
   totalAmount: runtime.Decimal
   status: $Enums.BookingStatus
   paymentStatus: $Enums.PaymentStatus
@@ -392,6 +476,18 @@ export type BookingWhereInput = {
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  smsSent?: Prisma.BoolFilter<"Booking"> | boolean
+  smsSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -415,6 +511,10 @@ export type BookingWhereInput = {
   cancelledBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   noShowBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   deletedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  pickupLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  dropoffLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  pickupServicePoint?: Prisma.XOR<Prisma.TripServicePointNullableScalarRelationFilter, Prisma.TripServicePointWhereInput> | null
+  dropoffServicePoint?: Prisma.XOR<Prisma.TripServicePointNullableScalarRelationFilter, Prisma.TripServicePointWhereInput> | null
   items?: Prisma.BookingItemListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
 }
@@ -433,6 +533,18 @@ export type BookingOrderByWithRelationInput = {
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
   pickupPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   dropoffPoint?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupServicePointId?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffServicePointId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupServiceMode?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffServiceMode?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupRequestedAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffRequestedAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  smsSent?: Prisma.SortOrder
+  smsSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -456,6 +568,10 @@ export type BookingOrderByWithRelationInput = {
   cancelledBy?: Prisma.UserOrderByWithRelationInput
   noShowBy?: Prisma.UserOrderByWithRelationInput
   deletedBy?: Prisma.UserOrderByWithRelationInput
+  pickupLocation?: Prisma.LocationOrderByWithRelationInput
+  dropoffLocation?: Prisma.LocationOrderByWithRelationInput
+  pickupServicePoint?: Prisma.TripServicePointOrderByWithRelationInput
+  dropoffServicePoint?: Prisma.TripServicePointOrderByWithRelationInput
   items?: Prisma.BookingItemOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
 }
@@ -477,6 +593,18 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  smsSent?: Prisma.BoolFilter<"Booking"> | boolean
+  smsSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -500,6 +628,10 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   cancelledBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   noShowBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   deletedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  pickupLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  dropoffLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  pickupServicePoint?: Prisma.XOR<Prisma.TripServicePointNullableScalarRelationFilter, Prisma.TripServicePointWhereInput> | null
+  dropoffServicePoint?: Prisma.XOR<Prisma.TripServicePointNullableScalarRelationFilter, Prisma.TripServicePointWhereInput> | null
   items?: Prisma.BookingItemListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
 }, "id" | "bookingCode">
@@ -518,6 +650,18 @@ export type BookingOrderByWithAggregationInput = {
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
   pickupPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   dropoffPoint?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupServicePointId?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffServicePointId?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupServiceMode?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffServiceMode?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupRequestedAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  dropoffRequestedAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  smsSent?: Prisma.SortOrder
+  smsSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -558,6 +702,18 @@ export type BookingScalarWhereWithAggregatesInput = {
   staffNote?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   pickupPoint?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   dropoffPoint?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupLocationId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffLocationId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupServicePointId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffServicePointId?: Prisma.UuidNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupServiceMode?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffServiceMode?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupKind?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffKind?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  pickupRequestedAddress?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  dropoffRequestedAddress?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  smsSent?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
+  smsSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   totalAmount?: Prisma.DecimalWithAggregatesFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusWithAggregatesFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusWithAggregatesFilter<"Booking"> | $Enums.PaymentStatus
@@ -587,6 +743,14 @@ export type BookingCreateInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -606,6 +770,10 @@ export type BookingCreateInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -624,6 +792,18 @@ export type BookingUncheckedCreateInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -655,6 +835,14 @@ export type BookingUpdateInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -674,6 +862,10 @@ export type BookingUpdateInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -692,6 +884,18 @@ export type BookingUncheckedUpdateInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -726,6 +930,18 @@ export type BookingCreateManyInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -755,6 +971,14 @@ export type BookingUpdateManyMutationInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -783,6 +1007,18 @@ export type BookingUncheckedUpdateManyInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -825,6 +1061,18 @@ export type BookingCountOrderByAggregateInput = {
   staffNote?: Prisma.SortOrder
   pickupPoint?: Prisma.SortOrder
   dropoffPoint?: Prisma.SortOrder
+  pickupLocationId?: Prisma.SortOrder
+  dropoffLocationId?: Prisma.SortOrder
+  pickupServicePointId?: Prisma.SortOrder
+  dropoffServicePointId?: Prisma.SortOrder
+  pickupServiceMode?: Prisma.SortOrder
+  dropoffServiceMode?: Prisma.SortOrder
+  pickupKind?: Prisma.SortOrder
+  dropoffKind?: Prisma.SortOrder
+  pickupRequestedAddress?: Prisma.SortOrder
+  dropoffRequestedAddress?: Prisma.SortOrder
+  smsSent?: Prisma.SortOrder
+  smsSentAt?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -861,6 +1109,18 @@ export type BookingMaxOrderByAggregateInput = {
   staffNote?: Prisma.SortOrder
   pickupPoint?: Prisma.SortOrder
   dropoffPoint?: Prisma.SortOrder
+  pickupLocationId?: Prisma.SortOrder
+  dropoffLocationId?: Prisma.SortOrder
+  pickupServicePointId?: Prisma.SortOrder
+  dropoffServicePointId?: Prisma.SortOrder
+  pickupServiceMode?: Prisma.SortOrder
+  dropoffServiceMode?: Prisma.SortOrder
+  pickupKind?: Prisma.SortOrder
+  dropoffKind?: Prisma.SortOrder
+  pickupRequestedAddress?: Prisma.SortOrder
+  dropoffRequestedAddress?: Prisma.SortOrder
+  smsSent?: Prisma.SortOrder
+  smsSentAt?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -893,6 +1153,18 @@ export type BookingMinOrderByAggregateInput = {
   staffNote?: Prisma.SortOrder
   pickupPoint?: Prisma.SortOrder
   dropoffPoint?: Prisma.SortOrder
+  pickupLocationId?: Prisma.SortOrder
+  dropoffLocationId?: Prisma.SortOrder
+  pickupServicePointId?: Prisma.SortOrder
+  dropoffServicePointId?: Prisma.SortOrder
+  pickupServiceMode?: Prisma.SortOrder
+  dropoffServiceMode?: Prisma.SortOrder
+  pickupKind?: Prisma.SortOrder
+  dropoffKind?: Prisma.SortOrder
+  pickupRequestedAddress?: Prisma.SortOrder
+  dropoffRequestedAddress?: Prisma.SortOrder
+  smsSent?: Prisma.SortOrder
+  smsSentAt?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   status?: Prisma.SortOrder
   paymentStatus?: Prisma.SortOrder
@@ -1172,6 +1444,90 @@ export type BookingUncheckedUpdateManyWithoutCustomerNestedInput = {
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
 }
 
+export type BookingCreateNestedManyWithoutPickupLocationInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput> | Prisma.BookingCreateWithoutPickupLocationInput[] | Prisma.BookingUncheckedCreateWithoutPickupLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupLocationInput | Prisma.BookingCreateOrConnectWithoutPickupLocationInput[]
+  createMany?: Prisma.BookingCreateManyPickupLocationInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingCreateNestedManyWithoutDropoffLocationInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput> | Prisma.BookingCreateWithoutDropoffLocationInput[] | Prisma.BookingUncheckedCreateWithoutDropoffLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffLocationInput | Prisma.BookingCreateOrConnectWithoutDropoffLocationInput[]
+  createMany?: Prisma.BookingCreateManyDropoffLocationInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUncheckedCreateNestedManyWithoutPickupLocationInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput> | Prisma.BookingCreateWithoutPickupLocationInput[] | Prisma.BookingUncheckedCreateWithoutPickupLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupLocationInput | Prisma.BookingCreateOrConnectWithoutPickupLocationInput[]
+  createMany?: Prisma.BookingCreateManyPickupLocationInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUncheckedCreateNestedManyWithoutDropoffLocationInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput> | Prisma.BookingCreateWithoutDropoffLocationInput[] | Prisma.BookingUncheckedCreateWithoutDropoffLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffLocationInput | Prisma.BookingCreateOrConnectWithoutDropoffLocationInput[]
+  createMany?: Prisma.BookingCreateManyDropoffLocationInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUpdateManyWithoutPickupLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput> | Prisma.BookingCreateWithoutPickupLocationInput[] | Prisma.BookingUncheckedCreateWithoutPickupLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupLocationInput | Prisma.BookingCreateOrConnectWithoutPickupLocationInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutPickupLocationInput | Prisma.BookingUpsertWithWhereUniqueWithoutPickupLocationInput[]
+  createMany?: Prisma.BookingCreateManyPickupLocationInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutPickupLocationInput | Prisma.BookingUpdateWithWhereUniqueWithoutPickupLocationInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutPickupLocationInput | Prisma.BookingUpdateManyWithWhereWithoutPickupLocationInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUpdateManyWithoutDropoffLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput> | Prisma.BookingCreateWithoutDropoffLocationInput[] | Prisma.BookingUncheckedCreateWithoutDropoffLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffLocationInput | Prisma.BookingCreateOrConnectWithoutDropoffLocationInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutDropoffLocationInput | Prisma.BookingUpsertWithWhereUniqueWithoutDropoffLocationInput[]
+  createMany?: Prisma.BookingCreateManyDropoffLocationInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutDropoffLocationInput | Prisma.BookingUpdateWithWhereUniqueWithoutDropoffLocationInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutDropoffLocationInput | Prisma.BookingUpdateManyWithWhereWithoutDropoffLocationInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUncheckedUpdateManyWithoutPickupLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput> | Prisma.BookingCreateWithoutPickupLocationInput[] | Prisma.BookingUncheckedCreateWithoutPickupLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupLocationInput | Prisma.BookingCreateOrConnectWithoutPickupLocationInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutPickupLocationInput | Prisma.BookingUpsertWithWhereUniqueWithoutPickupLocationInput[]
+  createMany?: Prisma.BookingCreateManyPickupLocationInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutPickupLocationInput | Prisma.BookingUpdateWithWhereUniqueWithoutPickupLocationInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutPickupLocationInput | Prisma.BookingUpdateManyWithWhereWithoutPickupLocationInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput> | Prisma.BookingCreateWithoutDropoffLocationInput[] | Prisma.BookingUncheckedCreateWithoutDropoffLocationInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffLocationInput | Prisma.BookingCreateOrConnectWithoutDropoffLocationInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutDropoffLocationInput | Prisma.BookingUpsertWithWhereUniqueWithoutDropoffLocationInput[]
+  createMany?: Prisma.BookingCreateManyDropoffLocationInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutDropoffLocationInput | Prisma.BookingUpdateWithWhereUniqueWithoutDropoffLocationInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutDropoffLocationInput | Prisma.BookingUpdateManyWithWhereWithoutDropoffLocationInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
 export type BookingCreateNestedManyWithoutTripInput = {
   create?: Prisma.XOR<Prisma.BookingCreateWithoutTripInput, Prisma.BookingUncheckedCreateWithoutTripInput> | Prisma.BookingCreateWithoutTripInput[] | Prisma.BookingUncheckedCreateWithoutTripInput[]
   connectOrCreate?: Prisma.BookingCreateOrConnectWithoutTripInput | Prisma.BookingCreateOrConnectWithoutTripInput[]
@@ -1211,6 +1567,90 @@ export type BookingUncheckedUpdateManyWithoutTripNestedInput = {
   connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
   update?: Prisma.BookingUpdateWithWhereUniqueWithoutTripInput | Prisma.BookingUpdateWithWhereUniqueWithoutTripInput[]
   updateMany?: Prisma.BookingUpdateManyWithWhereWithoutTripInput | Prisma.BookingUpdateManyWithWhereWithoutTripInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingCreateNestedManyWithoutPickupServicePointInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput> | Prisma.BookingCreateWithoutPickupServicePointInput[] | Prisma.BookingUncheckedCreateWithoutPickupServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupServicePointInput | Prisma.BookingCreateOrConnectWithoutPickupServicePointInput[]
+  createMany?: Prisma.BookingCreateManyPickupServicePointInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingCreateNestedManyWithoutDropoffServicePointInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput> | Prisma.BookingCreateWithoutDropoffServicePointInput[] | Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput | Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput[]
+  createMany?: Prisma.BookingCreateManyDropoffServicePointInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUncheckedCreateNestedManyWithoutPickupServicePointInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput> | Prisma.BookingCreateWithoutPickupServicePointInput[] | Prisma.BookingUncheckedCreateWithoutPickupServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupServicePointInput | Prisma.BookingCreateOrConnectWithoutPickupServicePointInput[]
+  createMany?: Prisma.BookingCreateManyPickupServicePointInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUncheckedCreateNestedManyWithoutDropoffServicePointInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput> | Prisma.BookingCreateWithoutDropoffServicePointInput[] | Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput | Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput[]
+  createMany?: Prisma.BookingCreateManyDropoffServicePointInputEnvelope
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+}
+
+export type BookingUpdateManyWithoutPickupServicePointNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput> | Prisma.BookingCreateWithoutPickupServicePointInput[] | Prisma.BookingUncheckedCreateWithoutPickupServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupServicePointInput | Prisma.BookingCreateOrConnectWithoutPickupServicePointInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutPickupServicePointInput | Prisma.BookingUpsertWithWhereUniqueWithoutPickupServicePointInput[]
+  createMany?: Prisma.BookingCreateManyPickupServicePointInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutPickupServicePointInput | Prisma.BookingUpdateWithWhereUniqueWithoutPickupServicePointInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutPickupServicePointInput | Prisma.BookingUpdateManyWithWhereWithoutPickupServicePointInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUpdateManyWithoutDropoffServicePointNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput> | Prisma.BookingCreateWithoutDropoffServicePointInput[] | Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput | Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutDropoffServicePointInput | Prisma.BookingUpsertWithWhereUniqueWithoutDropoffServicePointInput[]
+  createMany?: Prisma.BookingCreateManyDropoffServicePointInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutDropoffServicePointInput | Prisma.BookingUpdateWithWhereUniqueWithoutDropoffServicePointInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutDropoffServicePointInput | Prisma.BookingUpdateManyWithWhereWithoutDropoffServicePointInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUncheckedUpdateManyWithoutPickupServicePointNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput> | Prisma.BookingCreateWithoutPickupServicePointInput[] | Prisma.BookingUncheckedCreateWithoutPickupServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPickupServicePointInput | Prisma.BookingCreateOrConnectWithoutPickupServicePointInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutPickupServicePointInput | Prisma.BookingUpsertWithWhereUniqueWithoutPickupServicePointInput[]
+  createMany?: Prisma.BookingCreateManyPickupServicePointInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutPickupServicePointInput | Prisma.BookingUpdateWithWhereUniqueWithoutPickupServicePointInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutPickupServicePointInput | Prisma.BookingUpdateManyWithWhereWithoutPickupServicePointInput[]
+  deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
+}
+
+export type BookingUncheckedUpdateManyWithoutDropoffServicePointNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput> | Prisma.BookingCreateWithoutDropoffServicePointInput[] | Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput[]
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput | Prisma.BookingCreateOrConnectWithoutDropoffServicePointInput[]
+  upsert?: Prisma.BookingUpsertWithWhereUniqueWithoutDropoffServicePointInput | Prisma.BookingUpsertWithWhereUniqueWithoutDropoffServicePointInput[]
+  createMany?: Prisma.BookingCreateManyDropoffServicePointInputEnvelope
+  set?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  disconnect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  delete?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  connect?: Prisma.BookingWhereUniqueInput | Prisma.BookingWhereUniqueInput[]
+  update?: Prisma.BookingUpdateWithWhereUniqueWithoutDropoffServicePointInput | Prisma.BookingUpdateWithWhereUniqueWithoutDropoffServicePointInput[]
+  updateMany?: Prisma.BookingUpdateManyWithWhereWithoutDropoffServicePointInput | Prisma.BookingUpdateManyWithWhereWithoutDropoffServicePointInput[]
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
 }
 
@@ -1265,6 +1705,14 @@ export type BookingCreateWithoutUserInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1283,6 +1731,10 @@ export type BookingCreateWithoutUserInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1300,6 +1752,18 @@ export type BookingUncheckedCreateWithoutUserInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1341,6 +1805,14 @@ export type BookingCreateWithoutCreatedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1359,6 +1831,10 @@ export type BookingCreateWithoutCreatedByInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1377,6 +1853,18 @@ export type BookingUncheckedCreateWithoutCreatedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1417,6 +1905,14 @@ export type BookingCreateWithoutCancelledByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1435,6 +1931,10 @@ export type BookingCreateWithoutCancelledByInput = {
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1453,6 +1953,18 @@ export type BookingUncheckedCreateWithoutCancelledByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1493,6 +2005,14 @@ export type BookingCreateWithoutDeletedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1511,6 +2031,10 @@ export type BookingCreateWithoutDeletedByInput = {
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1529,6 +2053,18 @@ export type BookingUncheckedCreateWithoutDeletedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1569,6 +2105,14 @@ export type BookingCreateWithoutNoShowByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1587,6 +2131,10 @@ export type BookingCreateWithoutNoShowByInput = {
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1605,6 +2153,18 @@ export type BookingUncheckedCreateWithoutNoShowByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1667,6 +2227,18 @@ export type BookingScalarWhereInput = {
   staffNote?: Prisma.StringNullableFilter<"Booking"> | string | null
   pickupPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
   dropoffPoint?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffLocationId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  dropoffServicePointId?: Prisma.UuidNullableFilter<"Booking"> | string | null
+  pickupServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffServiceMode?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffKind?: Prisma.StringNullableFilter<"Booking"> | string | null
+  pickupRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  dropoffRequestedAddress?: Prisma.StringNullableFilter<"Booking"> | string | null
+  smsSent?: Prisma.BoolFilter<"Booking"> | boolean
+  smsSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   totalAmount?: Prisma.DecimalFilter<"Booking"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"Booking"> | $Enums.PaymentStatus
@@ -1760,6 +2332,14 @@ export type BookingCreateWithoutCustomerInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1778,6 +2358,10 @@ export type BookingCreateWithoutCustomerInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1795,6 +2379,18 @@ export type BookingUncheckedCreateWithoutCustomerInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1841,6 +2437,238 @@ export type BookingUpdateManyWithWhereWithoutCustomerInput = {
   data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutCustomerInput>
 }
 
+export type BookingCreateWithoutPickupLocationInput = {
+  id?: string
+  bookingCode: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutBookingsInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutBookingsInput
+  trip: Prisma.TripCreateNestedOneWithoutBookingsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
+  cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
+  noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
+  deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
+  items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutPickupLocationInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.BookingItemUncheckedCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutPickupLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput>
+}
+
+export type BookingCreateManyPickupLocationInputEnvelope = {
+  data: Prisma.BookingCreateManyPickupLocationInput | Prisma.BookingCreateManyPickupLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingCreateWithoutDropoffLocationInput = {
+  id?: string
+  bookingCode: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutBookingsInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutBookingsInput
+  trip: Prisma.TripCreateNestedOneWithoutBookingsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
+  cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
+  noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
+  deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
+  items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutDropoffLocationInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.BookingItemUncheckedCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutDropoffLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput>
+}
+
+export type BookingCreateManyDropoffLocationInputEnvelope = {
+  data: Prisma.BookingCreateManyDropoffLocationInput | Prisma.BookingCreateManyDropoffLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingUpsertWithWhereUniqueWithoutPickupLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutPickupLocationInput, Prisma.BookingUncheckedUpdateWithoutPickupLocationInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutPickupLocationInput, Prisma.BookingUncheckedCreateWithoutPickupLocationInput>
+}
+
+export type BookingUpdateWithWhereUniqueWithoutPickupLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutPickupLocationInput, Prisma.BookingUncheckedUpdateWithoutPickupLocationInput>
+}
+
+export type BookingUpdateManyWithWhereWithoutPickupLocationInput = {
+  where: Prisma.BookingScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutPickupLocationInput>
+}
+
+export type BookingUpsertWithWhereUniqueWithoutDropoffLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutDropoffLocationInput, Prisma.BookingUncheckedUpdateWithoutDropoffLocationInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutDropoffLocationInput, Prisma.BookingUncheckedCreateWithoutDropoffLocationInput>
+}
+
+export type BookingUpdateWithWhereUniqueWithoutDropoffLocationInput = {
+  where: Prisma.BookingWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutDropoffLocationInput, Prisma.BookingUncheckedUpdateWithoutDropoffLocationInput>
+}
+
+export type BookingUpdateManyWithWhereWithoutDropoffLocationInput = {
+  where: Prisma.BookingScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationInput>
+}
+
 export type BookingCreateWithoutTripInput = {
   id?: string
   bookingCode: string
@@ -1852,6 +2680,14 @@ export type BookingCreateWithoutTripInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1870,6 +2706,10 @@ export type BookingCreateWithoutTripInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
@@ -1887,6 +2727,18 @@ export type BookingUncheckedCreateWithoutTripInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1933,7 +2785,7 @@ export type BookingUpdateManyWithWhereWithoutTripInput = {
   data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutTripInput>
 }
 
-export type BookingCreateWithoutItemsInput = {
+export type BookingCreateWithoutPickupServicePointInput = {
   id?: string
   bookingCode: string
   source?: $Enums.BookingSource
@@ -1944,6 +2796,14 @@ export type BookingCreateWithoutItemsInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -1963,6 +2823,242 @@ export type BookingCreateWithoutItemsInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
+  items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutPickupServicePointInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.BookingItemUncheckedCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutPickupServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput>
+}
+
+export type BookingCreateManyPickupServicePointInputEnvelope = {
+  data: Prisma.BookingCreateManyPickupServicePointInput | Prisma.BookingCreateManyPickupServicePointInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingCreateWithoutDropoffServicePointInput = {
+  id?: string
+  bookingCode: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutBookingsInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutBookingsInput
+  trip: Prisma.TripCreateNestedOneWithoutBookingsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
+  cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
+  noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
+  deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutDropoffServicePointInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.BookingItemUncheckedCreateNestedManyWithoutBookingInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutDropoffServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput>
+}
+
+export type BookingCreateManyDropoffServicePointInputEnvelope = {
+  data: Prisma.BookingCreateManyDropoffServicePointInput | Prisma.BookingCreateManyDropoffServicePointInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingUpsertWithWhereUniqueWithoutPickupServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutPickupServicePointInput, Prisma.BookingUncheckedUpdateWithoutPickupServicePointInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutPickupServicePointInput, Prisma.BookingUncheckedCreateWithoutPickupServicePointInput>
+}
+
+export type BookingUpdateWithWhereUniqueWithoutPickupServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutPickupServicePointInput, Prisma.BookingUncheckedUpdateWithoutPickupServicePointInput>
+}
+
+export type BookingUpdateManyWithWhereWithoutPickupServicePointInput = {
+  where: Prisma.BookingScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutPickupServicePointInput>
+}
+
+export type BookingUpsertWithWhereUniqueWithoutDropoffServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutDropoffServicePointInput, Prisma.BookingUncheckedUpdateWithoutDropoffServicePointInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutDropoffServicePointInput, Prisma.BookingUncheckedCreateWithoutDropoffServicePointInput>
+}
+
+export type BookingUpdateWithWhereUniqueWithoutDropoffServicePointInput = {
+  where: Prisma.BookingWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutDropoffServicePointInput, Prisma.BookingUncheckedUpdateWithoutDropoffServicePointInput>
+}
+
+export type BookingUpdateManyWithWhereWithoutDropoffServicePointInput = {
+  where: Prisma.BookingScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateManyMutationInput, Prisma.BookingUncheckedUpdateManyWithoutDropoffServicePointInput>
+}
+
+export type BookingCreateWithoutItemsInput = {
+  id?: string
+  bookingCode: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutBookingsInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutBookingsInput
+  trip: Prisma.TripCreateNestedOneWithoutBookingsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedBookingsInput
+  cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
+  noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
+  deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   payments?: Prisma.PaymentCreateNestedManyWithoutBookingInput
 }
 
@@ -1980,6 +3076,18 @@ export type BookingUncheckedCreateWithoutItemsInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2026,6 +3134,14 @@ export type BookingUpdateWithoutItemsInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2045,6 +3161,10 @@ export type BookingUpdateWithoutItemsInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
 
@@ -2062,6 +3182,18 @@ export type BookingUncheckedUpdateWithoutItemsInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2092,6 +3224,14 @@ export type BookingCreateWithoutPaymentsInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2111,6 +3251,10 @@ export type BookingCreateWithoutPaymentsInput = {
   cancelledBy?: Prisma.UserCreateNestedOneWithoutCancelledBookingsInput
   noShowBy?: Prisma.UserCreateNestedOneWithoutNoShowBookingsInput
   deletedBy?: Prisma.UserCreateNestedOneWithoutDeletedBookingsInput
+  pickupLocation?: Prisma.LocationCreateNestedOneWithoutPickupBookingsInput
+  dropoffLocation?: Prisma.LocationCreateNestedOneWithoutDropoffBookingsInput
+  pickupServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutPickupBookingsInput
+  dropoffServicePoint?: Prisma.TripServicePointCreateNestedOneWithoutDropoffBookingsInput
   items?: Prisma.BookingItemCreateNestedManyWithoutBookingInput
 }
 
@@ -2128,6 +3272,18 @@ export type BookingUncheckedCreateWithoutPaymentsInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2174,6 +3330,14 @@ export type BookingUpdateWithoutPaymentsInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2193,6 +3357,10 @@ export type BookingUpdateWithoutPaymentsInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
 }
 
@@ -2210,6 +3378,18 @@ export type BookingUncheckedUpdateWithoutPaymentsInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2242,6 +3422,18 @@ export type BookingCreateManyUserInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2274,6 +3466,18 @@ export type BookingCreateManyCreatedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2305,6 +3509,18 @@ export type BookingCreateManyCancelledByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2336,6 +3552,18 @@ export type BookingCreateManyDeletedByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2367,6 +3595,18 @@ export type BookingCreateManyNoShowByInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2395,6 +3635,14 @@ export type BookingUpdateWithoutUserInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2413,6 +3661,10 @@ export type BookingUpdateWithoutUserInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2430,6 +3682,18 @@ export type BookingUncheckedUpdateWithoutUserInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2463,6 +3727,18 @@ export type BookingUncheckedUpdateManyWithoutUserInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2492,6 +3768,14 @@ export type BookingUpdateWithoutCreatedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2510,6 +3794,10 @@ export type BookingUpdateWithoutCreatedByInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2528,6 +3816,18 @@ export type BookingUncheckedUpdateWithoutCreatedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2561,6 +3861,18 @@ export type BookingUncheckedUpdateManyWithoutCreatedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2589,6 +3901,14 @@ export type BookingUpdateWithoutCancelledByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2607,6 +3927,10 @@ export type BookingUpdateWithoutCancelledByInput = {
   createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2625,6 +3949,18 @@ export type BookingUncheckedUpdateWithoutCancelledByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2658,6 +3994,18 @@ export type BookingUncheckedUpdateManyWithoutCancelledByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2686,6 +4034,14 @@ export type BookingUpdateWithoutDeletedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2704,6 +4060,10 @@ export type BookingUpdateWithoutDeletedByInput = {
   createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2722,6 +4082,18 @@ export type BookingUncheckedUpdateWithoutDeletedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2755,6 +4127,18 @@ export type BookingUncheckedUpdateManyWithoutDeletedByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2783,6 +4167,14 @@ export type BookingUpdateWithoutNoShowByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2801,6 +4193,10 @@ export type BookingUpdateWithoutNoShowByInput = {
   createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2819,6 +4215,18 @@ export type BookingUncheckedUpdateWithoutNoShowByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2852,6 +4260,18 @@ export type BookingUncheckedUpdateManyWithoutNoShowByInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2882,6 +4302,18 @@ export type BookingCreateManyCustomerInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -2911,6 +4343,14 @@ export type BookingUpdateWithoutCustomerInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2929,6 +4369,10 @@ export type BookingUpdateWithoutCustomerInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -2946,6 +4390,18 @@ export type BookingUncheckedUpdateWithoutCustomerInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -2979,6 +4435,370 @@ export type BookingUncheckedUpdateManyWithoutCustomerInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingCreateManyPickupLocationInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookingCreateManyDropoffLocationInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookingUpdateWithoutPickupLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutBookingsNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutBookingsNestedInput
+  trip?: Prisma.TripUpdateOneRequiredWithoutBookingsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
+  cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
+  noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
+  deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
+  items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutPickupLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.BookingItemUncheckedUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateManyWithoutPickupLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingUpdateWithoutDropoffLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutBookingsNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutBookingsNestedInput
+  trip?: Prisma.TripUpdateOneRequiredWithoutBookingsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
+  cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
+  noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
+  deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
+  items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutDropoffLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.BookingItemUncheckedUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateManyWithoutDropoffLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -3010,6 +4830,18 @@ export type BookingCreateManyTripInput = {
   staffNote?: string | null
   pickupPoint?: string | null
   dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.BookingStatus
   paymentStatus?: $Enums.PaymentStatus
@@ -3039,6 +4871,14 @@ export type BookingUpdateWithoutTripInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -3057,6 +4897,10 @@ export type BookingUpdateWithoutTripInput = {
   cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
   noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
   deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
   items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
 }
@@ -3074,6 +4918,18 @@ export type BookingUncheckedUpdateWithoutTripInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -3107,6 +4963,370 @@ export type BookingUncheckedUpdateManyWithoutTripInput = {
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingCreateManyPickupServicePointInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  dropoffServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookingCreateManyDropoffServicePointInput = {
+  id?: string
+  bookingCode: string
+  userId?: string | null
+  customerId?: string | null
+  tripId: string
+  source?: $Enums.BookingSource
+  passengerFullName: string
+  passengerPhone: string
+  passengerEmail?: string | null
+  customerNote?: string | null
+  staffNote?: string | null
+  pickupPoint?: string | null
+  dropoffPoint?: string | null
+  pickupLocationId?: string | null
+  dropoffLocationId?: string | null
+  pickupServicePointId?: string | null
+  pickupServiceMode?: string | null
+  dropoffServiceMode?: string | null
+  pickupKind?: string | null
+  dropoffKind?: string | null
+  pickupRequestedAddress?: string | null
+  dropoffRequestedAddress?: string | null
+  smsSent?: boolean
+  smsSentAt?: Date | string | null
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.BookingStatus
+  paymentStatus?: $Enums.PaymentStatus
+  expiresAt?: Date | string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | string | null
+  cancelledById?: string | null
+  noShowReason?: string | null
+  noShowAt?: Date | string | null
+  noShowById?: string | null
+  deletedReason?: string | null
+  deletedAt?: Date | string | null
+  deletedById?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookingUpdateWithoutPickupServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutBookingsNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutBookingsNestedInput
+  trip?: Prisma.TripUpdateOneRequiredWithoutBookingsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
+  cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
+  noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
+  deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  dropoffServicePoint?: Prisma.TripServicePointUpdateOneWithoutDropoffBookingsNestedInput
+  items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutPickupServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.BookingItemUncheckedUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateManyWithoutPickupServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingUpdateWithoutDropoffServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutBookingsNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutBookingsNestedInput
+  trip?: Prisma.TripUpdateOneRequiredWithoutBookingsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedBookingsNestedInput
+  cancelledBy?: Prisma.UserUpdateOneWithoutCancelledBookingsNestedInput
+  noShowBy?: Prisma.UserUpdateOneWithoutNoShowBookingsNestedInput
+  deletedBy?: Prisma.UserUpdateOneWithoutDeletedBookingsNestedInput
+  pickupLocation?: Prisma.LocationUpdateOneWithoutPickupBookingsNestedInput
+  dropoffLocation?: Prisma.LocationUpdateOneWithoutDropoffBookingsNestedInput
+  pickupServicePoint?: Prisma.TripServicePointUpdateOneWithoutPickupBookingsNestedInput
+  items?: Prisma.BookingItemUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutDropoffServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.BookingItemUncheckedUpdateManyWithoutBookingNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateManyWithoutDropoffServicePointInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingCode?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tripId?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  passengerFullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  passengerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServicePointId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffServiceMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffKind?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dropoffRequestedAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smsSent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  smsSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
@@ -3179,6 +5399,18 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   staffNote?: boolean
   pickupPoint?: boolean
   dropoffPoint?: boolean
+  pickupLocationId?: boolean
+  dropoffLocationId?: boolean
+  pickupServicePointId?: boolean
+  dropoffServicePointId?: boolean
+  pickupServiceMode?: boolean
+  dropoffServiceMode?: boolean
+  pickupKind?: boolean
+  dropoffKind?: boolean
+  pickupRequestedAddress?: boolean
+  dropoffRequestedAddress?: boolean
+  smsSent?: boolean
+  smsSentAt?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3202,6 +5434,10 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
   items?: boolean | Prisma.Booking$itemsArgs<ExtArgs>
   payments?: boolean | Prisma.Booking$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
@@ -3221,6 +5457,18 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   staffNote?: boolean
   pickupPoint?: boolean
   dropoffPoint?: boolean
+  pickupLocationId?: boolean
+  dropoffLocationId?: boolean
+  pickupServicePointId?: boolean
+  dropoffServicePointId?: boolean
+  pickupServiceMode?: boolean
+  dropoffServiceMode?: boolean
+  pickupKind?: boolean
+  dropoffKind?: boolean
+  pickupRequestedAddress?: boolean
+  dropoffRequestedAddress?: boolean
+  smsSent?: boolean
+  smsSentAt?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3244,6 +5492,10 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
 
 export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -3260,6 +5512,18 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   staffNote?: boolean
   pickupPoint?: boolean
   dropoffPoint?: boolean
+  pickupLocationId?: boolean
+  dropoffLocationId?: boolean
+  pickupServicePointId?: boolean
+  dropoffServicePointId?: boolean
+  pickupServiceMode?: boolean
+  dropoffServiceMode?: boolean
+  pickupKind?: boolean
+  dropoffKind?: boolean
+  pickupRequestedAddress?: boolean
+  dropoffRequestedAddress?: boolean
+  smsSent?: boolean
+  smsSentAt?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3283,6 +5547,10 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
 
 export type BookingSelectScalar = {
@@ -3299,6 +5567,18 @@ export type BookingSelectScalar = {
   staffNote?: boolean
   pickupPoint?: boolean
   dropoffPoint?: boolean
+  pickupLocationId?: boolean
+  dropoffLocationId?: boolean
+  pickupServicePointId?: boolean
+  dropoffServicePointId?: boolean
+  pickupServiceMode?: boolean
+  dropoffServiceMode?: boolean
+  pickupKind?: boolean
+  dropoffKind?: boolean
+  pickupRequestedAddress?: boolean
+  dropoffRequestedAddress?: boolean
+  smsSent?: boolean
+  smsSentAt?: boolean
   totalAmount?: boolean
   status?: boolean
   paymentStatus?: boolean
@@ -3317,7 +5597,7 @@ export type BookingSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingCode" | "userId" | "customerId" | "tripId" | "source" | "passengerFullName" | "passengerPhone" | "passengerEmail" | "customerNote" | "staffNote" | "pickupPoint" | "dropoffPoint" | "totalAmount" | "status" | "paymentStatus" | "expiresAt" | "cancellationReason" | "cancelledAt" | "cancelledById" | "noShowReason" | "noShowAt" | "noShowById" | "deletedReason" | "deletedAt" | "deletedById" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingCode" | "userId" | "customerId" | "tripId" | "source" | "passengerFullName" | "passengerPhone" | "passengerEmail" | "customerNote" | "staffNote" | "pickupPoint" | "dropoffPoint" | "pickupLocationId" | "dropoffLocationId" | "pickupServicePointId" | "dropoffServicePointId" | "pickupServiceMode" | "dropoffServiceMode" | "pickupKind" | "dropoffKind" | "pickupRequestedAddress" | "dropoffRequestedAddress" | "smsSent" | "smsSentAt" | "totalAmount" | "status" | "paymentStatus" | "expiresAt" | "cancellationReason" | "cancelledAt" | "cancelledById" | "noShowReason" | "noShowAt" | "noShowById" | "deletedReason" | "deletedAt" | "deletedById" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Booking$userArgs<ExtArgs>
   customer?: boolean | Prisma.Booking$customerArgs<ExtArgs>
@@ -3326,6 +5606,10 @@ export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
   items?: boolean | Prisma.Booking$itemsArgs<ExtArgs>
   payments?: boolean | Prisma.Booking$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
@@ -3338,6 +5622,10 @@ export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
 }
 export type BookingIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Booking$userArgs<ExtArgs>
@@ -3347,6 +5635,10 @@ export type BookingIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   cancelledBy?: boolean | Prisma.Booking$cancelledByArgs<ExtArgs>
   noShowBy?: boolean | Prisma.Booking$noShowByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Booking$deletedByArgs<ExtArgs>
+  pickupLocation?: boolean | Prisma.Booking$pickupLocationArgs<ExtArgs>
+  dropoffLocation?: boolean | Prisma.Booking$dropoffLocationArgs<ExtArgs>
+  pickupServicePoint?: boolean | Prisma.Booking$pickupServicePointArgs<ExtArgs>
+  dropoffServicePoint?: boolean | Prisma.Booking$dropoffServicePointArgs<ExtArgs>
 }
 
 export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3359,6 +5651,10 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     cancelledBy: Prisma.$UserPayload<ExtArgs> | null
     noShowBy: Prisma.$UserPayload<ExtArgs> | null
     deletedBy: Prisma.$UserPayload<ExtArgs> | null
+    pickupLocation: Prisma.$LocationPayload<ExtArgs> | null
+    dropoffLocation: Prisma.$LocationPayload<ExtArgs> | null
+    pickupServicePoint: Prisma.$TripServicePointPayload<ExtArgs> | null
+    dropoffServicePoint: Prisma.$TripServicePointPayload<ExtArgs> | null
     items: Prisma.$BookingItemPayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
   }
@@ -3376,6 +5672,18 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     staffNote: string | null
     pickupPoint: string | null
     dropoffPoint: string | null
+    pickupLocationId: string | null
+    dropoffLocationId: string | null
+    pickupServicePointId: string | null
+    dropoffServicePointId: string | null
+    pickupServiceMode: string | null
+    dropoffServiceMode: string | null
+    pickupKind: string | null
+    dropoffKind: string | null
+    pickupRequestedAddress: string | null
+    dropoffRequestedAddress: string | null
+    smsSent: boolean
+    smsSentAt: Date | null
     totalAmount: runtime.Decimal
     status: $Enums.BookingStatus
     paymentStatus: $Enums.PaymentStatus
@@ -3793,6 +6101,10 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
   cancelledBy<T extends Prisma.Booking$cancelledByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$cancelledByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   noShowBy<T extends Prisma.Booking$noShowByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$noShowByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   deletedBy<T extends Prisma.Booking$deletedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$deletedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  pickupLocation<T extends Prisma.Booking$pickupLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$pickupLocationArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  dropoffLocation<T extends Prisma.Booking$dropoffLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$dropoffLocationArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  pickupServicePoint<T extends Prisma.Booking$pickupServicePointArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$pickupServicePointArgs<ExtArgs>>): Prisma.Prisma__TripServicePointClient<runtime.Types.Result.GetResult<Prisma.$TripServicePointPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  dropoffServicePoint<T extends Prisma.Booking$dropoffServicePointArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$dropoffServicePointArgs<ExtArgs>>): Prisma.Prisma__TripServicePointClient<runtime.Types.Result.GetResult<Prisma.$TripServicePointPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Booking$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.Booking$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -3837,6 +6149,18 @@ export interface BookingFieldRefs {
   readonly staffNote: Prisma.FieldRef<"Booking", 'String'>
   readonly pickupPoint: Prisma.FieldRef<"Booking", 'String'>
   readonly dropoffPoint: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupLocationId: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffLocationId: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupServicePointId: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffServicePointId: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupServiceMode: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffServiceMode: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupKind: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffKind: Prisma.FieldRef<"Booking", 'String'>
+  readonly pickupRequestedAddress: Prisma.FieldRef<"Booking", 'String'>
+  readonly dropoffRequestedAddress: Prisma.FieldRef<"Booking", 'String'>
+  readonly smsSent: Prisma.FieldRef<"Booking", 'Boolean'>
+  readonly smsSentAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly totalAmount: Prisma.FieldRef<"Booking", 'Decimal'>
   readonly status: Prisma.FieldRef<"Booking", 'BookingStatus'>
   readonly paymentStatus: Prisma.FieldRef<"Booking", 'PaymentStatus'>
@@ -4365,6 +6689,82 @@ export type Booking$deletedByArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * Booking.pickupLocation
+ */
+export type Booking$pickupLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Location
+   */
+  select?: Prisma.LocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Location
+   */
+  omit?: Prisma.LocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationInclude<ExtArgs> | null
+  where?: Prisma.LocationWhereInput
+}
+
+/**
+ * Booking.dropoffLocation
+ */
+export type Booking$dropoffLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Location
+   */
+  select?: Prisma.LocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Location
+   */
+  omit?: Prisma.LocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationInclude<ExtArgs> | null
+  where?: Prisma.LocationWhereInput
+}
+
+/**
+ * Booking.pickupServicePoint
+ */
+export type Booking$pickupServicePointArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TripServicePoint
+   */
+  select?: Prisma.TripServicePointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TripServicePoint
+   */
+  omit?: Prisma.TripServicePointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripServicePointInclude<ExtArgs> | null
+  where?: Prisma.TripServicePointWhereInput
+}
+
+/**
+ * Booking.dropoffServicePoint
+ */
+export type Booking$dropoffServicePointArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TripServicePoint
+   */
+  select?: Prisma.TripServicePointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TripServicePoint
+   */
+  omit?: Prisma.TripServicePointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripServicePointInclude<ExtArgs> | null
+  where?: Prisma.TripServicePointWhereInput
 }
 
 /**

@@ -141,7 +141,7 @@ function AdminTripSeatsPage() {
           <div className="d-flex gap-2">
             <Link
               className="btn btn-outline-secondary"
-              to="/admin/chuyen-xe-tuyen-duong"
+              to="/admin/chuyen-xe"
             >
               Quay lại
             </Link>

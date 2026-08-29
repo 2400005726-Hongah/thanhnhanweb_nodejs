@@ -1,9 +1,10 @@
-import { randomBytes } from 'node:crypto'
+import { randomInt } from 'node:crypto'
 
 import { assertPaymentMethodAllowed } from '../config/paymentMethods.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
 import { normalizeBookingCode, normalizePhone } from '../utils/normalize.js'
+import { buildTripRouteSnapshot } from '../utils/tripJourney.js'
 import { getCancellationState } from './cancellation.service.js'
 import { writeAuditLog } from './auditLog.service.js'
 
@@ -23,11 +24,14 @@ const publicBookingInclude = {
       departureTime: true,
       expectedArrivalTime: true,
       status: true,
+      departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+      arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
       route: {
         select: {
+          id: true,
           routeName: true,
-          departureLocation: { select: { name: true, province: true } },
-          arrivalLocation: { select: { name: true, province: true } },
+          departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+          arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
         },
       },
       bus: {
@@ -72,6 +76,26 @@ const serializePayment = (payment) =>
       }
     : null
 
+const serializePublicLocation = (location) =>
+  location
+    ? {
+        name: location.name,
+        province: location.provinceRef?.name || location.province || null,
+      }
+    : null
+
+const serializePublicRoute = (trip) => {
+  const snapshot = buildTripRouteSnapshot(trip)
+  return {
+    routeName: snapshot.routeName,
+    departureLocation: serializePublicLocation(snapshot.departureLocation),
+    arrivalLocation: serializePublicLocation(snapshot.arrivalLocation),
+    distanceKm: snapshot.distanceKm,
+    estimatedDurationMinutes: snapshot.estimatedDurationMinutes,
+    legacy: snapshot.legacy,
+  }
+}
+
 const serializePublicBooking = (booking) => ({
   bookingCode: booking.bookingCode,
   source: booking.source,
@@ -88,7 +112,7 @@ const serializePublicBooking = (booking) => ({
     departureTime: booking.trip.departureTime,
     expectedArrivalTime: booking.trip.expectedArrivalTime,
     status: booking.trip.status,
-    route: booking.trip.route,
+    route: serializePublicRoute(booking.trip),
     bus: booking.trip.bus,
   },
   seats: booking.items.map((item) => ({
@@ -107,8 +131,7 @@ const lockBookingByCode = (database, bookingCode) =>
     FOR UPDATE
   `
 
-const generateTransactionCode = () =>
-  `PAY${randomBytes(10).toString('hex').toUpperCase()}`
+const generateTransactionCode = () => `TN${String(randomInt(0, 1_000_000_000)).padStart(9, '0')}`
 
 const getInitialPaymentPlan = (source, paymentMethod, now = new Date()) => {
   if (!paymentMethod) {
@@ -124,7 +147,7 @@ const getInitialPaymentPlan = (source, paymentMethod, now = new Date()) => {
     bookingExpiresAt: null,
     paymentStatus: pending ? 'PENDING' : 'SUCCESS',
     paidAt: pending ? null : now,
-    transactionCode: pending ? null : generateTransactionCode(),
+    transactionCode: generateTransactionCode(),
   }
 }
 
@@ -207,14 +230,21 @@ const createInitialPayment = async ({
   return { payment, plan }
 }
 
-const findMatchingBooking = (database, bookingCode, phone, include) =>
-  database.booking.findFirst({
-    where: {
-      bookingCode,
-      passengerPhone: phone,
-    },
+const findMatchingBooking = (database, identifier, phone, include) => {
+  const isTransactionIdentifier = /^TN\d{9}$/i.test(identifier)
+  return database.booking.findFirst({
+    where: isTransactionIdentifier
+      ? {
+          passengerPhone: phone,
+          payments: { some: { transactionCode: identifier } },
+        }
+      : {
+          bookingCode: identifier,
+          passengerPhone: phone,
+        },
     ...(include && { include }),
   })
+}
 
 const simulatePaymentAttempt = (
   bookingCode,

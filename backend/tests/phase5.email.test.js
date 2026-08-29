@@ -81,7 +81,7 @@ describe('Phase 5 booking Email', () => {
     )
 
     expect(message.text).toContain(
-      'Vé đã được giữ chỗ. Quý khách thanh toán khi lên xe.',
+      'Vé đã được đặt thành công. Quý khách thanh toán khi lên xe.',
     )
     expect(message.text).toContain('Trạng thái thanh toán: Chưa thanh toán')
     expect(message.text).not.toContain('Thanh toán đã được ghi nhận.')
@@ -177,4 +177,32 @@ describe('Phase 5 booking Email', () => {
       expect(writeAuditLog).not.toHaveBeenCalled()
     },
   )
+})
+
+test('Email works with direct trip locations when legacy route is no longer used', () => {
+  const booking = makeBooking({
+    trip: {
+      departureTime: new Date('2026-08-10T12:30:00.000Z'),
+      departureLocation: { name: 'Nhà xe Krông Năng' },
+      arrivalLocation: { name: 'Bến xe An Sương' },
+      route: null,
+      bus: {
+        busName: 'legacy-name-not-used',
+        busType: 'LIMOUSINE_22',
+        licensePlate: '47H07794',
+      },
+    },
+    pickupPoint: 'Nhà xe Krông Năng - 25 Nguyễn Tất Thành',
+    dropoffPoint: 'Bến xe An Sương',
+    pickupServiceMode: 'TaiVanPhong',
+    dropoffServiceMode: 'TraTaiBenXe',
+  })
+
+  const message = buildBookingEmail(booking)
+
+  expect(message.text).toContain('Nhà xe Krông Năng → Bến xe An Sương')
+  expect(message.text).toContain('Limousine 22 phòng')
+  expect(message.text).toContain('Tập trung tại văn phòng nhà xe')
+  expect(message.text).toContain('Trả khách tại bến xe trung tâm đích đến')
+  expect(message.text).not.toContain('legacy-name-not-used')
 })

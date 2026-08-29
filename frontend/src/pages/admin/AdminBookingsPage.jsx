@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
 import BookingTicket from '../../components/admin/BookingTicket.jsx'
@@ -8,22 +8,28 @@ import {
   ErrorState,
   LoadingState,
 } from '../../components/common/StatusState.jsx'
+import { useAuth } from '../../contexts/authContext.js'
 import {
   cancelBooking,
+  collectBookingPayment,
   deleteBooking,
+  exportBookingsExcel,
   getBookings,
   markNoShow,
+  undoBookingPayment,
 } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import formatCurrency from '../../utils/formatCurrency.js'
-import { formatDateTime } from '../../utils/formatDateTime.js'
-import { formatLicensePlate, formatPhoneInput } from '../../utils/normalizers.js'
+import { formatBookingCode, formatPhoneInput } from '../../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
 } from '../../utils/paymentLabels.js'
+import { hasPermission, PERMISSIONS } from '../../utils/adminPermissions.js'
 
-const BOOKING_PAGE_SIZE = 30
+import './AdminBookingsPage.css'
+
+const BOOKING_PAGE_SIZE = 20
 
 const BOOKING_STATUS_LABELS = {
   PENDING: 'Chờ xử lý',
@@ -36,9 +42,20 @@ const BOOKING_STATUS_LABELS = {
 }
 
 const SOURCE_LABELS = {
-  ONLINE: 'Trực tuyến',
+  ONLINE: 'Online',
   HOTLINE: 'Hotline',
   COUNTER: 'Tại quầy',
+}
+
+const SERVICE_MODE_LABELS = {
+  TaiVanPhong: 'Tập trung tại văn phòng nhà xe',
+  DonTaiBenXe: 'Đón trực tiếp tại bến xe trung tâm',
+  DonTaiDiemHen: 'Đón khách tại điểm hẹn',
+  TrungChuyenDonKhach: 'Xe trung chuyển đón khách',
+  TraTaiBenXe: 'Trả khách tại bến xe trung tâm đích đến',
+  TraTaiVanPhong: 'Trả khách tại văn phòng nhà xe',
+  TraTaiDiemDung: 'Trả khách tại điểm dừng',
+  TrungChuyenTraKhach: 'Xe trung chuyển trả tận nơi khu vực nội thành',
 }
 
 const EMPTY_FILTERS = {
@@ -46,91 +63,156 @@ const EMPTY_FILTERS = {
   source: '',
   status: '',
   paymentStatus: '',
-  from: '',
-  to: '',
+  departureDate: '',
 }
 
-const displayDateTime = (value) =>
-  value ? formatDateTime(value) : '—'
+const toDate = (value) => {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const formatDateOnly = (value) => {
+  const date = toDate(value)
+  if (!date) return '—'
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+}
+
+const formatTimeOnly = (value) => {
+  const date = toDate(value)
+  if (!date) return '—'
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date)
+}
 
 const getStatusClass = (status) => {
-  if (['CANCELLED', 'NO_SHOW', 'DELETED'].includes(status)) {
-    return 'status-badge status-badge--cancelled'
-  }
-
-  if (['PENDING', 'EXPIRED'].includes(status)) {
-    return 'status-badge status-badge--pending'
-  }
-
-  return 'status-badge status-badge--active'
+  if (['CANCELLED', 'DELETED'].includes(status)) return 'is-red'
+  if (['NO_SHOW', 'PENDING', 'EXPIRED'].includes(status)) return 'is-yellow'
+  if (status === 'COMPLETED') return 'is-green'
+  return 'is-red'
 }
 
-const escapeCsvCell = (value) => {
-  const text = String(value ?? '')
-  return `"${text.replaceAll('"', '""')}"`
+const getSourceClass = (source) => {
+  if (source === 'ONLINE') return 'is-online'
+  if (source === 'HOTLINE') return 'is-hotline'
+  return 'is-counter'
 }
 
-const downloadCsv = (bookings) => {
-  const header = [
-    'Mã vé',
-    'Nguồn đặt',
-    'Hành khách',
-    'Số điện thoại',
-    'Email',
-    'Tuyến',
-    'Giờ xuất bến',
-    'Biển số',
-    'Ghế/phòng',
-    'Điểm đón chi tiết',
-    'Điểm trả chi tiết',
-    'Tổng tiền',
-    'Trạng thái vé',
-    'Trạng thái thanh toán',
-    'Phương thức thanh toán',
-    'Ngày đặt',
-  ]
+const getTripEndpoints = (booking) => {
+  const trip = booking.trip || {}
+  const departure =
+    trip.departureLocation?.name ||
+    trip.route?.departureLocation?.name ||
+    trip.route?.routeName?.split('→')?.[0]?.trim() ||
+    'Chưa xác định'
+  const arrival =
+    trip.arrivalLocation?.name ||
+    trip.route?.arrivalLocation?.name ||
+    trip.route?.routeName?.split('→')?.[1]?.trim() ||
+    'Chưa xác định'
+  return { departure, arrival }
+}
 
-  const rows = bookings.map((booking) => {
-    const payment = booking.payments?.[0] ?? booking.payment ?? null
+const getServiceModeLabel = (mode, fallback) =>
+  SERVICE_MODE_LABELS[mode] || fallback
 
-    return [
-      booking.bookingCode,
-      SOURCE_LABELS[booking.source] || 'Chưa xác định',
-      booking.passengerFullName,
-      formatPhoneInput(booking.passengerPhone),
-      booking.passengerEmail,
-      booking.trip?.route?.routeName,
-      displayDateTime(booking.trip?.departureTime),
-      formatLicensePlate(booking.trip?.bus?.licensePlate),
-      booking.items?.map((item) => item.seatCode).join(', '),
-      booking.pickupPoint,
-      booking.dropoffPoint,
-      Number(booking.totalAmount || 0),
-      BOOKING_STATUS_LABELS[booking.status] || 'Không xác định',
-      getPaymentStatusLabel(booking.paymentStatus),
-      getPaymentMethodLabel(payment?.paymentMethod),
-      displayDateTime(booking.createdAt),
-    ]
-  })
+const getPendingPaymentLabel = (payment) => {
+  if (payment?.status === 'PENDING' && payment?.paymentMethod === 'PAY_AT_BUS') {
+    return 'Chờ thu tiền tại xe'
+  }
+  return getPaymentStatusLabel(payment?.status || 'PENDING')
+}
 
-  const content = [header, ...rows]
-    .map((row) => row.map(escapeCsvCell).join(','))
-    .join('\r\n')
+const ActionIcon = ({ type }) => {
+  const common = {
+    width: 13,
+    height: 13,
+    viewBox: '0 0 16 16',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.6,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
 
-  const blob = new Blob([`\uFEFF${content}`], {
-    type: 'text/csv;charset=utf-8',
-  })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `danh-sach-ve-${new Date().toISOString().slice(0, 10)}.csv`
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  URL.revokeObjectURL(url)
+  if (type === 'view') {
+    return (
+      <svg {...common}>
+        <path d="M1.5 8s2.3-4.2 6.5-4.2S14.5 8 14.5 8 12.2 12.2 8 12.2 1.5 8 1.5 8Z" />
+        <circle cx="8" cy="8" r="1.8" />
+      </svg>
+    )
+  }
+  if (type === 'print') {
+    return (
+      <svg {...common}>
+        <path d="M4 5V1.8h8V5" />
+        <path d="M4 11H2.5V6.4h11V11H12" />
+        <path d="M4 9h8v5H4z" />
+      </svg>
+    )
+  }
+  if (type === 'edit') {
+    return (
+      <svg {...common}>
+        <path d="M10.7 2.2 13.8 5.3 6 13.1l-3.8.7.7-3.8 7.8-7.8Z" />
+        <path d="m9.5 3.4 3.1 3.1" />
+      </svg>
+    )
+  }
+  if (type === 'cash') {
+    return (
+      <svg {...common}>
+        <rect x="1.7" y="3" width="12.6" height="9.8" rx="1.4" />
+        <circle cx="8" cy="7.9" r="2" />
+      </svg>
+    )
+  }
+  if (type === 'undo') {
+    return (
+      <svg {...common}>
+        <path d="M5.3 4.2 2.4 7l2.9 2.8" />
+        <path d="M2.8 7h6.1a4 4 0 0 1 0 8" />
+      </svg>
+    )
+  }
+  if (type === 'trash') {
+    return (
+      <svg {...common}>
+        <path d="M3 4.2h10M6 4.2V2.3h4v1.9M4.2 4.2l.7 9.5h6.2l.7-9.5" />
+        <path d="M6.6 6.4v5M9.4 6.4v5" />
+      </svg>
+    )
+  }
+  if (type === 'no-show') {
+    return (
+      <svg {...common}>
+        <circle cx="6" cy="5.1" r="2.1" />
+        <path d="M2.4 13c.3-2.6 1.7-4 3.6-4 1.4 0 2.4.6 3 1.5" />
+        <path d="m10.3 9.8 3.4 3.4M13.7 9.8l-3.4 3.4" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <path d="M3 3l10 10M13 3 3 13" />
+    </svg>
+  )
 }
 
 function AdminBookingsPage() {
+  const location = useLocation()
+  const { user } = useAuth()
   const [bookings, setBookings] = useState([])
   const [pagination, setPagination] = useState(null)
   const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
@@ -140,6 +222,9 @@ function AdminBookingsPage() {
   const [error, setError] = useState('')
   const [processingCode, setProcessingCode] = useState('')
   const [printBooking, setPrintBooking] = useState(null)
+  const [exporting, setExporting] = useState(false)
+  const [actionDialog, setActionDialog] = useState(null)
+  const [currentTime, setCurrentTime] = useState(() => new Date())
 
   const load = useCallback(async (targetPage = 1, nextFilters = EMPTY_FILTERS) => {
     setLoading(true)
@@ -152,13 +237,9 @@ function AdminBookingsPage() {
         ...(nextFilters.keyword && { keyword: nextFilters.keyword }),
         ...(nextFilters.source && { source: nextFilters.source }),
         ...(nextFilters.status && { status: nextFilters.status }),
-        ...(nextFilters.paymentStatus && {
-          paymentStatus: nextFilters.paymentStatus,
-        }),
-        ...(nextFilters.from && { from: nextFilters.from }),
-        ...(nextFilters.to && { to: nextFilters.to }),
+        ...(nextFilters.paymentStatus && { paymentStatus: nextFilters.paymentStatus }),
+        ...(nextFilters.departureDate && { departureDate: nextFilters.departureDate }),
       })
-
       setBookings(data?.bookings ?? [])
       setPagination(data?.pagination ?? null)
     } catch (requestError) {
@@ -178,6 +259,19 @@ function AdminBookingsPage() {
     return () => window.removeEventListener('afterprint', clearPrintBooking)
   }, [])
 
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => window.clearInterval(timerId)
+  }, [])
+
+  const totalCount = pagination?.total ?? bookings.length
+  const canManageBookings = hasPermission(user, PERMISSIONS.MANAGE_BOOKINGS)
+  const canMarkNoShowPermission = hasPermission(user, PERMISSIONS.MARK_NO_SHOW)
+
   const changeFilter = (event) => {
     const { name, value } = event.target
     setFilters((current) => ({ ...current, [name]: value }))
@@ -185,20 +279,13 @@ function AdminBookingsPage() {
 
   const submit = (event) => {
     event.preventDefault()
-
-    if (filters.from && filters.to && filters.from > filters.to) {
-      window.alert('Ngày bắt đầu không được sau ngày kết thúc.')
-      return
-    }
-
     setPage(1)
     setAppliedFilters({
       keyword: filters.keyword.trim(),
       source: filters.source,
       status: filters.status,
       paymentStatus: filters.paymentStatus,
-      from: filters.from,
-      to: filters.to,
+      departureDate: filters.departureDate,
     })
   }
 
@@ -208,6 +295,35 @@ function AdminBookingsPage() {
     setPage(1)
   }
 
+  const exportExcel = async () => {
+    setExporting(true)
+    try {
+      const response = await exportBookingsExcel({
+        ...(appliedFilters.keyword && { keyword: appliedFilters.keyword }),
+        ...(appliedFilters.source && { source: appliedFilters.source }),
+        ...(appliedFilters.status && { status: appliedFilters.status }),
+        ...(appliedFilters.paymentStatus && { paymentStatus: appliedFilters.paymentStatus }),
+        ...(appliedFilters.departureDate && { departureDate: appliedFilters.departureDate }),
+      })
+
+      const disposition = response.headers?.['content-disposition'] || ''
+      const matchedName = disposition.match(/filename="?([^";]+)"?/i)?.[1]
+      const fileName = matchedName || `DanhSachVe_${new Date().toISOString().slice(0, 10)}.xlsx`
+      const url = URL.createObjectURL(response.data)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const printTicket = (booking) => {
     setPrintBooking(booking)
     window.requestAnimationFrame(() => {
@@ -215,26 +331,55 @@ function AdminBookingsPage() {
     })
   }
 
-  const runReasonAction = async ({
-    booking,
-    promptMessage,
-    confirmMessage,
-    validationMessage,
-    action,
-  }) => {
-    const reason = window.prompt(promptMessage)
-    const normalizedReason = reason?.trim() ?? ''
+  const openActionDialog = (type, booking) => {
+    setActionDialog({
+      type,
+      booking,
+      reason: '',
+      confirmed: false,
+    })
+  }
 
-    if (normalizedReason.length < 5 || normalizedReason.length > 500) {
-      window.alert(validationMessage)
+  const closeActionDialog = () => {
+    if (processingCode) return
+    setActionDialog(null)
+  }
+
+  const updateActionDialog = (patch) => {
+    setActionDialog((current) => (current ? { ...current, ...patch } : current))
+  }
+
+  const executeActionDialog = async () => {
+    if (!actionDialog?.booking) return
+
+    const { booking, type } = actionDialog
+    const reason = actionDialog.reason.trim()
+
+    if (type !== 'collect' && (reason.length < 5 || reason.length > 500)) {
+      window.alert('Lý do phải có từ 5 đến 500 ký tự.')
       return
     }
 
-    if (!window.confirm(confirmMessage)) return
+    if (type === 'collect' && actionDialog.confirmed !== true) {
+      window.alert('Bạn phải tích xác nhận đã nhận đủ tiền từ khách.')
+      return
+    }
 
     setProcessingCode(booking.bookingCode)
     try {
-      await action(booking.bookingCode, normalizedReason)
+      if (type === 'collect') {
+        await collectBookingPayment(booking.bookingCode)
+      } else if (type === 'undo') {
+        await undoBookingPayment(booking.bookingCode, reason)
+      } else if (type === 'cancel') {
+        await cancelBooking(booking.bookingCode, reason)
+      } else if (type === 'delete') {
+        await deleteBooking(booking.bookingCode, reason)
+      } else if (type === 'no-show') {
+        await markNoShow(booking.bookingCode, reason)
+      }
+
+      setActionDialog(null)
       await load(page, appliedFilters)
     } catch (requestError) {
       window.alert(getApiErrorMessage(requestError))
@@ -243,129 +388,154 @@ function AdminBookingsPage() {
     }
   }
 
-  const cancel = (booking) =>
-    runReasonAction({
-      booking,
-      promptMessage: `Nhập lý do hủy vé ${booking.bookingCode}:`,
-      confirmMessage: `Xác nhận hủy vé ${booking.bookingCode}?`,
-      validationMessage: 'Lý do hủy vé phải có từ 5 đến 500 ký tự.',
-      action: cancelBooking,
-    })
+  const getActionDialogContent = () => {
+    if (!actionDialog?.booking) return null
+    const booking = actionDialog.booking
+    const payment = booking.payments?.[0] ?? booking.payment ?? null
+    const seatCodes = (booking.items || []).map((item) => item.seatCode).filter(Boolean).join(', ') || '—'
 
-  const removeBooking = (booking) =>
-    runReasonAction({
-      booking,
-      promptMessage: `Nhập lý do xóa vé ${booking.bookingCode}:`,
-      confirmMessage: `Xóa mềm vé ${booking.bookingCode} và giải phóng ghế?`,
-      validationMessage: 'Lý do xóa vé phải có từ 5 đến 500 ký tự.',
-      action: deleteBooking,
-    })
+    if (actionDialog.type === 'collect') {
+      return {
+        title: 'Xác nhận đã thu tiền',
+        description: 'Chỉ xác nhận khi bạn đã thực sự nhận đủ tiền từ khách.',
+        confirmLabel: 'Xác nhận đã thu tiền',
+        tone: 'success',
+        payment,
+        seatCodes,
+      }
+    }
 
-  const noShow = (booking) =>
-    runReasonAction({
-      booking,
-      promptMessage: `Nhập lý do khách không đi cho vé ${booking.bookingCode}:`,
-      confirmMessage: `Xác nhận khách không đi cho vé ${booking.bookingCode}?`,
-      validationMessage: 'Lý do không đi phải có từ 5 đến 500 ký tự.',
-      action: markNoShow,
-    })
+    const map = {
+      undo: {
+        title: 'Hoàn tác xác nhận thu tiền',
+        description: 'Đưa trạng thái thanh toán của vé về Chưa thanh toán. Số tiền phải thu vẫn được giữ lại.',
+        confirmLabel: 'Hoàn tác',
+        reasonLabel: 'Lý do hoàn tác',
+      },
+      cancel: {
+        title: 'Hủy vé',
+        description: 'Ghế sẽ được mở lại. Nếu vé đã thanh toán, hệ thống ghi nhận hoàn tiền 100%.',
+        confirmLabel: 'Hủy vé',
+        reasonLabel: 'Lý do hủy vé',
+      },
+      delete: {
+        title: 'Xóa vé',
+        description: 'Đây là xóa mềm dành cho vé nhập nhầm. Ghế được mở lại và lịch sử vé vẫn còn.',
+        confirmLabel: 'Xóa mềm',
+        reasonLabel: 'Lý do xóa vé',
+      },
+      'no-show': {
+        title: 'Khách không đi',
+        description: 'Ghế không được mở lại và trạng thái thanh toán được giữ nguyên.',
+        confirmLabel: 'Xác nhận không đi',
+        reasonLabel: 'Lý do khách không đi',
+      },
+    }
+
+    return {
+      ...map[actionDialog.type],
+      tone: actionDialog.type === 'no-show' ? 'warning' : 'danger',
+      payment,
+      seatCodes,
+    }
+  }
+
+  const renderedRows = useMemo(
+    () =>
+      bookings.map((booking) => {
+        const payment = booking.payments?.[0] ?? booking.payment ?? null
+        const departureTime = booking.trip?.departureTime
+        const { departure, arrival } = getTripEndpoints(booking)
+        return { booking, payment, departureTime, departure, arrival }
+      }),
+    [bookings],
+  )
 
   return (
-    <>
-      <AdminPageHeader
-        title="Vé xe"
-        description="Quản lý vé Trực tuyến, Hotline và Tại quầy."
-        actions={(
-          <button
-            className="btn btn-success"
-            disabled={bookings.length === 0}
-            onClick={() => downloadCsv(bookings)}
-            type="button"
-          >
-            Xuất CSV trang hiện tại
-          </button>
-        )}
-      />
+    <div className="admin-bookings-mvc-page">
+      <AdminPageHeader title="Quản lý vé xe" />
 
-      <form className="admin-filter-bar" onSubmit={submit}>
-        <input
-          className="form-control"
-          name="keyword"
-          onChange={changeFilter}
-          placeholder="Mã vé, hành khách hoặc số điện thoại"
-          value={filters.keyword}
-        />
-
-        <select
-          className="form-select"
-          name="source"
-          onChange={changeFilter}
-          value={filters.source}
-        >
-          <option value="">Tất cả nguồn đặt</option>
-          <option value="ONLINE">Trực tuyến</option>
-          <option value="HOTLINE">Hotline</option>
-          <option value="COUNTER">Tại quầy</option>
-        </select>
-
-        <select
-          className="form-select"
-          name="status"
-          onChange={changeFilter}
-          value={filters.status}
-        >
-          <option value="">Tất cả trạng thái vé</option>
-          {Object.entries(BOOKING_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-
-        <select
-          className="form-select"
-          name="paymentStatus"
-          onChange={changeFilter}
-          value={filters.paymentStatus}
-        >
-          <option value="">Tất cả thanh toán</option>
-          <option value="PENDING">Chờ thanh toán</option>
-          <option value="SUCCESS">Đã thanh toán</option>
-          <option value="FAILED">Thanh toán thất bại</option>
-          <option value="REFUNDED">Đã hoàn tiền</option>
-        </select>
-
-        <label className="admin-field">
-          <span>Từ ngày đặt</span>
-          <input
-            className="form-control"
-            name="from"
-            onChange={changeFilter}
-            type="date"
-            value={filters.from}
-          />
-        </label>
-
-        <label className="admin-field">
-          <span>Đến ngày đặt</span>
-          <input
-            className="form-control"
-            name="to"
-            onChange={changeFilter}
-            type="date"
-            value={filters.to}
-          />
-        </label>
-
-        <div className="d-flex gap-2">
-          <button className="btn btn-primary" type="submit">Tìm vé</button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={clearFilters}
-            type="button"
-          >
-            Xóa lọc
-          </button>
+      {location.state?.notice && (
+        <div className="alert alert-success" role="status">
+          {location.state.notice}
         </div>
-      </form>
+      )}
+
+      <section className="admin-bookings-filter-card">
+        <form onSubmit={submit}>
+          <div className="admin-bookings-filter-grid">
+            <label className="admin-bookings-filter-field admin-bookings-filter-field--search">
+              <span>Tìm kiếm</span>
+              <input
+                className="form-control"
+                name="keyword"
+                onChange={changeFilter}
+                placeholder="Mã vé, mã giao dịch, tên hoặc SĐT"
+                value={filters.keyword}
+              />
+            </label>
+
+            <label className="admin-bookings-filter-field">
+              <span>Nguồn đặt</span>
+              <select className="form-select" name="source" onChange={changeFilter} value={filters.source}>
+                <option value="">Tất cả</option>
+                <option value="ONLINE">Online</option>
+                <option value="HOTLINE">Hotline</option>
+                <option value="COUNTER">Tại quầy</option>
+              </select>
+            </label>
+
+            <label className="admin-bookings-filter-field">
+              <span>Trạng thái vé</span>
+              <select className="form-select" name="status" onChange={changeFilter} value={filters.status}>
+                <option value="">Tất cả</option>
+                {Object.entries(BOOKING_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="admin-bookings-filter-field">
+              <span>Thanh toán</span>
+              <select className="form-select" name="paymentStatus" onChange={changeFilter} value={filters.paymentStatus}>
+                <option value="">Tất cả</option>
+                <option value="PENDING">Chờ thanh toán</option>
+                <option value="SUCCESS">Đã thanh toán</option>
+                <option value="FAILED">Thanh toán thất bại</option>
+                <option value="REFUNDED">Đã hoàn tiền</option>
+              </select>
+            </label>
+
+            <label className="admin-bookings-filter-field">
+              <span>Ngày xuất bến</span>
+              <input
+                className="form-control"
+                name="departureDate"
+                onChange={changeFilter}
+                type="date"
+                value={filters.departureDate}
+              />
+            </label>
+          </div>
+
+          <div className="admin-bookings-filter-actions">
+            <button className="btn admin-bookings-btn admin-bookings-btn--filter" type="submit">
+              <span aria-hidden="true">⌕</span> Lọc dữ liệu
+            </button>
+            <button className="btn admin-bookings-btn admin-bookings-btn--clear" onClick={clearFilters} type="button">
+              Xóa bộ lọc
+            </button>
+            <button
+              className="btn admin-bookings-btn admin-bookings-btn--excel"
+              disabled={exporting || totalCount === 0}
+              onClick={exportExcel}
+              type="button"
+            >
+              <span aria-hidden="true">▣</span> {exporting ? 'Đang xuất...' : 'Xuất Excel'}
+            </button>
+          </div>
+        </form>
+      </section>
 
       {error ? (
         <ErrorState message={error} onRetry={() => load(page, appliedFilters)} />
@@ -374,125 +544,232 @@ function AdminBookingsPage() {
       ) : bookings.length === 0 ? (
         <EmptyState message="Không tìm thấy vé phù hợp." />
       ) : (
-        <section className="admin-panel">
-          <div className="admin-panel__heading">
-            <div>
-              <h2>Danh sách vé</h2>
-              <p>Hiển thị nguồn đặt, trạng thái vé, thanh toán và điểm đón/trả.</p>
-            </div>
-            <strong>{pagination?.total ?? bookings.length} vé</strong>
+        <section className="admin-bookings-list-card">
+          <div className="admin-bookings-list-title">
+            <h2>Danh sách vé xe ({totalCount} kết quả)</h2>
           </div>
 
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="admin-bookings-table-scroll">
+            <table className="admin-bookings-table">
               <thead>
                 <tr>
-                  <th>STT</th>
                   <th>Mã vé</th>
-                  <th>Hành khách</th>
-                  <th>Chuyến xe</th>
-                  <th>Xe/Ghế</th>
                   <th>Nguồn đặt</th>
-                  <th>Điểm đón/trả</th>
-                  <th>Giá vé</th>
-                  <th>Trạng thái</th>
+                  <th>Chuyến xe</th>
+                  <th>Đón / trả</th>
+                  <th>Khách hàng</th>
+                  <th>Ghế</th>
+                  <th>Ngày đặt</th>
+                  <th>Xuất bến</th>
+                  <th>Tổng tiền</th>
+                  <th>Trạng thái vé</th>
                   <th>Thanh toán</th>
+                  <th>Phương thức</th>
                   <th>Thao tác</th>
                 </tr>
               </thead>
-
               <tbody>
-                {bookings.map((booking, index) => {
-                  const payment = booking.payments?.[0] ?? booking.payment ?? null
-                  const departureTime = booking.trip?.departureTime
-                  const canCancel = ['PENDING', 'CONFIRMED'].includes(booking.status)
+                {renderedRows.map(({ booking, payment, departureTime, departure, arrival }) => {
+                  const departureAt = departureTime ? new Date(departureTime) : null
+                  const paymentStatus = payment?.status || booking.paymentStatus
+                  const isConfirmed = booking.status === 'CONFIRMED'
+                  const tripStatus = booking.trip?.status
+                  const tripHasDeparted = ['DEPARTED', 'COMPLETED', 'CANCELLED'].includes(tripStatus)
+                  const isBeforeDeparture = Boolean(
+                    departureAt && departureAt.getTime() > currentTime.getTime() && !tripHasDeparted,
+                  )
+                  const isAtOrAfterDeparture = Boolean(
+                    departureAt && (departureAt.getTime() <= currentTime.getTime() || tripHasDeparted),
+                  )
+                  const canEdit = canManageBookings && isConfirmed && isBeforeDeparture
+                  const canCancel = canManageBookings && isConfirmed && isBeforeDeparture
                   const canDelete =
-                    ['PENDING', 'CONFIRMED'].includes(booking.status) &&
-                    departureTime &&
-                    new Date(departureTime) > new Date()
-                  const canMarkNoShow =
-                    booking.status === 'CONFIRMED' &&
-                    departureTime &&
-                    new Date(departureTime) <= new Date()
+                    canManageBookings &&
+                    isConfirmed &&
+                    isBeforeDeparture &&
+                    !['SUCCESS', 'REFUNDED'].includes(paymentStatus)
+                  const canMarkNoShow = canMarkNoShowPermission && isConfirmed && isAtOrAfterDeparture
+                  const canCollectPayment =
+                    canManageBookings &&
+                    isConfirmed &&
+                    payment?.paymentMethod === 'PAY_AT_BUS' &&
+                    paymentStatus === 'PENDING'
+                  const canUndoPayment =
+                    user?.role === 'ADMIN' &&
+                    isConfirmed &&
+                    payment?.paymentMethod === 'PAY_AT_BUS' &&
+                    paymentStatus === 'SUCCESS'
                   const isProcessing = processingCode === booking.bookingCode
+                  const shortCode = String(booking.bookingCode || '').slice(-4).toUpperCase()
+                  const transactionCode = payment?.transactionCode || booking.transactionCode || booking.bookingCode
+                  const pickupMode = getServiceModeLabel(
+                    booking.pickupServiceMode,
+                    'Điểm đón chính của chuyến',
+                  )
+                  const dropoffMode = getServiceModeLabel(
+                    booking.dropoffServiceMode,
+                    'Điểm trả chính của chuyến',
+                  )
 
                   return (
-                    <tr key={booking.id}>
-                      <td>{(page - 1) * BOOKING_PAGE_SIZE + index + 1}</td>
-                      <td>
-                        <strong>{booking.bookingCode}</strong>
-                        <small>Đặt lúc: {displayDateTime(booking.createdAt)}</small>
+                    <tr key={booking.id || booking.bookingCode}>
+                      <td className="admin-bookings-code-cell">
+                        <strong>#{shortCode || '—'}</strong>
+                        <small>{transactionCode || '—'}</small>
                       </td>
+
                       <td>
-                        <strong>{booking.passengerFullName || 'Chưa cập nhật'}</strong>
-                        <small>{booking.passengerPhone ? formatPhoneInput(booking.passengerPhone) : 'Chưa cập nhật'}</small>
-                        <small>{booking.passengerEmail || 'Chưa có email'}</small>
-                      </td>
-                      <td>
-                        <strong>{booking.trip?.route?.routeName || 'Chưa xác định'}</strong>
-                        <small>Xuất bến: {displayDateTime(departureTime)}</small>
-                      </td>
-                      <td>
-                        <strong>{booking.trip?.bus?.licensePlate ? formatLicensePlate(booking.trip.bus.licensePlate) : 'Chưa có xe'}</strong>
-                        <small>
-                          Ghế: {booking.items?.map((item) => item.seatCode).join(', ') || '—'}
-                        </small>
-                      </td>
-                      <td>
-                        <span className="status-badge status-badge--active">
+                        <span className={`admin-bookings-source ${getSourceClass(booking.source)}`}>
                           {SOURCE_LABELS[booking.source] || 'Chưa xác định'}
                         </span>
                       </td>
-                      <td>
-                        <strong>{booking.pickupPoint || 'Theo điểm đi của tuyến'}</strong>
-                        <small>{booking.dropoffPoint || 'Theo điểm đến của tuyến'}</small>
+
+                      <td className="admin-bookings-trip-cell">
+                        <strong className="is-departure">● {departure}</strong>
+                        <strong className="is-arrival">● {arrival}</strong>
                       </td>
-                      <td><strong>{formatCurrency(booking.totalAmount ?? 0)}</strong></td>
+
+                      <td className="admin-bookings-service-cell">
+                        <span className="pickup-label"><b>Đón:</b> {pickupMode}</span>
+                        <small>{booking.pickupPoint || departure}</small>
+                        <span className="dropoff-label"><b>Trả:</b> {dropoffMode}</span>
+                        <small>{booking.dropoffPoint || arrival}</small>
+                      </td>
+
+                      <td className="admin-bookings-customer-cell">
+                        <strong>{booking.passengerFullName || 'Chưa cập nhật'}</strong>
+                        <small>{booking.passengerPhone ? formatPhoneInput(booking.passengerPhone) : 'Chưa cập nhật'}</small>
+                      </td>
+
+                      <td className="admin-bookings-seat-cell">
+                        {(booking.items?.length ? booking.items : [{ seatCode: '—' }]).map((item) => (
+                          <span key={`${booking.bookingCode}-${item.seatCode}`}>
+                            {item.seatCode}
+                          </span>
+                        ))}
+                      </td>
+
+                      <td className="admin-bookings-date-cell">
+                        <strong>{formatDateOnly(booking.createdAt)}</strong>
+                        <small>{formatTimeOnly(booking.createdAt)}</small>
+                      </td>
+
+                      <td className="admin-bookings-date-cell">
+                        <strong>{formatDateOnly(departureTime)}</strong>
+                        <small>{formatTimeOnly(departureTime)}</small>
+                      </td>
+
+                      <td className="admin-bookings-money-cell">
+                        <strong>{formatCurrency(booking.totalAmount ?? 0)}</strong>
+                      </td>
+
                       <td>
-                        <span className={getStatusClass(booking.status)}>
+                        <span className={`admin-bookings-status ${getStatusClass(booking.status)}`}>
                           {BOOKING_STATUS_LABELS[booking.status] || 'Chưa xác định'}
                         </span>
                       </td>
-                      <td>
-                        <strong>{getPaymentStatusLabel(booking.paymentStatus)}</strong>
-                        <small>{getPaymentMethodLabel(payment?.paymentMethod)}</small>
+
+                      <td className="admin-bookings-payment-cell">
+                        <span className={`admin-bookings-payment ${paymentStatus === 'SUCCESS' ? 'is-paid' : paymentStatus === 'REFUNDED' ? 'is-refunded' : 'is-pending'}`}>
+                          {paymentStatus === 'PENDING'
+                            ? getPendingPaymentLabel(payment)
+                            : getPaymentStatusLabel(paymentStatus)}
+                        </span>
+                        {payment?.paidAt && (
+                          <small>{formatDateOnly(payment.paidAt)} {formatTimeOnly(payment.paidAt)}</small>
+                        )}
                       </td>
+
+                      <td className="admin-bookings-method-cell">
+                        {getPaymentMethodLabel(payment?.paymentMethod)}
+                      </td>
+
                       <td>
-                        <div className="admin-row-actions">
-                          <Link to={`/admin/ve-xe/${booking.bookingCode}`}>Chi tiết</Link>
+                        <div className="admin-bookings-actions">
+                          <Link
+                            aria-label="Chi tiết vé"
+                            className="admin-bookings-action-btn"
+                            title="Chi tiết vé"
+                            to={`/admin/ve-xe/${booking.bookingCode}`}
+                          >
+                            <ActionIcon type="view" />
+                          </Link>
                           <button
+                            aria-label="In vé"
+                            className="admin-bookings-action-btn"
                             disabled={isProcessing}
                             onClick={() => printTicket(booking)}
+                            title="In vé"
                             type="button"
                           >
-                            In vé
+                            <ActionIcon type="print" />
                           </button>
-                          {canCancel && (
+                          {canEdit && (
+                            <Link
+                              aria-label="Sửa vé"
+                              className="admin-bookings-action-btn"
+                              title="Sửa vé"
+                              to={`/admin/ve-xe/${booking.bookingCode}/sua`}
+                            >
+                              <ActionIcon type="edit" />
+                            </Link>
+                          )}
+                          {canCollectPayment && (
                             <button
+                              aria-label="Đã thu tiền"
+                              className="admin-bookings-action-btn"
                               disabled={isProcessing}
-                              onClick={() => cancel(booking)}
+                              onClick={() => openActionDialog('collect', booking)}
+                              title="Đã thu tiền"
                               type="button"
                             >
-                              Hủy vé
+                              <ActionIcon type="cash" />
+                            </button>
+                          )}
+                          {canUndoPayment && (
+                            <button
+                              aria-label="Hoàn tác thu tiền"
+                              className="admin-bookings-action-btn"
+                              disabled={isProcessing}
+                              onClick={() => openActionDialog('undo', booking)}
+                              title="Hoàn tác thu tiền"
+                              type="button"
+                            >
+                              <ActionIcon type="undo" />
+                            </button>
+                          )}
+                          {canCancel && (
+                            <button
+                              aria-label="Hủy vé"
+                              className="admin-bookings-action-btn"
+                              disabled={isProcessing}
+                              onClick={() => openActionDialog('cancel', booking)}
+                              title="Hủy vé"
+                              type="button"
+                            >
+                              <ActionIcon type="cancel" />
                             </button>
                           )}
                           {canDelete && (
-                            <button
-                              className="is-danger"
-                              disabled={isProcessing}
-                              onClick={() => removeBooking(booking)}
-                              type="button"
+                            <Link
+                              aria-label="Xóa vé"
+                              className="admin-bookings-action-btn"
+                              title="Xóa vé"
+                              to={`/admin/ve-xe/${booking.bookingCode}/xoa`}
                             >
-                              Xóa vé
-                            </button>
+                              <ActionIcon type="trash" />
+                            </Link>
                           )}
                           {canMarkNoShow && (
                             <button
+                              aria-label="Khách không đi"
+                              className="admin-bookings-action-btn"
                               disabled={isProcessing}
-                              onClick={() => noShow(booking)}
+                              onClick={() => openActionDialog('no-show', booking)}
+                              title="Khách không đi"
                               type="button"
                             >
-                              Không đi
+                              <ActionIcon type="no-show" />
                             </button>
                           )}
                         </div>
@@ -505,7 +782,7 @@ function AdminBookingsPage() {
           </div>
 
           {(pagination?.totalPages ?? 1) > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-3">
+            <div className="admin-bookings-pagination">
               <button
                 className="btn btn-outline-secondary"
                 disabled={page <= 1 || loading}
@@ -528,8 +805,84 @@ function AdminBookingsPage() {
         </section>
       )}
 
+      {actionDialog && (() => {
+        const content = getActionDialogContent()
+        const booking = actionDialog.booking
+        if (!content || !booking) return null
+
+        return (
+          <div className="admin-bookings-modal-backdrop" role="presentation" onMouseDown={closeActionDialog}>
+            <section
+              aria-labelledby="booking-action-dialog-title"
+              aria-modal="true"
+              className={`admin-bookings-modal is-${content.tone}`}
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+            >
+              <div className="admin-bookings-modal__heading">
+                <div>
+                  <h3 id="booking-action-dialog-title">{content.title}</h3>
+                  <p>{content.description}</p>
+                </div>
+                <button aria-label="Đóng" disabled={Boolean(processingCode)} onClick={closeActionDialog} type="button">×</button>
+              </div>
+
+              <div className="admin-bookings-modal__summary">
+                <div><span>Mã vé</span><strong>{formatBookingCode(booking.bookingCode)}</strong></div>
+                <div><span>Mã giao dịch</span><strong>{content.payment?.transactionCode || booking.transactionCode || '—'}</strong></div>
+                <div><span>Khách hàng</span><strong>{booking.passengerFullName || 'Chưa cập nhật'}</strong></div>
+                <div><span>Ghế/Phòng</span><strong>{content.seatCodes}</strong></div>
+                <div><span>Phương thức</span><strong>{getPaymentMethodLabel(content.payment?.paymentMethod)}</strong></div>
+                <div><span>Số tiền</span><strong>{formatCurrency(booking.totalAmount ?? 0)}</strong></div>
+              </div>
+
+              {actionDialog.type === 'collect' ? (
+                <label className="admin-bookings-confirm-check">
+                  <input
+                    checked={actionDialog.confirmed}
+                    onChange={(event) => updateActionDialog({ confirmed: event.target.checked })}
+                    type="checkbox"
+                  />
+                  <span>Tôi xác nhận đã nhận đủ tiền từ khách.</span>
+                </label>
+              ) : (
+                <label className="admin-bookings-reason-field">
+                  <span>{content.reasonLabel}</span>
+                  <textarea
+                    autoFocus
+                    maxLength={500}
+                    onChange={(event) => updateActionDialog({ reason: event.target.value })}
+                    placeholder="Nhập từ 5 đến 500 ký tự"
+                    rows={4}
+                    value={actionDialog.reason}
+                  />
+                  <small>{actionDialog.reason.trim().length}/500 ký tự</small>
+                </label>
+              )}
+
+              <div className="admin-bookings-modal__actions">
+                <button className="btn btn-outline-secondary" disabled={Boolean(processingCode)} onClick={closeActionDialog} type="button">Đóng</button>
+                <button
+                  className={`btn ${content.tone === 'success' ? 'btn-success' : content.tone === 'warning' ? 'btn-warning' : 'btn-danger'}`}
+                  disabled={
+                    Boolean(processingCode) ||
+                    (actionDialog.type === 'collect'
+                      ? !actionDialog.confirmed
+                      : actionDialog.reason.trim().length < 5)
+                  }
+                  onClick={executeActionDialog}
+                  type="button"
+                >
+                  {processingCode ? 'Đang xử lý...' : content.confirmLabel}
+                </button>
+              </div>
+            </section>
+          </div>
+        )
+      })()}
+
       <BookingTicket booking={printBooking} />
-    </>
+    </div>
   )
 }
 

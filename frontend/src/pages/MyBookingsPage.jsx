@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { LoadingState } from '../components/common/StatusState.jsx'
+
 import {
   cancelMyBooking,
   getMyBookings,
 } from '../services/booking.service.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
 import formatCurrency from '../utils/formatCurrency.js'
+import { formatBookingCode } from '../utils/normalizers.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
 import {
   PAYMENT_STATUS_LABELS,
@@ -75,7 +78,7 @@ function MyBookingsPage() {
     if (cancellingCode) return
 
     const message = [
-      `Bạn có chắc muốn hủy booking ${booking.bookingCode}?`,
+      `Bạn có chắc muốn hủy vé ${formatBookingCode(booking.bookingCode)}?`,
       `Chuyến: ${booking.trip.route.routeName}`,
       `Ghế: ${booking.seats.map((seat) => seat.seatCode).join(', ')}`,
       `Tổng tiền: ${formatCurrency(booking.totalAmount)}`,
@@ -173,10 +176,7 @@ function MyBookingsPage() {
         )}
 
         {loading ? (
-          <div className="lookup-placeholder" role="status">
-            <span className="spinner-border text-primary" aria-hidden="true" />
-            <p>Đang tải lịch sử vé...</p>
-          </div>
+          <LoadingState label="Đang tải lịch sử vé..." />
         ) : !error && result.bookings.length === 0 ? (
           <div className="lookup-placeholder">
             <span className="status-symbol status-symbol--muted">0</span>
@@ -190,7 +190,7 @@ function MyBookingsPage() {
               <article className="booking-history-card" key={booking.id}>
                 <div className="booking-history-heading">
                   <div>
-                    <span className="eyebrow">MÃ VÉ {booking.bookingCode}</span>
+                    <span className="eyebrow">MÃ VÉ {formatBookingCode(booking.bookingCode)}</span>
                     <h2>{booking.trip.route.routeName}</h2>
                     <p>Đặt lúc {formatDateTime(booking.createdAt)}</p>
                   </div>

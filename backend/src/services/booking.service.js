@@ -1,12 +1,14 @@
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes, randomInt } from 'node:crypto'
 
 import { isRoomBusType } from '../config/busCatalog.js'
 import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
+import { buildTripRouteSnapshot } from '../utils/tripJourney.js'
 import { normalizeMultilineText, normalizeWhitespace } from '../utils/normalize.js'
 import { MAX_SEATS_PER_BOOKING } from '../validators/booking.validator.js'
 import { writeAuditLog } from './auditLog.service.js'
+import { resolveBookingServiceSelection } from './bookingServicePoint.service.js'
 import { findOrCreateBookableCustomer } from './customer.service.js'
 import {
   getTripSeatPrice,
@@ -23,7 +25,7 @@ const TRANSACTION_OPTIONS = {
   timeout: 15000,
 }
 const BOOKING_SOURCES = ['ONLINE', 'HOTLINE', 'COUNTER']
-const MAX_SERIALIZABLE_RETRIES = 3
+const MAX_SERIALIZABLE_RETRIES = 20
 
 const normalizeNote = (
   value,
@@ -43,6 +45,11 @@ const normalizeNote = (
 
   return normalized || null
 }
+
+const getOnlineRequestFingerprint = (payload) =>
+  createHash('sha256')
+    .update(`${payload.tripId}:${payload.holdToken}`)
+    .digest('hex')
 
 const normalizeBookingContext = (context = {}) => {
   const source = context.source || 'ONLINE'
@@ -96,6 +103,18 @@ const serializeBooking = (booking) => ({
   customerNote: booking.customerNote,
   pickupPoint: booking.pickupPoint,
   dropoffPoint: booking.dropoffPoint,
+  pickupLocationId: booking.pickupLocationId || null,
+  dropoffLocationId: booking.dropoffLocationId || null,
+  pickupServicePointId: booking.pickupServicePointId || null,
+  dropoffServicePointId: booking.dropoffServicePointId || null,
+  pickupServiceMode: booking.pickupServiceMode || null,
+  dropoffServiceMode: booking.dropoffServiceMode || null,
+  pickupKind: booking.pickupKind || null,
+  dropoffKind: booking.dropoffKind || null,
+  pickupRequestedAddress: booking.pickupRequestedAddress || null,
+  dropoffRequestedAddress: booking.dropoffRequestedAddress || null,
+  smsSent: booking.smsSent === true,
+  smsSentAt: booking.smsSentAt || null,
   payment: booking.payments?.[0]
     ? {
         id: booking.payments[0].id,
@@ -115,12 +134,9 @@ const serializeBooking = (booking) => ({
     id: booking.trip.id,
     departureTime: booking.trip.departureTime,
     expectedArrivalTime: booking.trip.expectedArrivalTime,
-    route: {
-      id: booking.trip.route.id,
-      routeName: booking.trip.route.routeName,
-      departureLocation: booking.trip.route.departureLocation,
-      arrivalLocation: booking.trip.route.arrivalLocation,
-    },
+    route: buildTripRouteSnapshot(booking.trip),
+    departureLocation: booking.trip.departureLocation || booking.trip.route?.departureLocation || null,
+    arrivalLocation: booking.trip.arrivalLocation || booking.trip.route?.arrivalLocation || null,
     bus: booking.trip.bus,
   },
   seats: booking.items.map((item) => ({
@@ -161,6 +177,36 @@ const ensureOpenFutureTrip = async (database, tripId, now) => {
       ticketPrice: true,
       singleRoomPrice: true,
       doubleRoomPrice: true,
+      departureLocationId: true,
+      arrivalLocationId: true,
+      primaryPickupMode: true,
+      primaryDropoffMode: true,
+      allowPickupTransfer: true,
+      allowPickupMeetingPoint: true,
+      allowDropoffTransfer: true,
+      allowDropoffStop: true,
+      departureLocation: {
+        select: { id: true, name: true, province: true, provinceId: true, address: true },
+      },
+      arrivalLocation: {
+        select: { id: true, name: true, province: true, provinceId: true, address: true },
+      },
+      servicePoints: {
+        where: { status: 'ACTIVE' },
+        select: {
+          id: true,
+          pointType: true,
+          serviceMode: true,
+          isDefault: true,
+          status: true,
+          sortOrder: true,
+          estimatedMinutes: true,
+          location: {
+            select: { id: true, name: true, province: true, provinceId: true, address: true, status: true },
+          },
+        },
+        orderBy: [{ pointType: 'asc' }, { sortOrder: 'asc' }],
+      },
       bus: {
         select: {
           busType: true,
@@ -171,6 +217,12 @@ const ensureOpenFutureTrip = async (database, tripId, now) => {
           defaultTicketPrice: true,
           defaultSingleRoomPrice: true,
           defaultDoubleRoomPrice: true,
+          departureLocation: {
+            select: { id: true, name: true, province: true, provinceId: true, address: true },
+          },
+          arrivalLocation: {
+            select: { id: true, name: true, province: true, provinceId: true, address: true },
+          },
         },
       },
     },
@@ -230,7 +282,7 @@ const applyRoomSelections = (trip, seats, roomSelections = []) => {
 
   const pricing = resolveTripPricing({
     busType: trip.bus.busType,
-    route: trip.route,
+    route: trip.route || {},
     ticketPrice: trip.ticketPrice,
     singleRoomPrice: trip.singleRoomPrice,
     doubleRoomPrice: trip.doubleRoomPrice,
@@ -246,13 +298,18 @@ const applyRoomSelections = (trip, seats, roomSelections = []) => {
   })
 }
 
-const holdSeats = async (tripId, tripSeatIds, roomSelections = []) => {
+const holdSeats = async (
+  tripId,
+  tripSeatIds,
+  roomSelections = [],
+  requestedHoldToken = null,
+) => {
   const uniqueSeatIds = [...new Set(tripSeatIds)]
-  const holdToken = randomBytes(32).toString('hex')
+  const holdToken = requestedHoldToken || randomBytes(32).toString('hex')
 
   return prisma.$transaction(async (transaction) => {
     const now = new Date()
-    const holdExpiresAt = new Date(
+    const newHoldExpiresAt = new Date(
       now.getTime() + env.seatHoldMinutes * 60 * 1000,
     )
 
@@ -279,6 +336,8 @@ const holdSeats = async (tripId, tripSeatIds, roomSelections = []) => {
         seatType: true,
         price: true,
         status: true,
+        heldBy: true,
+        holdExpiresAt: true,
       },
       orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }],
     })
@@ -289,7 +348,18 @@ const holdSeats = async (tripId, tripSeatIds, roomSelections = []) => {
     ) {
       throw new HttpError('Một hoặc nhiều ghế không thuộc chuyến xe đã chọn', 400)
     }
-    if (seats.some((seat) => seat.status !== 'AVAILABLE')) {
+
+    const conflicts = seats.some((seat) => {
+      if (seat.status === 'AVAILABLE') return false
+      return !(
+        seat.status === 'HELD' &&
+        seat.heldBy === holdToken &&
+        seat.holdExpiresAt &&
+        seat.holdExpiresAt > now
+      )
+    })
+
+    if (conflicts) {
       throw new HttpError(
         'Một hoặc nhiều ghế vừa được khách khác giữ hoặc đặt',
         409,
@@ -298,20 +368,42 @@ const holdSeats = async (tripId, tripSeatIds, roomSelections = []) => {
 
     const pricedSeats = applyRoomSelections(trip, seats, roomSelections)
 
-    const updated = await transaction.tripSeat.updateMany({
-      where: {
-        tripId,
-        id: { in: uniqueSeatIds },
-        status: 'AVAILABLE',
-      },
-      data: { status: 'HELD', heldBy: holdToken, holdExpiresAt },
-    })
-
-    if (updated.count !== uniqueSeatIds.length) {
-      throw new HttpError(
-        'Một hoặc nhiều ghế vừa được khách khác giữ hoặc đặt',
-        409,
+    // Nếu đây là yêu cầu lặp lại của cùng trình duyệt/tab cho đúng mã giữ,
+    // giữ nguyên thời điểm hết hạn ban đầu thay vì cộng thêm 10 phút.
+    const existingOwnHoldExpiries = seats
+      .filter(
+        (seat) =>
+          seat.status === 'HELD' &&
+          seat.heldBy === holdToken &&
+          seat.holdExpiresAt &&
+          seat.holdExpiresAt > now,
       )
+      .map((seat) => seat.holdExpiresAt.getTime())
+
+    const holdExpiresAt = existingOwnHoldExpiries.length
+      ? new Date(Math.min(...existingOwnHoldExpiries))
+      : newHoldExpiresAt
+
+    const availableSeatIds = seats
+      .filter((seat) => seat.status === 'AVAILABLE')
+      .map((seat) => seat.id)
+
+    if (availableSeatIds.length) {
+      const updated = await transaction.tripSeat.updateMany({
+        where: {
+          tripId,
+          id: { in: availableSeatIds },
+          status: 'AVAILABLE',
+        },
+        data: { status: 'HELD', heldBy: holdToken, holdExpiresAt },
+      })
+
+      if (updated.count !== availableSeatIds.length) {
+        throw new HttpError(
+          'Một hoặc nhiều ghế vừa được khách khác giữ hoặc đặt',
+          409,
+        )
+      }
     }
 
     return {
@@ -454,8 +546,7 @@ const getOnlineBookingSeats = async (database, payload, now) => {
   return seats
 }
 
-const generateBookingCode = () =>
-  `TN${randomBytes(8).toString('hex').toUpperCase()}`
+const generateBookingCode = () => String(randomInt(1000, 10000))
 
 const bookingInclude = {
   trip: {
@@ -463,12 +554,36 @@ const bookingInclude = {
       id: true,
       departureTime: true,
       expectedArrivalTime: true,
+      departureLocation: {
+        select: {
+          id: true,
+          name: true,
+          province: true,
+          provinceId: true,
+          address: true,
+          locationType: true,
+          provinceRef: { select: { id: true, name: true } },
+          defaultArea: { select: { id: true, name: true } },
+        },
+      },
+      arrivalLocation: {
+        select: {
+          id: true,
+          name: true,
+          province: true,
+          provinceId: true,
+          address: true,
+          locationType: true,
+          provinceRef: { select: { id: true, name: true } },
+          defaultArea: { select: { id: true, name: true } },
+        },
+      },
       route: {
         select: {
           id: true,
           routeName: true,
-          departureLocation: { select: { id: true, name: true, province: true } },
-          arrivalLocation: { select: { id: true, name: true, province: true } },
+          departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+          arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
         },
       },
       bus: {
@@ -528,6 +643,7 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
     const tripSeatIds = pricedSeats.map((seat) => seat.id)
 
     const totalAmount = calculateTotal(pricedSeats)
+    const serviceSelection = resolveBookingServiceSelection(trip, payload)
     const paymentPlan = getInitialPaymentPlan(
       context.source,
       payload.paymentMethod,
@@ -554,8 +670,20 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
           { multiline: true },
         ),
         staffNote: context.staffNote,
-        pickupPoint: normalizeNote(payload.pickupPoint, 'Điểm đón chi tiết', 300),
-        dropoffPoint: normalizeNote(payload.dropoffPoint, 'Điểm trả chi tiết', 300),
+        pickupPoint: serviceSelection.pickup.pointText,
+        dropoffPoint: serviceSelection.dropoff.pointText,
+        pickupLocationId: serviceSelection.pickup.locationId,
+        dropoffLocationId: serviceSelection.dropoff.locationId,
+        pickupServicePointId: serviceSelection.pickup.servicePointId,
+        dropoffServicePointId: serviceSelection.dropoff.servicePointId,
+        pickupServiceMode: serviceSelection.pickup.serviceMode,
+        dropoffServiceMode: serviceSelection.dropoff.serviceMode,
+        pickupKind: serviceSelection.pickup.kind,
+        dropoffKind: serviceSelection.dropoff.kind,
+        pickupRequestedAddress: serviceSelection.pickup.requestedAddress,
+        dropoffRequestedAddress: serviceSelection.dropoff.requestedAddress,
+        smsSent: context.source === 'HOTLINE',
+        smsSentAt: context.source === 'HOTLINE' ? now : null,
         createdById: context.createdById,
         totalAmount,
         status: paymentPlan?.bookingStatus || 'PENDING',
@@ -635,6 +763,10 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
         metadata: {
           source: context.source,
           customerId: customer.id,
+          ...(context.source === 'ONLINE' && {
+            requestFingerprint: getOnlineRequestFingerprint(payload),
+          }),
+          ...(context.source === 'HOTLINE' && { smsSimulated: true }),
         },
       },
       transaction,
@@ -652,6 +784,35 @@ const createBookingAttempt = (payload, userId, bookingCode, context) =>
         : null,
     }
   }, TRANSACTION_OPTIONS)
+
+const recoverCommittedOnlineBooking = async (payload) => {
+  if (!payload?.tripId || !payload?.holdToken) return null
+
+  const requestFingerprint = getOnlineRequestFingerprint(payload)
+  const rows = await prisma.$queryRaw`
+    SELECT entity_id
+    FROM audit_logs
+    WHERE action = 'CREATE_BOOKING'
+      AND entity_type = 'BOOKING'
+      AND metadata ->> 'requestFingerprint' = ${requestFingerprint}
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+  const bookingId = rows?.[0]?.entity_id
+  if (!bookingId) return null
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: bookingInclude,
+  })
+  if (!booking || booking.trip?.id !== payload.tripId) return null
+
+  return {
+    booking: serializeBooking(booking),
+    customerWarning: null,
+    recovered: true,
+  }
+}
 
 const createBooking = async (payload, userId = null, bookingContext = {}) => {
   const context = normalizeBookingContext(bookingContext)
@@ -678,6 +839,11 @@ const createBooking = async (payload, userId = null, bookingContext = {}) => {
           String(field).toLowerCase().includes('transaction'),
         )
 
+      if (context.source === 'ONLINE' && error.statusCode === 409) {
+        const recovered = await recoverCommittedOnlineBooking(payload)
+        if (recovered) return recovered
+      }
+
       if (
         (!duplicatedBookingCode &&
           !duplicatedTransactionCode &&
@@ -689,7 +855,7 @@ const createBooking = async (payload, userId = null, bookingContext = {}) => {
     }
   }
 
-  throw new HttpError('Không thể tạo mã đặt vé duy nhất', 500)
+  throw new HttpError('Không thể tạo mã vé 4 chữ số duy nhất. Vui lòng thử lại.', 500)
 }
 
 export {

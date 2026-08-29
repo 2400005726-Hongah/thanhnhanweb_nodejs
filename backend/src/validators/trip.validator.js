@@ -32,8 +32,20 @@ const tripPriceRule = (field, label) =>
 const tripBodyRules = (optional = false) => {
   const applyOptional = (chain) => (optional ? chain.optional() : chain)
   return [
-    applyOptional(body('route')).isUUID().withMessage('ID tuyến không hợp lệ'),
+    body('route').optional({ nullable: true }).isUUID().withMessage('ID tuyến legacy không hợp lệ'),
     applyOptional(body('bus')).isUUID().withMessage('ID xe không hợp lệ'),
+    applyOptional(body('departureProvinceId'))
+      .isUUID()
+      .withMessage('Tỉnh/Thành đi không hợp lệ'),
+    applyOptional(body('departureLocationId'))
+      .isUUID()
+      .withMessage('Điểm đi cụ thể không hợp lệ'),
+    applyOptional(body('arrivalProvinceId'))
+      .isUUID()
+      .withMessage('Tỉnh/Thành đến không hợp lệ'),
+    applyOptional(body('arrivalLocationId'))
+      .isUUID()
+      .withMessage('Điểm đến cụ thể không hợp lệ'),
     applyOptional(body('departureTime'))
       .isISO8601()
       .withMessage('Thời gian khởi hành không hợp lệ'),
@@ -43,11 +55,32 @@ const tripBodyRules = (optional = false) => {
     tripPriceRule('ticketPrice', 'Giá vé'),
     tripPriceRule('singleRoomPrice', 'Giá phòng đơn'),
     tripPriceRule('doubleRoomPrice', 'Giá phòng đôi'),
+    body('primaryPickupMode')
+      .optional()
+      .isIn(['TaiVanPhong', 'DonTaiBenXe'])
+      .withMessage('Hình thức điểm đón chính không hợp lệ'),
+    body('primaryDropoffMode')
+      .optional()
+      .isIn(['TraTaiBenXe', 'TraTaiVanPhong'])
+      .withMessage('Hình thức điểm trả chính không hợp lệ'),
+    body('allowPickupTransfer').optional().isBoolean().toBoolean(),
+    body('allowPickupMeetingPoint').optional().isBoolean().toBoolean(),
+    body('allowDropoffTransfer').optional().isBoolean().toBoolean(),
+    body('allowDropoffStop').optional().isBoolean().toBoolean(),
   ]
 }
 
 const createTripValidator = [
   ...tripBodyRules(false),
+  body('arrivalProvinceId').custom((value, { req }) => {
+    if (value === req.body.departureProvinceId) {
+      throw new Error('Tỉnh/Thành đi phải khác Tỉnh/Thành đến')
+    }
+    if (req.body.arrivalLocationId === req.body.departureLocationId) {
+      throw new Error('Điểm đi cụ thể phải khác điểm đến cụ thể')
+    }
+    return true
+  }),
   body('status')
     .optional()
     .isIn(['OPEN', 'CLOSED'])

@@ -1,0 +1,27 @@
+/* Các loader thủ công cũ: ép về compact nếu còn sót */
+.lookup-placeholder[role="status"] {
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-items: initial !important;
+  gap: 9px !important;
+  margin: 12px 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid #e0e4e8 !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  text-align: left !important;
+}
+
+.lookup-placeholder[role="status"] .spinner-border {
+  width: 15px !important;
+  height: 15px !important;
+  border-width: 2px !important;
+  color: #c50416 !important;
+}
+
+.lookup-placeholder[role="status"] p {
+  margin: 0 !important;
+  color: #596270 !important;
+  font-size: .82rem !important;
+}

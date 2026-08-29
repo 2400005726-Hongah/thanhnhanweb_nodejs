@@ -13,8 +13,28 @@ const busId = randomUUID()
 const tripId = randomUUID()
 const futureDeparture = new Date('2099-07-25T12:00:00.000Z')
 
-const departureLocation = { id: departureLocationId, name: 'Krông Năng', province: 'Đắk Lắk', address: null }
-const arrivalLocation = { id: arrivalLocationId, name: 'TP. Hồ Chí Minh', province: 'TP. Hồ Chí Minh', address: null }
+const departureLocation = {
+  id: departureLocationId,
+  name: 'Văn phòng Krông Năng',
+  province: 'Đắk Lắk',
+  provinceId: randomUUID(),
+  defaultAreaId: randomUUID(),
+  locationType: 'BOTH',
+  address: null,
+  provinceRef: { id: randomUUID(), name: 'Đắk Lắk' },
+  defaultArea: { id: randomUUID(), name: 'Krông Năng', sortOrder: 1 },
+}
+const arrivalLocation = {
+  id: arrivalLocationId,
+  name: 'Bến xe An Sương',
+  province: 'TP. Hồ Chí Minh',
+  provinceId: randomUUID(),
+  defaultAreaId: randomUUID(),
+  locationType: 'BOTH',
+  address: null,
+  provinceRef: { id: randomUUID(), name: 'TP. Hồ Chí Minh' },
+  defaultArea: { id: randomUUID(), name: 'Quận 12', sortOrder: 1 },
+}
 const trip = {
   id: tripId,
   departureTime: futureDeparture,
@@ -22,16 +42,17 @@ const trip = {
   ticketPrice: 300000,
   status: 'OPEN',
   route: { id: routeId, routeName: 'Krông Năng → TP. Hồ Chí Minh', departureLocation, arrivalLocation, distanceKm: 380, estimatedDurationMinutes: 480 },
+  departureLocation,
+  arrivalLocation,
   bus: { id: busId, busName: 'Xe giường nằm', licensePlate: '47B04444', busType: 'SLEEPER', capacity: 44 },
 }
 
-let routeExists = true
 let tripExists = true
 const prisma = {
   location: {
     findMany: jest.fn(async ({ where }) => where.id ? [{ id: departureLocationId }, { id: arrivalLocationId }] : [departureLocation, arrivalLocation]),
   },
-  route: { findFirst: jest.fn(async () => routeExists ? { id: routeId } : null) },
+  route: { findFirst: jest.fn(async () => ({ id: routeId })) },
   trip: {
     findMany: jest.fn(async () => [trip]),
     count: jest.fn(async () => 1),
@@ -65,7 +86,6 @@ const {
 } = await import('../src/services/publicTrip.service.js')
 
 beforeEach(() => {
-  routeExists = true
   tripExists = true
   trip.ticketPrice = 300000
   trip.singleRoomPrice = null
@@ -127,11 +147,28 @@ describe('Public trip service business rules', () => {
     })
   })
 
-  test('returns an empty page when no ACTIVE route matches', async () => {
-    routeExists = false
-    const data = await searchPublicTrips({ departureLocationId, arrivalLocationId, departureDate: '2099-07-25' })
-    expect(data.trips).toEqual([])
-    expect(prisma.trip.findMany).not.toHaveBeenCalled()
+  test('finds direct-location trips without requiring an ACTIVE legacy route', async () => {
+    const data = await searchPublicTrips({
+      departureLocationId,
+      arrivalLocationId,
+      departureDate: '2099-07-25',
+    })
+
+    expect(data.trips).toHaveLength(1)
+    expect(data.trips[0].route).toMatchObject({
+      routeName: 'Văn phòng Krông Năng → Bến xe An Sương',
+      legacy: true,
+    })
+    expect(prisma.route.findFirst).not.toHaveBeenCalled()
+    expect(prisma.trip.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: expect.arrayContaining([
+            { departureLocationId, arrivalLocationId },
+          ]),
+        }),
+      }),
+    )
   })
 
   test('calculates detail summary with expired HELD seats as available', async () => {

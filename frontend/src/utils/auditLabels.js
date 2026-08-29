@@ -36,6 +36,7 @@ const AUDIT_ACTION_LABELS = {
   CREATE_PAYMENT: 'Tạo thanh toán',
   UPDATE_PAYMENT: 'Cập nhật thanh toán',
   PAYMENT_SUCCESS: 'Ghi nhận thanh toán thành công',
+  PAYMENT_PENDING: 'Hoàn tác xác nhận thu tiền',
   COMPLETE_PAYMENT: 'Hoàn tất thanh toán',
   REFUND_PAYMENT: 'Hoàn tiền',
 
@@ -43,6 +44,8 @@ const AUDIT_ACTION_LABELS = {
   UPDATE_CUSTOMER: 'Cập nhật khách hàng',
   BLOCK_CUSTOMER: 'Khóa khách hàng',
   UNBLOCK_CUSTOMER: 'Mở khóa khách hàng',
+  ARCHIVE_CUSTOMER: 'Lưu trữ khách hàng',
+  DELETE_CUSTOMER: 'Xóa khách hàng',
 
   CREATE_USER: 'Tạo tài khoản',
   UPDATE_USER: 'Cập nhật tài khoản',
@@ -101,6 +104,7 @@ const DESCRIPTION_REPLACEMENTS = [
   [/\bOPEN\b/g, 'Đang mở bán'],
 
   [/\bBLOCKED\b/g, 'Đã khóa'],
+  [/\bARCHIVED\b/g, 'Lưu trữ'],
   [/\bINACTIVE\b/g, 'Ngừng hoạt động'],
   [/\bACTIVE\b/g, 'Hoạt động'],
 

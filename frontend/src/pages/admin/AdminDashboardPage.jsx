@@ -8,7 +8,7 @@ import { getApiErrorMessage } from '../../services/apiClient.js'
 import { hasPermission, PERMISSIONS } from '../../utils/adminPermissions.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
-import { formatLicensePlate } from '../../utils/normalizers.js'
+import { formatBookingCode, formatLicensePlate } from '../../utils/normalizers.js'
 import { getStatusLabel } from '../../utils/uiLabels.js'
 
 const formatToday = () =>
@@ -42,7 +42,7 @@ function AdminDashboardPage() {
       {
         label: 'Thêm chuyến xe',
         note: 'Tạo lịch chạy mới',
-        to: '/admin/chuyen-xe-tuyen-duong',
+        to: '/admin/chuyen-xe',
         permission: PERMISSIONS.CREATE_TRIPS,
         icon: '+',
       },
@@ -174,7 +174,7 @@ function AdminDashboardPage() {
               <tbody>
                 {(summary.recentBookings || []).map((booking) => (
                   <tr key={booking.bookingCode}>
-                    <td><Link to={`/admin/ve-xe/${booking.bookingCode}`}>{booking.bookingCode}</Link></td>
+                    <td><Link to={`/admin/ve-xe/${booking.bookingCode}`}>{formatBookingCode(booking.bookingCode)}</Link></td>
                     <td>{booking.passengerFullName}</td>
                     <td>{booking.routeName}</td>
                     <td>{formatDateTime(booking.createdAt)}</td>
@@ -189,13 +189,13 @@ function AdminDashboardPage() {
         </section>
 
         <section className="admin-panel dashboard-upcoming-panel">
-          <div className="admin-panel-heading"><div><h2>Chuyến sắp khởi hành</h2></div><Link to="/admin/chuyen-xe-tuyen-duong">Quản lý</Link></div>
+          <div className="admin-panel-heading"><div><h2>Chuyến sắp khởi hành</h2></div><Link to="/admin/chuyen-xe">Quản lý</Link></div>
           <div className="dashboard-upcoming-list">
             {(summary.upcomingTripList || []).map((trip) => (
               <article key={trip.id}>
-                <strong>{trip.route.routeName}</strong>
+                <strong>{trip.routeName || trip.route?.routeName || 'Chưa xác định hành trình'}</strong>
                 <span>{formatDateTime(trip.departureTime)}</span>
-                <small>{trip.bus.busName} · {formatLicensePlate(trip.bus.licensePlate)}</small>
+                <small>{trip.bus?.busName || 'Xe chưa xác định'}{trip.bus?.licensePlate ? ` · ${formatLicensePlate(trip.bus.licensePlate)}` : ''}</small>
               </article>
             ))}
             {!summary.upcomingTripList?.length && <p className="text-muted mb-0">Không có chuyến sắp khởi hành.</p>}

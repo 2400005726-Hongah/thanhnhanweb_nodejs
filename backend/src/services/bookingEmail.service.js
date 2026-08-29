@@ -1,3 +1,4 @@
+import { buildTripRouteSnapshot } from '../utils/tripJourney.js'
 import prisma from '../config/prisma.js'
 import { buildBookingEmail } from '../templates/bookingEmail.template.js'
 import HttpError from '../utils/HttpError.js'
@@ -101,6 +102,8 @@ const sendBookingEmailAfterCommit = async (
 const bookingEmailInclude = {
   trip: {
     include: {
+      departureLocation: { include: { provinceRef: true, defaultArea: true } },
+      arrivalLocation: { include: { provinceRef: true, defaultArea: true } },
       route: {
         include: {
           departureLocation: true,
@@ -127,6 +130,8 @@ const serializeBookingForEmail = (booking) => ({
   totalAmount: Number(booking.totalAmount || 0),
   pickupPoint: booking.pickupPoint,
   dropoffPoint: booking.dropoffPoint,
+  pickupServiceMode: booking.pickupServiceMode || null,
+  dropoffServiceMode: booking.dropoffServiceMode || null,
   passenger: {
     fullName: booking.passengerFullName,
     phone: booking.passengerPhone,
@@ -136,7 +141,9 @@ const serializeBookingForEmail = (booking) => ({
     id: booking.trip.id,
     departureTime: booking.trip.departureTime,
     expectedArrivalTime: booking.trip.expectedArrivalTime,
-    route: booking.trip.route,
+    route: buildTripRouteSnapshot(booking.trip),
+    departureLocation: booking.trip.departureLocation || booking.trip.route?.departureLocation || null,
+    arrivalLocation: booking.trip.arrivalLocation || booking.trip.route?.arrivalLocation || null,
     bus: booking.trip.bus,
   },
   seats: booking.items.map((item) => ({

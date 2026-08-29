@@ -5,11 +5,16 @@ import {
   createTrip,
   deleteTrip,
   showTripPassengers,
+  showTripSeatMap,
   showTripCompletionPreview,
   listTrips,
   showTrip,
   updateTrip,
 } from '../controllers/trip.controller.js'
+import {
+  showTripServicePoints,
+  updateTripServicePoints,
+} from '../controllers/tripServicePoint.controller.js'
 import {
   authenticate,
   authorizePermissions,
@@ -24,6 +29,7 @@ import {
   tripIdValidator,
   updateTripValidator,
 } from '../validators/trip.validator.js'
+import { configureTripServicePointsValidator } from '../validators/tripServicePoint.validator.js'
 
 const router = Router()
 
@@ -38,6 +44,32 @@ router.get(
   validate,
   showTripCompletionPreview,
 )
+router.get(
+  '/:id/service-points',
+  optionalAuthenticate,
+  tripIdValidator,
+  validate,
+  showTripServicePoints,
+)
+router.put(
+  '/:id/service-points',
+  authenticate,
+  authorizePermissions(PERMISSIONS.EDIT_TRIPS),
+  configureTripServicePointsValidator,
+  validate,
+  updateTripServicePoints,
+)
+router.get(
+  '/:id/seats',
+  authenticate,
+  authorizePermissions(
+    PERMISSIONS.VIEW_TRIPS,
+  ),
+  tripIdValidator,
+  validate,
+  showTripSeatMap,
+)
+
 router.get(
   '/:id/passengers',
   authenticate,

@@ -4,6 +4,10 @@ import {
   getBusSeatTemplate,
   isManagedBusType,
 } from '../config/busCatalog.js'
+import {
+  normalizePrimaryDropoffMode,
+  normalizePrimaryPickupMode,
+} from '../config/servicePointCatalog.js'
 import HttpError from '../utils/HttpError.js'
 import {
   buildPagination,
@@ -69,6 +73,9 @@ const tripInclude = {
     },
   },
 
+  departureLocation: { include: { provinceRef: true, defaultArea: true } },
+  arrivalLocation: { include: { provinceRef: true, defaultArea: true } },
+
   bus: {
     select: {
       id: true,
@@ -91,110 +98,137 @@ const tripInclude = {
   },
 }
 
+const buildTripJourneyRoute = (trip) => {
+  const departureLocation = trip.departureLocation || trip.route?.departureLocation || null
+  const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation || null
+  const routeName = departureLocation && arrivalLocation
+    ? `${departureLocation.name} → ${arrivalLocation.name}`
+    : trip.route?.routeName || 'Chưa xác định hành trình'
+
+  return {
+    id: trip.route?.id || null,
+    routeName,
+    departureLocation,
+    arrivalLocation,
+    distanceKm: trip.route?.distanceKm ?? null,
+    estimatedDurationMinutes: trip.route?.estimatedDurationMinutes ?? null,
+    legacy: Boolean(trip.route?.id),
+  }
+}
+
 const ensureTripReferences = async (
   database,
-  routeId,
-  busId,
+  {
+    routeId = null,
+    busId,
+    departureLocationId,
+    arrivalLocationId,
+    departureProvinceId,
+    arrivalProvinceId,
+  },
 ) => {
-  const [
-    route,
-    bus,
-  ] = await Promise.all([
-    database.route.findFirst({
-      where: {
-        id: routeId,
-        status: 'ACTIVE',
-      },
-    }),
+  const route = routeId
+    ? await database.route.findFirst({
+        where: { id: routeId, status: 'ACTIVE' },
+        include: { departureLocation: true, arrivalLocation: true },
+      })
+    : null
 
+  if (routeId && !route) {
+    throw new HttpError('Tuyến xe legacy không tồn tại hoặc không hoạt động', 400)
+  }
+
+  const resolvedDepartureLocationId =
+    departureLocationId || route?.departureLocationId || null
+  const resolvedArrivalLocationId =
+    arrivalLocationId || route?.arrivalLocationId || null
+
+  if (!resolvedDepartureLocationId || !resolvedArrivalLocationId) {
+    throw new HttpError('Vui lòng chọn đầy đủ điểm đi cụ thể và điểm đến cụ thể', 400)
+  }
+
+  if (resolvedDepartureLocationId === resolvedArrivalLocationId) {
+    throw new HttpError('Điểm đi cụ thể phải khác điểm đến cụ thể', 400)
+  }
+
+  const [bus, locations] = await Promise.all([
     database.bus.findFirst({
-      where: {
-        id: busId,
-        status: 'ACTIVE',
-      },
-
+      where: { id: busId, status: 'ACTIVE' },
       include: {
         seats: {
-          where: {
-            status: 'ACTIVE',
-          },
-
-          orderBy: {
-            seatCode: 'asc',
-          },
+          where: { status: 'ACTIVE' },
+          orderBy: { seatCode: 'asc' },
         },
       },
+    }),
+    database.location.findMany({
+      where: {
+        id: { in: [resolvedDepartureLocationId, resolvedArrivalLocationId] },
+        status: 'ACTIVE',
+      },
+      include: { provinceRef: true, defaultArea: true },
     }),
   ])
 
-  if (!route) {
-    throw new HttpError(
-      'Tuyến xe không tồn tại hoặc không hoạt động',
-      400,
-    )
-  }
-
   if (!bus) {
-    throw new HttpError(
-      'Xe không tồn tại hoặc không hoạt động',
-      400,
-    )
+    throw new HttpError('Xe không tồn tại hoặc không hoạt động', 400)
+  }
+  if (bus.seats.length === 0) {
+    throw new HttpError('Xe phải có ít nhất một ghế đang hoạt động', 400)
   }
 
+  const locationById = new Map(locations.map((location) => [location.id, location]))
+  const departureLocation = locationById.get(resolvedDepartureLocationId)
+  const arrivalLocation = locationById.get(resolvedArrivalLocationId)
+
+  if (!departureLocation || !arrivalLocation) {
+    throw new HttpError('Điểm đi hoặc điểm đến không tồn tại hoặc đã ngừng hoạt động', 400)
+  }
+  if (!departureLocation.provinceId || !arrivalLocation.provinceId) {
+    throw new HttpError('Địa điểm cụ thể phải được gắn với tỉnh/thành', 409)
+  }
+  if (!departureLocation.defaultAreaId || !arrivalLocation.defaultAreaId) {
+    throw new HttpError('Địa điểm cụ thể phải được gắn với một bộ lọc địa điểm', 409)
+  }
   if (
-    bus.seats.length === 0
+    departureLocation.provinceRef?.status === 'INACTIVE' ||
+    arrivalLocation.provinceRef?.status === 'INACTIVE'
   ) {
-    throw new HttpError(
-      'Xe phải có ít nhất một ghế đang hoạt động',
-      400,
-    )
+    throw new HttpError('Tỉnh/Thành của điểm đi hoặc điểm đến đã ngừng hoạt động', 409)
+  }
+  if (
+    departureLocation.defaultArea?.status === 'INACTIVE' ||
+    arrivalLocation.defaultArea?.status === 'INACTIVE'
+  ) {
+    throw new HttpError('Bộ lọc của điểm đi hoặc điểm đến đã ngừng hoạt động', 409)
+  }
+  if (departureLocation.provinceId === arrivalLocation.provinceId) {
+    throw new HttpError('Tỉnh/Thành đi phải khác Tỉnh/Thành đến', 400)
+  }
+  if (departureProvinceId && departureLocation.provinceId !== departureProvinceId) {
+    throw new HttpError('Điểm đi cụ thể không thuộc Tỉnh/Thành đi đã chọn', 400)
+  }
+  if (arrivalProvinceId && arrivalLocation.provinceId !== arrivalProvinceId) {
+    throw new HttpError('Điểm đến cụ thể không thuộc Tỉnh/Thành đến đã chọn', 400)
+  }
+  if (!['PICKUP', 'BOTH'].includes(departureLocation.locationType)) {
+    throw new HttpError('Địa điểm đã chọn không được phép sử dụng làm điểm đi', 400)
+  }
+  if (!['DROPOFF', 'BOTH'].includes(arrivalLocation.locationType)) {
+    throw new HttpError('Địa điểm đã chọn không được phép sử dụng làm điểm đến', 400)
   }
 
-  if (
-    isManagedBusType(
-      bus.busType,
-    )
-  ) {
-    const expectedCapacity =
-      getBusCapacity(
-        bus.busType,
-      )
-
-    const expectedSeats =
-      getBusSeatTemplate(
-        bus.busType,
-      )
-
-    const actualByCode =
-      new Map(
-        bus.seats.map(
-          (seat) => [
-            seat.seatCode,
-            seat,
-          ],
-        ),
-      )
-
+  if (isManagedBusType(bus.busType)) {
+    const expectedCapacity = getBusCapacity(bus.busType)
+    const expectedSeats = getBusSeatTemplate(bus.busType)
+    const actualByCode = new Map(bus.seats.map((seat) => [seat.seatCode, seat]))
     const structureMatches =
-      bus.capacity ===
-        expectedCapacity &&
-      bus.seats.length ===
-        expectedSeats.length &&
-      expectedSeats.every(
-        (expected) => {
-          const actual =
-            actualByCode.get(
-              expected.seatCode,
-            )
-
-          return (
-            actual?.floor ===
-              expected.floor &&
-            actual?.seatType ===
-              expected.seatType
-          )
-        },
-      )
+      bus.capacity === expectedCapacity &&
+      bus.seats.length === expectedSeats.length &&
+      expectedSeats.every((expected) => {
+        const actual = actualByCode.get(expected.seatCode)
+        return actual?.floor === expected.floor && actual?.seatType === expected.seatType
+      })
 
     if (!structureMatches) {
       throw new HttpError(
@@ -208,6 +242,8 @@ const ensureTripReferences = async (
     route,
     bus,
     activeSeats: bus.seats,
+    departureLocation,
+    arrivalLocation,
   }
 }
 
@@ -283,42 +319,25 @@ const serializeManagedTrip = (
   trip,
   now = new Date(),
 ) => {
-  const pricing =
-    serializeTripPricing(
-      resolveTripPricing({
-        busType:
-          trip.bus.busType,
+  const pricing = serializeTripPricing(
+    resolveTripPricing({
+      busType: trip.bus.busType,
+      route: trip.route || {},
+      ticketPrice: trip.ticketPrice,
+      singleRoomPrice: trip.singleRoomPrice,
+      doubleRoomPrice: trip.doubleRoomPrice,
+    }),
+  )
 
-        route:
-          trip.route,
-
-        ticketPrice:
-          trip.ticketPrice,
-
-        singleRoomPrice:
-          trip.singleRoomPrice,
-
-        doubleRoomPrice:
-          trip.doubleRoomPrice,
-      }),
-    )
-
-  const {
-    tripSeats,
-    ...tripData
-  } = trip
+  const { tripSeats, ...tripData } = trip
 
   return {
     ...tripData,
+    route: buildTripJourneyRoute(trip),
+    departureProvince: trip.departureLocation?.provinceRef || null,
+    arrivalProvince: trip.arrivalLocation?.provinceRef || null,
     ...pricing,
-
-    ...(tripSeats && {
-      seatStats:
-        summarizeTripSeats(
-          tripSeats,
-          now,
-        ),
-    }),
+    ...(tripSeats && { seatStats: summarizeTripSeats(tripSeats, now) }),
   }
 }
 
@@ -487,6 +506,106 @@ const getTripById = async ({
   )
 }
 
+
+const getTripSeatMap = async (tripId) => {
+  const now = new Date()
+
+  await prisma.tripSeat.updateMany({
+    where: {
+      tripId,
+      status: 'HELD',
+      holdExpiresAt: {
+        lte: now,
+      },
+    },
+    data: {
+      status: 'AVAILABLE',
+      heldBy: null,
+      holdExpiresAt: null,
+    },
+  })
+
+  const [trip, seats] = await Promise.all([
+    prisma.trip.findUnique({
+      where: {
+        id: tripId,
+      },
+      include: tripInclude,
+    }),
+    prisma.tripSeat.findMany({
+      where: {
+        tripId,
+      },
+      select: {
+        id: true,
+        seatCode: true,
+        floor: true,
+        seatType: true,
+        status: true,
+        holdExpiresAt: true,
+      },
+      orderBy: [
+        {
+          floor: 'asc',
+        },
+        {
+          seatCode: 'asc',
+        },
+      ],
+    }),
+  ])
+
+  if (!trip) {
+    throw new HttpError(
+      'Không tìm thấy chuyến xe',
+      404,
+    )
+  }
+
+  const summary =
+    summarizeTripSeats(
+      seats,
+      now,
+    )
+
+  const floors =
+    [...new Set(
+      seats.map(
+        (seat) => seat.floor,
+      ),
+    )].map(
+      (floor) => ({
+        floor,
+        seats:
+          seats
+            .filter(
+              (seat) =>
+                seat.floor === floor,
+            )
+            .map(
+              (seat) => ({
+                id: seat.id,
+                seatCode: seat.seatCode,
+                floor: seat.floor,
+                seatType: seat.seatType,
+                status: seat.status,
+              }),
+            ),
+      }),
+    )
+
+  return {
+    trip:
+      serializeManagedTrip(
+        trip,
+        now,
+      ),
+    summary,
+    floors,
+  }
+}
+
+
 const createTrip = async (
   payload,
   createdById,
@@ -528,12 +647,16 @@ const createTrip = async (
         route,
         bus,
         activeSeats,
-      } =
-        await ensureTripReferences(
-          transaction,
-          payload.route,
-          payload.bus,
-        )
+        departureLocation,
+        arrivalLocation,
+      } = await ensureTripReferences(transaction, {
+        routeId: payload.route || null,
+        busId: payload.bus,
+        departureLocationId: payload.departureLocationId,
+        arrivalLocationId: payload.arrivalLocationId,
+        departureProvinceId: payload.departureProvinceId,
+        arrivalProvinceId: payload.arrivalProvinceId,
+      })
 
       await ensureNoScheduleConflict(
         transaction,
@@ -552,7 +675,7 @@ const createTrip = async (
           busType:
             bus.busType,
 
-          route,
+          route: route || {},
 
           ticketPrice:
             payload.ticketPrice,
@@ -568,7 +691,7 @@ const createTrip = async (
         await transaction.trip.create({
           data: {
             routeId:
-              payload.route,
+              route?.id || null,
 
             busId:
               payload.bus,
@@ -589,9 +712,39 @@ const createTrip = async (
               payload.doubleRoomPrice ??
               null,
 
+            departureLocationId:
+              departureLocation.id,
+
+            arrivalLocationId:
+              arrivalLocation.id,
+
+            primaryPickupMode:
+              normalizePrimaryPickupMode(payload.primaryPickupMode),
+
+            primaryDropoffMode:
+              normalizePrimaryDropoffMode(payload.primaryDropoffMode),
+
+            allowPickupTransfer:
+              payload.allowPickupTransfer === true,
+
+            allowPickupMeetingPoint:
+              payload.allowPickupMeetingPoint === true,
+
+            allowDropoffTransfer:
+              payload.allowDropoffTransfer === true,
+
+            allowDropoffStop:
+              payload.allowDropoffStop === true,
+
             status:
               payload.status ||
               'OPEN',
+
+            salesStatus:
+              payload.status === 'CLOSED' ? 'CLOSED' : 'OPEN',
+
+            operationStatus:
+              'NOT_DEPARTED',
 
             createdById,
           },
@@ -689,8 +842,15 @@ const updateTrip = async (
       }
 
       const nextRouteId =
-        payload.route ||
-        trip.routeId
+        payload.route !== undefined
+          ? payload.route || null
+          : trip.routeId
+
+      const nextDepartureLocationId =
+        payload.departureLocationId || trip.departureLocationId
+
+      const nextArrivalLocationId =
+        payload.arrivalLocationId || trip.arrivalLocationId
 
       const nextBusId =
         payload.bus ||
@@ -712,7 +872,9 @@ const updateTrip = async (
 
       const protectedChange =
         Boolean(
-          payload.route ||
+          payload.route !== undefined ||
+            payload.departureLocationId ||
+            payload.arrivalLocationId ||
             payload.bus ||
             payload.departureTime ||
             payload.expectedArrivalTime,
@@ -750,7 +912,7 @@ const updateTrip = async (
           bookingItemCount > 0
         ) {
           throw new HttpError(
-            'Không thể đổi tuyến, xe hoặc thời gian khi có ghế đang giữ hoặc lịch sử đặt vé',
+            'Không thể đổi điểm đi, điểm đến, xe hoặc thời gian khi có ghế đang giữ hoặc lịch sử đặt vé',
             409,
           )
         }
@@ -772,12 +934,16 @@ const updateTrip = async (
         route,
         bus,
         activeSeats,
-      } =
-        await ensureTripReferences(
-          transaction,
-          nextRouteId,
-          nextBusId,
-        )
+        departureLocation,
+        arrivalLocation,
+      } = await ensureTripReferences(transaction, {
+        routeId: nextRouteId,
+        busId: nextBusId,
+        departureLocationId: nextDepartureLocationId,
+        arrivalLocationId: nextArrivalLocationId,
+        departureProvinceId: payload.departureProvinceId,
+        arrivalProvinceId: payload.arrivalProvinceId,
+      })
 
       await ensureNoScheduleConflict(
         transaction,
@@ -823,7 +989,7 @@ const updateTrip = async (
           busType:
             bus.busType,
 
-          route,
+          route: route || {},
 
           ticketPrice:
             nextTicketPrice,
@@ -842,10 +1008,10 @@ const updateTrip = async (
           undefined ||
         payload.doubleRoomPrice !==
           undefined ||
-        payload.route !==
-          undefined ||
-        payload.bus !==
-          undefined
+        payload.route !== undefined ||
+        payload.departureLocationId !== undefined ||
+        payload.arrivalLocationId !== undefined ||
+        payload.bus !== undefined
 
       if (busChanged) {
         await transaction.tripSeat.deleteMany({
@@ -923,7 +1089,7 @@ const updateTrip = async (
 
           data: {
             routeId:
-              nextRouteId,
+              route?.id || null,
 
             busId:
               nextBusId,
@@ -933,6 +1099,42 @@ const updateTrip = async (
 
             expectedArrivalTime:
               nextArrivalTime,
+
+            departureLocationId:
+              departureLocation.id,
+
+            arrivalLocationId:
+              arrivalLocation.id,
+
+            ...(payload.primaryPickupMode !== undefined && {
+              primaryPickupMode:
+                normalizePrimaryPickupMode(payload.primaryPickupMode),
+            }),
+
+            ...(payload.primaryDropoffMode !== undefined && {
+              primaryDropoffMode:
+                normalizePrimaryDropoffMode(payload.primaryDropoffMode),
+            }),
+
+            ...(payload.allowPickupTransfer !== undefined && {
+              allowPickupTransfer:
+                payload.allowPickupTransfer === true,
+            }),
+
+            ...(payload.allowPickupMeetingPoint !== undefined && {
+              allowPickupMeetingPoint:
+                payload.allowPickupMeetingPoint === true,
+            }),
+
+            ...(payload.allowDropoffTransfer !== undefined && {
+              allowDropoffTransfer:
+                payload.allowDropoffTransfer === true,
+            }),
+
+            ...(payload.allowDropoffStop !== undefined && {
+              allowDropoffStop:
+                payload.allowDropoffStop === true,
+            }),
 
             ticketPrice:
               nextTicketPrice,
@@ -1494,6 +1696,21 @@ const changeTripStatus = async (
 
           data: {
             status: nextStatus,
+            salesStatus:
+              nextStatus === 'OPEN'
+                ? 'OPEN'
+                : 'CLOSED',
+            operationStatus:
+              nextStatus === 'DEPARTED'
+                ? 'DEPARTED'
+                : nextStatus === 'COMPLETED'
+                  ? 'COMPLETED'
+                  : nextStatus === 'CANCELLED'
+                    ? 'CANCELLED'
+                    : 'NOT_DEPARTED',
+            ...(nextStatus === 'COMPLETED' && {
+              completedAt: new Date(),
+            }),
           },
 
           include:
@@ -1647,6 +1864,12 @@ const getTripPassengerList =
           staffNote: true,
           pickupPoint: true,
           dropoffPoint: true,
+          pickupLocationId: true,
+          dropoffLocationId: true,
+          pickupServicePointId: true,
+          dropoffServicePointId: true,
+          pickupServiceMode: true,
+          dropoffServiceMode: true,
           totalAmount: true,
           status: true,
           paymentStatus: true,
@@ -1723,6 +1946,36 @@ const getTripPassengerList =
           ),
       )
 
+    const buildServiceGroups = (side) => {
+      const groups = new Map()
+      for (const booking of validBookings) {
+        const point = side === 'pickup' ? booking.pickupPoint : booking.dropoffPoint
+        const mode = side === 'pickup' ? booking.pickupServiceMode : booking.dropoffServiceMode
+        const key = `${point || 'Chưa xác định'}::${mode || 'Chưa xác định'}`
+        const current = groups.get(key) || {
+          point: point || 'Chưa xác định',
+          serviceMode: mode || null,
+          count: 0,
+        }
+        current.count += 1
+        groups.set(key, current)
+      }
+      return [...groups.values()].sort((left, right) =>
+        right.count - left.count || left.point.localeCompare(right.point, 'vi'),
+      )
+    }
+
+    const serviceSummary = {
+      pickupGroups: buildServiceGroups('pickup'),
+      dropoffGroups: buildServiceGroups('dropoff'),
+      pickupTransferCount: validBookings.filter(
+        (booking) => booking.pickupServiceMode === 'TrungChuyenDonKhach',
+      ).length,
+      dropoffTransferCount: validBookings.filter(
+        (booking) => booking.dropoffServiceMode === 'TrungChuyenTraKhach',
+      ).length,
+    }
+
     return {
       trip: {
         id:
@@ -1738,7 +1991,13 @@ const getTripPassengerList =
           trip.expectedArrivalTime,
 
         route:
-          trip.route,
+          buildTripJourneyRoute(trip),
+
+        departureLocation:
+          trip.departureLocation || trip.route?.departureLocation || null,
+
+        arrivalLocation:
+          trip.arrivalLocation || trip.route?.arrivalLocation || null,
 
         bus:
           trip.bus,
@@ -1757,6 +2016,8 @@ const getTripPassengerList =
           trip.bus?.capacity ??
           0,
       },
+
+      serviceSummary,
 
       finance:
         isAdmin &&
@@ -1855,6 +2116,24 @@ const getTripPassengerList =
             dropoffPoint:
               booking.dropoffPoint,
 
+            pickupLocationId:
+              booking.pickupLocationId,
+
+            dropoffLocationId:
+              booking.dropoffLocationId,
+
+            pickupServicePointId:
+              booking.pickupServicePointId,
+
+            dropoffServicePointId:
+              booking.dropoffServicePointId,
+
+            pickupServiceMode:
+              booking.pickupServiceMode,
+
+            dropoffServiceMode:
+              booking.dropoffServiceMode,
+
             cancellationReason:
               booking
                 .cancellationReason,
@@ -1884,6 +2163,7 @@ export {
   changeTripStatus,
   createTrip,
   getTripById,
+  getTripSeatMap,
   getTripCompletionPreview,
   getTripPassengerList,
   getTrips,

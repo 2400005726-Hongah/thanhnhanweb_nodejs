@@ -1,20 +1,26 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
+import BookingFlowSteps from '../components/booking/BookingFlowSteps.jsx'
+import { validateServiceSelection } from '../components/booking/BookingServicePointFields.jsx'
 import { ErrorState, LoadingState } from '../components/common/StatusState.jsx'
-import { createBooking, releaseSeatHold } from '../services/booking.service.js'
 import { getApiErrorMessage } from '../services/apiClient.js'
-import { getTripDetail } from '../services/publicTrip.service.js'
+import { getTripDetail, getTripServicePoints } from '../services/publicTrip.service.js'
 import {
-  clearSeatHold,
-  getSeatHold,
-  saveBookingResult,
-} from '../utils/bookingSession.js'
-import { getSeatTypeLabel, isRoomBusType } from '../utils/busTypes.js'
+  getBookingPassengerDraft,
+  getBookingSeatDraft,
+  saveBookingPassengerDraft,
+} from '../utils/bookingFlowDraft.js'
+import {
+  getBookingServiceSelection,
+  getSelectedServiceSummary,
+  saveBookingServiceSelection,
+} from '../utils/bookingServiceSelection.js'
+import { getBusTypeLabel, getSeatTypeLabel } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
-import { getPaymentOptionsForSource } from '../utils/paymentLabels.js'
 import {
+  formatLicensePlate,
   formatPhoneInput,
   isValidFullName,
   isVietnamesePhone,
@@ -22,80 +28,75 @@ import {
   normalizeFullName,
   normalizeMultilineText,
   normalizePhone,
-  normalizeWhitespace,
 } from '../utils/normalizers.js'
 
+import './BookingPageStep3.css'
+
 const emptyPassenger = { fullName: '', phone: '', email: '' }
-
-const getRemainingSeconds = (expiresAt) =>
-  Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 1000))
-
-const formatCountdown = (seconds) =>
-  `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
 
 function BookingPage() {
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const [hold] = useState(() => getSeatHold(tripId))
-  const [detail, setDetail] = useState(null)
-  const [passenger, setPassenger] = useState(emptyPassenger)
-  const [pickupPoint, setPickupPoint] = useState('')
-  const [dropoffPoint, setDropoffPoint] = useState('')
-  const [customerNote, setCustomerNote] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER')
-  const [remainingSeconds, setRemainingSeconds] = useState(() =>
-    hold ? getRemainingSeconds(hold.holdExpiresAt) : 0,
+  const location = useLocation()
+  const [seatDraft] = useState(() => getBookingSeatDraft(tripId))
+  const [serviceSelection] = useState(
+    () =>
+      getBookingServiceSelection(tripId) ||
+      location.state?.bookingServiceSelection ||
+      null,
   )
-  const [loading, setLoading] = useState(Boolean(hold))
-  const [submitting, setSubmitting] = useState(false)
+  const savedPassengerDraft = useMemo(() => getBookingPassengerDraft(tripId), [tripId])
+  const [detail, setDetail] = useState(null)
+  const [servicePoints, setServicePoints] = useState(null)
+  const [passenger, setPassenger] = useState(savedPassengerDraft?.passenger || emptyPassenger)
+  const [customerNote, setCustomerNote] = useState(savedPassengerDraft?.customerNote || '')
+  const [loading, setLoading] = useState(Boolean(seatDraft && serviceSelection))
   const [error, setError] = useState('')
   const [validation, setValidation] = useState('')
-  const releaseOnExit = useRef(true)
+  const [leaving, setLeaving] = useState(false)
 
   const loadTrip = useCallback(() => {
-    if (!hold) return
+    if (!seatDraft || !serviceSelection) return
     setLoading(true)
     setError('')
-    getTripDetail(tripId)
-      .then(setDetail)
+    Promise.all([getTripDetail(tripId), getTripServicePoints(tripId)])
+      .then(([tripDetail, servicePointData]) => {
+        setDetail(tripDetail)
+        setServicePoints(servicePointData)
+      })
       .catch((requestError) => setError(getApiErrorMessage(requestError)))
       .finally(() => setLoading(false))
-  }, [hold, tripId])
+  }, [seatDraft, serviceSelection, tripId])
 
   useEffect(() => {
     loadTrip()
   }, [loadTrip])
 
   useEffect(() => {
-    if (!hold) return undefined
-    const update = () => setRemainingSeconds(getRemainingSeconds(hold.holdExpiresAt))
-    update()
-    const intervalId = window.setInterval(update, 1000)
-    return () => window.clearInterval(intervalId)
-  }, [hold])
-
-  useEffect(() => {
-    if (!hold) return undefined
-
-    let canRelease = false
-    const activationTimer = window.setTimeout(() => {
-      canRelease = true
-    }, 0)
-
-    return () => {
-      window.clearTimeout(activationTimer)
-      if (canRelease && releaseOnExit.current) {
-        void releaseSeatHold(tripId, hold.holdToken).catch(() => {})
-      }
+    if (!serviceSelection) return
+    try {
+      saveBookingServiceSelection(tripId, serviceSelection)
+    } catch {
+      // Router state vẫn đủ để Bước 3 tiếp tục trong phiên hiện tại.
     }
-  }, [hold, tripId])
+  }, [serviceSelection, tripId])
 
-  useEffect(() => {
-    if (!hold || remainingSeconds > 0 || !releaseOnExit.current) return
-    releaseOnExit.current = false
-    clearSeatHold(tripId)
-    void releaseSeatHold(tripId, hold.holdToken).catch(() => {})
-  }, [hold, remainingSeconds, tripId])
+  const serviceData = useMemo(() => {
+    if (!servicePoints) return null
+    return {
+      ...servicePoints,
+      trip: {
+        ...(servicePoints.trip || {}),
+        departureTime: detail?.trip?.departureTime,
+        expectedArrivalTime: detail?.trip?.expectedArrivalTime,
+      },
+    }
+  }, [detail, servicePoints])
+
+  const serviceSummary = useMemo(
+    () => getSelectedServiceSummary(serviceData, serviceSelection),
+    [serviceData, serviceSelection],
+  )
 
   const updatePassenger = (event) => {
     const { name, value } = event.target
@@ -107,344 +108,205 @@ function BookingPage() {
   }
 
   const validatePassenger = () => {
-    if (!passenger.email.trim()) {
-      return 'Email là bắt buộc khi đặt vé trực tuyến.'
-    }
+    if (!passenger.email.trim()) return 'Email là bắt buộc khi đặt vé trực tuyến.'
 
     const fullName = normalizeFullName(passenger.fullName)
     const phone = normalizePhone(passenger.phone)
     const email = normalizeEmail(passenger.email)
 
-    if (!isValidFullName(fullName)) {
-      return 'Vui lòng nhập họ tên hợp lệ, không dùng số hoặc ký tự đặc biệt.'
-    }
-    if (!isVietnamesePhone(phone)) {
-      return 'Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.'
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return 'Email không hợp lệ.'
-    }
+    if (!isValidFullName(fullName)) return 'Vui lòng nhập họ tên hợp lệ, không dùng số hoặc ký tự đặc biệt.'
+    if (!isVietnamesePhone(phone)) return 'Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Email không hợp lệ.'
     return ''
   }
 
-  const submitBooking = async (event) => {
+  const continueToPayment = (event) => {
     event.preventDefault()
-    if (!hold || remainingSeconds <= 0 || submitting) return
+    if (leaving) return
 
-    const validationMessage = validatePassenger()
-    if (validationMessage) {
-      setValidation(validationMessage)
+    const passengerMessage = validatePassenger()
+    if (passengerMessage) {
+      setValidation(passengerMessage)
       return
     }
 
-    setSubmitting(true)
-    setError('')
-    try {
-      const data = await createBooking({
-        tripId,
-        holdToken: hold.holdToken,
-        roomSelections: isRoomBusType(detail.trip.bus.busType)
-          ? hold.seats
-              .filter((seat) => ['SINGLE_ROOM', 'DOUBLE_ROOM'].includes(seat.seatType))
-              .map((seat) => ({
-                tripSeatId: seat.id,
-                roomType: seat.seatType,
-              }))
-          : [],
-        passenger: {
-          fullName: normalizeFullName(passenger.fullName),
-          phone: normalizePhone(passenger.phone),
-          email: normalizeEmail(passenger.email) || undefined,
-        },
-        pickupPoint: normalizeWhitespace(pickupPoint) || undefined,
-        dropoffPoint: normalizeWhitespace(dropoffPoint) || undefined,
-        customerNote: normalizeMultilineText(customerNote) || undefined,
-        paymentMethod,
-      })
-      releaseOnExit.current = false
-      clearSeatHold(tripId)
-      saveBookingResult(data.booking)
-      navigate(`/dat-ve-thanh-cong/${data.booking.bookingCode}`, {
-        replace: true,
-        state: { booking: data.booking },
-      })
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError))
-      if (requestError.response?.status === 409) {
-        releaseOnExit.current = false
-        clearSeatHold(tripId)
-        setRemainingSeconds(0)
-      }
-    } finally {
-      setSubmitting(false)
+    const serviceMessage = validateServiceSelection(serviceData, serviceSelection)
+    if (serviceMessage) {
+      setValidation(`${serviceMessage} Vui lòng quay lại Bước 2 để chọn lại điểm đón/trả.`)
+      return
     }
+
+    saveBookingPassengerDraft(
+      tripId,
+      {
+        fullName: normalizeFullName(passenger.fullName),
+        phone: normalizePhone(passenger.phone),
+        email: normalizeEmail(passenger.email),
+      },
+      normalizeMultilineText(customerNote),
+    )
+    setLeaving(true)
+    navigate(`/dat-ve/${tripId}/thanh-toan`)
   }
 
-  const cancelHold = async () => {
-    if (!hold) return
-    setSubmitting(true)
-    try {
-      await releaseSeatHold(tripId, hold.holdToken)
-    } catch {
-      // The seat endpoint also releases expired holds on the next refresh.
-    } finally {
-      releaseOnExit.current = false
-      clearSeatHold(tripId)
-      navigate(`/chuyen-xe/${tripId}`)
-    }
-  }
-
-  const heldSeatDescriptions = useMemo(
-    () =>
-      hold?.seats
-        .map(
-          (seat) =>
-            `${seat.seatCode} · ${getSeatTypeLabel(seat.seatType)} · ${formatCurrency(seat.price)}`,
-        )
-        .join('; ') || '',
-    [hold],
+  const seatDescriptions = useMemo(
+    () => seatDraft?.seats?.map((seat) => `${seat.seatCode} · ${getSeatTypeLabel(seat.seatType)}`).join(', ') || '',
+    [seatDraft],
   )
 
-  if (!hold) {
+  if (!seatDraft) {
     return (
       <div className="simple-page">
-        <div className="status-symbol">!</div>
-        <span className="eyebrow">CHƯA CÓ GHẾ ĐƯỢC GIỮ</span>
-        <h1>Vui lòng chọn ghế trước</h1>
-        <p>Phiên giữ ghế không tồn tại hoặc đã được hoàn tất.</p>
-        <Link className="btn btn-primary" to="/tim-chuyen">
-          Tìm chuyến xe
-        </Link>
-      </div>
-    )
-  }
-  if (loading) {
-    return (
-      <div className="container page-content">
-        <LoadingState label="Đang chuẩn bị thông tin đặt vé..." />
-      </div>
-    )
-  }
-  if (!detail) {
-    return (
-      <div className="container page-content">
-        <ErrorState message={error} onRetry={loadTrip} />
+        <div className="status-symbol">1</div>
+        <span className="eyebrow">CHƯA CHỌN CHỖ</span>
+        <h1>Vui lòng hoàn tất Bước 1</h1>
+        <Link className="btn btn-primary" to={`/chuyen-xe/${tripId}`}>Quay lại chọn chỗ</Link>
       </div>
     )
   }
 
-  const expired = remainingSeconds <= 0
+  if (!serviceSelection) {
+    return (
+      <div className="simple-page">
+        <div className="status-symbol">2</div>
+        <span className="eyebrow">CHƯA CHỌN ĐIỂM ĐÓN/TRẢ</span>
+        <h1>Vui lòng hoàn tất Bước 2</h1>
+        <Link className="btn btn-primary" to={`/dat-ve/${tripId}`}>Chọn điểm đón/trả</Link>
+      </div>
+    )
+  }
+
+  if (loading) return <div className="container page-content"><LoadingState label="Đang chuẩn bị thông tin hành khách..." /></div>
+  if (!detail || !serviceData) return <div className="container page-content"><ErrorState message={error} onRetry={loadTrip} /></div>
+
   const trip = detail.trip
+  const departure = trip.departureLocation || trip.route?.departureLocation
+  const arrival = trip.arrivalLocation || trip.route?.arrivalLocation
+  const routeName = trip.route?.routeName || `${departure?.name || 'Điểm đi'} → ${arrival?.name || 'Điểm đến'}`
 
   return (
-    <div className="page-surface booking-flow-page">
-      <section className="page-banner page-banner--compact">
-        <div className="container">
-          <span className="eyebrow eyebrow--light">HOÀN TẤT ĐẶT VÉ</span>
-          <h1>Thông tin hành khách</h1>
-          <p>Ghế đang được giữ tạm thời trong khi bạn hoàn tất thông tin.</p>
-        </div>
-      </section>
-      <div className="container page-content">
-        <div className="hold-timer-card">
-          <div>
-            <span>Thời gian giữ ghế còn lại</span>
-            <strong className={remainingSeconds <= 120 ? 'is-urgent' : ''}>
-              {formatCountdown(remainingSeconds)}
-            </strong>
-          </div>
-          <p>
-            {expired
-              ? 'Thời gian giữ ghế đã hết. Vui lòng quay lại chọn ghế.'
-              : 'Vui lòng hoàn tất trước khi đồng hồ về 00:00.'}
-          </p>
+    <div className="page-surface booking-step3-page">
+      <div className="container page-content booking-step3-container">
+        <BookingFlowSteps activeStep={3} />
+
+        <div className="alert alert-info">
+          <strong>Chưa giữ chỗ.</strong> Sau khi nhập xong thông tin và chuyển sang Bước 4 – Thanh toán, hệ thống mới kiểm tra lại ghế/phòng và bắt đầu giữ trong 10 phút.
         </div>
 
-        <div className="row g-4 align-items-start">
-          <div className="col-lg-7">
-            <form className="booking-form-card" onSubmit={submitBooking}>
-              <span className="eyebrow">THÔNG TIN LIÊN HỆ</span>
-              <h2>Người đi xe</h2>
-              <p>Nhà xe sử dụng thông tin này để xác nhận vé và hỗ trợ chuyến đi.</p>
+        <div className="booking-step3-layout">
+          <form className="booking-step3-form-card" onSubmit={continueToPayment}>
+            <h1>THÔNG TIN LIÊN HỆ ĐẶT VÉ</h1>
+            {error && <div className="alert alert-danger">{error}</div>}
+            {validation && <div className="alert alert-warning">{validation}</div>}
 
-              {error && <div className="alert alert-danger">{error}</div>}
-              {validation && <div className="alert alert-warning">{validation}</div>}
+            <label className="form-label" htmlFor="fullName">Họ và tên hành khách</label>
+            <input
+              className="form-control mb-3"
+              id="fullName"
+              name="fullName"
+              value={passenger.fullName}
+              onChange={updatePassenger}
+              maxLength="100"
+              placeholder="Ví dụ: Nguyễn Văn A"
+              required
+            />
 
-              <label className="form-label" htmlFor="fullName">
-                Họ và tên
-              </label>
-              <input
-                className="form-control mb-3"
-                id="fullName"
-                name="fullName"
-                value={passenger.fullName}
-                onChange={updatePassenger}
-                maxLength="100"
-                onBlur={(event) =>
-                  setPassenger((current) => ({
-                    ...current,
-                    fullName: normalizeFullName(event.target.value),
-                  }))
-                }
-                autoComplete="name"
-                required
-              />
+            <label className="form-label" htmlFor="email">Email nhận vé</label>
+            <input
+              className="form-control mb-3"
+              id="email"
+              name="email"
+              type="email"
+              value={passenger.email}
+              onChange={updatePassenger}
+              maxLength="255"
+              placeholder="Ví dụ: email@gmail.com"
+              required
+            />
 
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label" htmlFor="phone">
-                    Số điện thoại
-                  </label>
-                  <input
-                    className="form-control"
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={passenger.phone}
-                    onChange={updatePassenger}
-                    maxLength="12"
-                    placeholder="0912 345 678"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    required
-                  />
+            <label className="form-label" htmlFor="phone">Số điện thoại liên hệ</label>
+            <input
+              className="form-control mb-3"
+              id="phone"
+              name="phone"
+              type="tel"
+              value={passenger.phone}
+              onChange={updatePassenger}
+              maxLength="12"
+              placeholder="Ví dụ: 0901234567"
+              required
+            />
+
+            <label className="form-label" htmlFor="customerNote">Ghi chú <span className="text-muted">(không bắt buộc)</span></label>
+            <textarea
+              className="form-control"
+              id="customerNote"
+              maxLength="500"
+              onChange={(event) => setCustomerNote(event.target.value)}
+              rows="3"
+              value={customerNote}
+              placeholder="VD: cần ghế gần cửa sổ, cần hỗ trợ hành lý..."
+            />
+
+            <section className="booking-step3-itinerary">
+              <div className="booking-step3-itinerary-header">
+                <div>
+                  <span className="booking-step3-itinerary-eyebrow">CHI TIẾT VÉ ĐẶT</span>
+                  <h2>{routeName}</h2>
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label" htmlFor="email">
-                    Email
-                  </label>
-                  <input
-                    className="form-control"
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={passenger.email}
-                    onChange={updatePassenger}
-                    maxLength="255"
-                    onBlur={(event) =>
-                      setPassenger((current) => ({
-                        ...current,
-                        email: normalizeEmail(event.target.value),
-                      }))
-                    }
-                    autoComplete="email"
-                    required
-                  />
+                <div className="booking-step3-itinerary-price">
+                  <span>Tổng tạm tính</span>
+                  <strong>{formatCurrency(seatDraft.totalAmount)}</strong>
                 </div>
               </div>
 
-              <div className="row g-3 mt-1">
-                <div className="col-md-6">
-                  <label className="form-label" htmlFor="pickupPoint">
-                    Điểm đón chi tiết
-                  </label>
-                  <input
-                    className="form-control"
-                    id="pickupPoint"
-                    maxLength="300"
-                    onChange={(event) => setPickupPoint(event.target.value)}
-                    placeholder="Ví dụ: 12 Nguyễn Văn Cừ, Buôn Ma Thuột"
-                    value={pickupPoint}
-                  />
+              <div className="booking-step3-itinerary-meta">
+                <div>
+                  <span>Khởi hành</span>
+                  <strong>{formatDateTime(trip.departureTime)}</strong>
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label" htmlFor="dropoffPoint">
-                    Điểm trả chi tiết
-                  </label>
-                  <input
-                    className="form-control"
-                    id="dropoffPoint"
-                    maxLength="300"
-                    onChange={(event) => setDropoffPoint(event.target.value)}
-                    placeholder="Ví dụ: Bến xe Miền Đông mới"
-                    value={dropoffPoint}
-                  />
+                <div>
+                  <span>Xe</span>
+                  <strong>{getBusTypeLabel(trip.bus.busType)}</strong>
+                  <small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
+                </div>
+                <div>
+                  <span>Ghế/Phòng</span>
+                  <strong>{seatDescriptions}</strong>
                 </div>
               </div>
 
-              <label className="form-label mt-3" htmlFor="customerNote">
-                Ghi chú chuyến đi{' '}
-                <span className="text-muted">(không bắt buộc)</span>
-              </label>
-              <textarea
-                className="form-control"
-                id="customerNote"
-                maxLength="500"
-                onChange={(event) => setCustomerNote(event.target.value)}
-                rows="3"
-                value={customerNote}
-              />
+              <div className="booking-step3-service-grid">
+                <article className="booking-step3-service-card is-pickup">
+                  <div className="booking-step3-service-badge">ĐÓN</div>
+                  <div>
+                    <span>Điểm đón</span>
+                    <h3>{serviceSummary.pickup.title}</h3>
+                    <p>{serviceSummary.pickup.serviceLabel}</p>
+                    {serviceSummary.pickup.detail && <small>{serviceSummary.pickup.detail}</small>}
+                    {serviceSummary.pickup.time && <b>{serviceSummary.pickup.time}</b>}
+                  </div>
+                </article>
 
-              <label className="form-label mt-3" htmlFor="paymentMethod">
-                Phương thức thanh toán
-              </label>
-              <select
-                className="form-select"
-                id="paymentMethod"
-                onChange={(event) => setPaymentMethod(event.target.value)}
-                required
-                value={paymentMethod}
-              >
-                {getPaymentOptionsForSource('ONLINE').map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <p className="form-text">
-                {paymentMethod === 'PAY_AT_BUS'
-                  ? 'Thanh toán trực tiếp khi lên xe.'
-                  : 'Phương thức điện tử được mô phỏng trong phạm vi đồ án; không kết nối cổng thanh toán thật.'}
-              </p>
+                <article className="booking-step3-service-card is-dropoff">
+                  <div className="booking-step3-service-badge">TRẢ</div>
+                  <div>
+                    <span>Điểm trả</span>
+                    <h3>{serviceSummary.dropoff.title}</h3>
+                    <p>{serviceSummary.dropoff.serviceLabel}</p>
+                    {serviceSummary.dropoff.detail && <small>{serviceSummary.dropoff.detail}</small>}
+                    {serviceSummary.dropoff.time && <b>{serviceSummary.dropoff.time}</b>}
+                  </div>
+                </article>
+              </div>
+            </section>
 
-              <div className="booking-form-actions">
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  onClick={cancelHold}
-                  disabled={submitting}
-                >
-                  Hủy và chọn lại ghế
-                </button>
-                <button
-                  className="btn btn-warning btn-lg"
-                  type="submit"
-                  disabled={expired || submitting}
-                >
-                  {submitting ? 'Đang tạo vé...' : 'Xác nhận đặt vé'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="booking-step3-actions">
+              <button className="btn btn-outline-secondary" onClick={() => navigate(`/dat-ve/${tripId}`)} type="button">← Quay lại Bước 2</button>
+              <button className="btn btn-primary" disabled={leaving} type="submit">Tiếp tục thanh toán →</button>
+            </div>
+          </form>
 
-          <div className="col-lg-5">
-            <aside className="booking-review-card">
-              <span className="eyebrow">CHUYẾN ĐI CỦA BẠN</span>
-              <h2>{trip.route.routeName}</h2>
-              <p>{formatDateTime(trip.departureTime)}</p>
-              <div className="summary-row">
-                <span>Xe</span>
-                <strong>{trip.bus.busName}</strong>
-              </div>
-              <div className="summary-row">
-                <span>Vị trí đang giữ</span>
-                <strong>{heldSeatDescriptions}</strong>
-              </div>
-              <div className="summary-row">
-                <span>Số lượng</span>
-                <strong>{hold.seats.length} vị trí</strong>
-              </div>
-              <div className="summary-total">
-                <span>Tổng tiền máy chủ</span>
-                <strong>{formatCurrency(hold.totalAmount)}</strong>
-              </div>
-              <p className="summary-note">
-                {paymentMethod === 'PAY_AT_BUS'
-                  ? 'Vé được xác nhận và giữ ghế; quý khách thanh toán khi lên xe.'
-                  : 'Thanh toán mô phỏng thành công sẽ xác nhận vé ngay sau khi đặt.'}
-              </p>
-            </aside>
-          </div>
         </div>
       </div>
     </div>

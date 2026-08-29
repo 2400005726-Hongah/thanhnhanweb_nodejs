@@ -1,0 +1,526 @@
+/* =========================================================
+   NHÀ XE THÀNH NHÂN - MÀU ĐỎ THƯƠNG HIỆU DUY NHẤT
+   Màu chuẩn: #c50416
+   File này được import cuối cùng để không phá logic/layout hiện có.
+   ========================================================= */
+
+:root {
+  --brand-red: #c50416;
+  --blue: #c50416;
+  --navy: #c50416;
+  --navy-deep: #c50416;
+
+  --tn-red: #c50416;
+  --tn-red-dark: #c50416;
+  --tn-red-deep: #c50416;
+
+  --support-red: #c50416;
+  --support-red-dark: #c50416;
+
+  --bs-danger: #c50416;
+  --bs-danger-rgb: 197, 4, 22;
+}
+
+/* Bootstrap / component trạng thái đỏ */
+.btn-danger,
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+.btn-danger.active,
+.show > .btn-danger.dropdown-toggle {
+  --bs-btn-bg: #c50416;
+  --bs-btn-border-color: #c50416;
+  --bs-btn-hover-bg: #c50416;
+  --bs-btn-hover-border-color: #c50416;
+  --bs-btn-active-bg: #c50416;
+  --bs-btn-active-border-color: #c50416;
+  background-color: #c50416 !important;
+  border-color: #c50416 !important;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #c50416;
+  --bs-btn-border-color: #c50416;
+  --bs-btn-hover-bg: #c50416;
+  --bs-btn-hover-border-color: #c50416;
+  --bs-btn-active-bg: #c50416;
+  --bs-btn-active-border-color: #c50416;
+  color: #c50416 !important;
+  border-color: #c50416 !important;
+}
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+  color: #fff !important;
+  background-color: #c50416 !important;
+  border-color: #c50416 !important;
+}
+
+.text-danger { color: #c50416 !important; }
+.bg-danger,
+.text-bg-danger { background-color: #c50416 !important; }
+.border-danger { border-color: #c50416 !important; }
+
+/* Focus dùng cùng RGB thương hiệu */
+.form-control:focus,
+.form-select:focus {
+  border-color: #c50416 !important;
+  box-shadow: 0 0 0 .2rem rgba(197, 4, 22, .14) !important;
+}
+
+
+:root {
+  --navy: #c50416 !important;
+  --navy-deep: #c50416 !important;
+  --blue: #c50416fe !important;
+  --tn-red: #c50416 !important;
+  --tn-red-dark: #c50416 !important;
+  --tn-red-deep: #c50416 !important;
+  --support-red: #c50416 !important;
+  --support-red-dark: #c50416 !important;
+}
+
+.btn-primary {
+  --bs-btn-hover-bg: #c50416 !important;
+  --bs-btn-hover-border-color: #c50416 !important;
+}
+
+.form-control:focus, .form-select:focus {
+  box-shadow: 0 0 0 .2rem rgba(197, 4, 22, .14) !important;
+}
+
+.site-header {
+  border-bottom: 1px solid rgba(197, 4, 22, .1) !important;
+  box-shadow: 0 8px 28px rgba(197, 4, 22, .09) !important;
+}
+
+.brand-logo {
+  background: #c50416 !important;
+}
+
+.site-header .btn-warning {
+  box-shadow: 0 8px 20px rgba(197, 4, 22, .2) !important;
+}
+
+.site-header .btn-warning:hover {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.hero-section::before {
+  background: linear-gradient(90deg, rgba(30, 2, 3, .93) 0%, rgba(197, 4, 22, .78) 40%, rgba(28, 4, 5, .42) 67%, rgba(9, 13, 16, .22) 100%), linear-gradient(0deg, rgba(24, 1, 2, .5), transparent 48%) !important;
+}
+
+.hero-actions .btn-warning {
+  box-shadow: 0 12px 28px rgba(197, 4, 22, .28) !important;
+}
+
+.hero-actions .btn-warning:hover {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.home-search .trip-search-form {
+  box-shadow: 0 24px 58px rgba(197, 4, 22, .2) !important;
+}
+
+.home-search .btn-search:hover {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.form-error {
+  color: #c50416 !important;
+}
+
+.service-stats {
+  box-shadow: 0 18px 45px rgba(197, 4, 22,.08) !important;
+}
+
+.seat--booked {
+  color: #c50416 !important;
+}
+
+.hold-timer-card strong.is-urgent {
+  color: #c50416 !important;
+}
+
+.status-badge--cancelled, .status-badge--failed, .status-badge--expired {
+  color: #c50416 !important;
+}
+
+.admin-nav-link:hover, .admin-nav-link.active {
+  background: #c50416 !important;
+}
+
+.admin-topbar span {
+  color: #c50416 !important;
+}
+
+.admin-page-heading > div:first-child > span, .admin-panel-heading span {
+  color: #c50416 !important;
+}
+
+.admin-stat-card--refund strong {
+  color: #c50416 !important;
+}
+
+.admin-row-actions .is-danger {
+  color: #c50416 !important;
+  border-color: #c50416 !important;
+}
+
+.admin-location-province-item__actions .is-danger {
+  color: #c50416 !important;
+}
+
+.admin-location-chip.is-selected {
+  border-color: #c50416 !important;
+  color: #c50416 !important;
+}
+
+.trip-search-advanced__heading .btn-link {
+  color: #c50416 !important;
+}
+
+.passenger-service-summary__groups b {
+  color: #c50416 !important;
+}
+
+.booking-flow-step.is-active {
+  color: #c50416 !important;
+}
+
+.booking-flow-step.is-active::after {
+  background: #c50416 !important;
+}
+
+.booking-flow-step.is-active .booking-flow-step__number {
+  background: #c50416 !important;
+}
+
+.booking-service-card--dropoff {
+  border-top: 3px solid #c50416 !important;
+}
+
+.admin-row-actions button,
+.admin-row-actions a {
+  border: 1px solid #c50416 !important;
+}
+
+.dashboard-bar-row i {
+  background: linear-gradient(90deg, #c50416, #c50416) !important;
+}
+
+.dashboard-quick-actions a:hover {
+  border-color: #c50416 !important;
+}
+
+.admin-login-page {
+  background: radial-gradient(circle at top right, rgba(197, 4, 22, 0.12), transparent 36%),
+    #f4f6f9 !important;
+}
+
+.room-choice-options button:hover,
+.room-choice-options button:focus-visible {
+  border-color: #c50416 !important;
+  box-shadow: 0 0 0 3px rgba(197, 4, 22, 0.09) !important;
+}
+
+.room-choice-options b {
+  color: #c50416 !important;
+}
+
+.room-pricing-guide b {
+  color: #c50416 !important;
+}
+
+.room-admin-pricing span {
+  color: #c50416 !important;
+}
+
+.stats-day-revenue {
+  background: rgba(197, 4, 22, 0.78) !important;
+}
+
+.stats-distribution-row i,
+.stats-occupancy i {
+  background: #c50416 !important;
+}
+
+.admin-topbar .admin-user-avatar {
+  box-shadow: 0 2px 7px rgba(197, 4, 22, 0.2) !important;
+}
+
+.booking-step3-itinerary-eyebrow {
+  color: #c50416 !important;
+}
+
+.booking-step3-itinerary-price strong {
+  color: #c50416 !important;
+}
+
+.booking-step3-service-card.is-dropoff .booking-step3-service-badge {
+  color: #c50416 !important;
+}
+
+.booking-step3-service-card.is-dropoff b {
+  color: #c50416 !important;
+}
+
+.booking-payment-hold-banner b.is-urgent {
+  color: #c50416 !important;
+}
+
+.booking-payment-qr-heading span {
+  color: #c50416 !important;
+}
+
+.booking-payment-qr-info strong.is-amount {
+  color: #c50416 !important;
+}
+
+.booking-payment-summary .is-dropoff strong {
+  color: #c50416 !important;
+}
+
+.booking-payment-summary .booking-payment-total strong {
+  color: #c50416 !important;
+}
+
+.booking-step-hold-line strong.is-urgent {
+  color: #c50416 !important;
+}
+
+.booking-step-summary-total strong {
+  color: #c50416 !important;
+}
+
+.booking-step-selected-service.is-dropoff b {
+  color: #c50416 !important;
+}
+
+.tn-home {
+  --tn-red: #c50416 !important;
+  --tn-red-dark: #c50416 !important;
+}
+
+.tn-btn--primary {
+  box-shadow: 0 12px 24px rgba(197, 4, 22,.24) !important;
+}
+
+.tn-news-home__all {
+  border: 1px solid #c50416 !important;
+  color: #c50416 !important;
+}
+
+.tn-news-home__all:hover {
+  background: #c50416 !important;
+}
+
+.tn-news-card {
+  box-shadow: 0 8px 22px rgba(197, 4, 22,.06) !important;
+}
+
+.tn-news-card__button {
+  background: #c50416 !important;
+}
+
+.tn-news-card__button:hover {
+  background: #c50416 !important;
+}
+
+.admin-bookings-btn--filter {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.admin-bookings-btn--filter:hover {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.admin-bookings-source.is-hotline {
+  background: #c50416 !important;
+}
+
+.admin-bookings-trip-cell .is-arrival {
+  color: #c50416 !important;
+}
+
+.admin-bookings-service-cell .dropoff-label,
+.admin-bookings-service-cell .dropoff-label b {
+  color: #c50416 !important;
+}
+
+.admin-bookings-status.is-red {
+  background: #c50416 !important;
+}
+
+.admin-bookings-action-btn {
+  border: 1px solid #c50416 !important;
+  color: #c50416 !important;
+}
+
+.admin-bookings-action-btn:hover:not(:disabled) {
+  background: #c50416 !important;
+}
+
+.admin-bookings-modal.is-danger {
+  border-top: 4px solid #c50416 !important;
+}
+
+.admin-bookings-reason-field textarea:focus {
+  border-color: #c50416 !important;
+  box-shadow: 0 0 0 2px rgba(197, 4, 22, .12) !important;
+}
+
+.admin-bus-trip-count-button {
+  border: 1px solid #c50416 !important;
+  color: #c50416 !important;
+}
+
+.admin-bus-trips-panel {
+  border-top: 3px solid #c50416 !important;
+}
+
+.admin-bus-trip-card__code > strong {
+  color: #c50416 !important;
+}
+
+.admin-bus-trip-status.is-departed,
+.admin-bus-trip-status.is-cancelled {
+  background: #c50416 !important;
+}
+
+.admin-bus-trip-card__journey .is-arrival {
+  color: #c50416 !important;
+}
+
+.admin-bus-trip-card__actions a {
+  border: 1px solid #c50416 !important;
+  color: #c50416 !important;
+}
+
+.admin-location-multiselect__option small {
+  color: #c50416 !important;
+}
+
+.trip-service-column--dropoff {
+  border-top: 3px solid #c50416 !important;
+}
+
+.trip-service-column--dropoff .trip-service-section__heading > strong,
+.trip-service-column--dropoff .trip-service-section__heading > div > strong {
+  color: #c50416 !important;
+}
+
+.admin-trip-inline-service--dropoff {
+  border-top-color: #c50416 !important;
+}
+
+.admin-trip-inline-service--dropoff .admin-trip-inline-service__title strong {
+  color: #c50416 !important;
+}
+
+.admin-trip-inline-service--dropoff .admin-trip-inline-service__section h3 {
+  color: #c50416 !important;
+}
+
+.admin-trip-mvc-heading__actions .btn-primary,
+.admin-trip-mvc-filter .btn-primary {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.admin-trip-mvc-code strong {
+  color: #c50416 !important;
+}
+
+.admin-trip-mvc-route .is-arrival,
+.admin-route-mvc-journey .is-arrival {
+  color: #c50416 !important;
+}
+
+.admin-trip-day-badge.is-departed {
+  background: #c50416 !important;
+}
+
+.admin-trip-day-badge.is-cancelled {
+  background: #c50416 !important;
+}
+
+.admin-trip-seat-progress span {
+  background: #c50416 !important;
+}
+
+.admin-trip-mvc-actions a,
+.admin-trip-mvc-actions button,
+.admin-trip-disabled-action {
+  border: 1px solid #c50416 !important;
+  color: #c50416 !important;
+}
+
+.admin-trip-mvc-actions--booking .is-hotline {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.admin-trip-mvc-actions .is-danger {
+  border-color: #c50416 !important;
+  color: #c50416 !important;
+}
+
+.admin-route-mvc-price {
+  color: #c50416 !important;
+}
+
+.admin-trip-v2-step.is-active::after {
+  background: #c50416 !important;
+}
+
+.admin-trip-v2-step.is-active > span {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.admin-trip-v2-step-number {
+  background: #c50416 !important;
+}
+
+.admin-trip-v2-choice-grid > label.is-selected {
+  border-color: #c50416 !important;
+  box-shadow: inset 0 0 0 1px rgba(197, 4, 22, .06) !important;
+}
+
+.admin-trip-v2-choice-grid input {
+  accent-color: #c50416 !important;
+}
+
+.admin-trip-v2-switch-line input {
+  accent-color: #c50416 !important;
+}
+
+.admin-trip-v2-summary > div > span {
+  color: #c50416 !important;
+}
+
+.admin-trip-v2-actions .btn-primary {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+}
+
+.public-info-hero,
+.support-hero {
+  box-shadow: 0 12px 28px rgba(197, 4, 22, .14) !important;
+}
+
+.support-note.danger {
+  color: #c50416 !important;
+}
+
+@media (max-width: 767.98px) {
+  .hero-section::before {
+    background: linear-gradient(180deg, rgba(35, 0, 2, .78), rgba(197, 4, 22, .88)) !important;
+  }
+}

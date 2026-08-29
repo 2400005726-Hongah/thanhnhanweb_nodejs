@@ -97,6 +97,34 @@ const upsertLocations = async (transaction) => {
       province: canonicalizeProvince(rawData.province),
       address: normalizeText(rawData.address) || null,
     }
+
+    const province = await transaction.province.upsert({
+      where: { name: data.province },
+      update: { status: 'ACTIVE' },
+      create: { name: data.province, status: 'ACTIVE' },
+    })
+
+    const defaultArea = await transaction.pickupDropoffArea.upsert({
+      where: {
+        provinceId_name: {
+          provinceId: province.id,
+          name: data.name,
+        },
+      },
+      update: {
+        legacyRegion: data.province,
+        detailedAddress: data.address,
+        status: 'ACTIVE',
+      },
+      create: {
+        provinceId: province.id,
+        legacyRegion: data.province,
+        name: data.name,
+        detailedAddress: data.address,
+        status: 'ACTIVE',
+      },
+    })
+
     const lookupKey = `${normalizeLookup(data.name)}|${normalizeLookup(data.province)}`
     const existing = existingLocations.find(
       (item) =>
@@ -104,24 +132,37 @@ const upsertLocations = async (transaction) => {
         lookupKey,
     )
 
+    const locationPayload = {
+      name: data.name,
+      normalizedName: normalizeLookup(data.name),
+      province: data.province,
+      provinceId: province.id,
+      defaultAreaId: defaultArea.id,
+      address: data.address,
+      locationType: 'BOTH',
+      status: 'ACTIVE',
+    }
+
     const location = existing
       ? await transaction.location.update({
           where: { id: existing.id },
-          data: {
-            name: data.name,
-            province: data.province,
-            address: data.address,
-            status: 'ACTIVE',
-          },
+          data: locationPayload,
         })
-      : await transaction.location.create({
-          data: {
-            name: data.name,
-            province: data.province,
-            address: data.address,
-            status: 'ACTIVE',
-          },
-        })
+      : await transaction.location.create({ data: locationPayload })
+
+    await transaction.locationAreaFilter.upsert({
+      where: {
+        locationId_areaId: {
+          locationId: location.id,
+          areaId: defaultArea.id,
+        },
+      },
+      update: {},
+      create: {
+        locationId: location.id,
+        areaId: defaultArea.id,
+      },
+    })
 
     result[rawData.key] = location
   }
@@ -307,6 +348,10 @@ const buildScheduleTemplates = (
           ? null
           : routeConfig.defaultDoubleRoomPrice,
         status: 'OPEN',
+        departureLocationId: route.departureLocationId,
+        arrivalLocationId: route.arrivalLocationId,
+        salesStatus: 'OPEN',
+        operationStatus: 'NOT_DEPARTED',
       })
     }
   }
@@ -387,6 +432,10 @@ const seedFutureTrips = async (
           singleRoomPrice: candidate.singleRoomPrice,
           doubleRoomPrice: candidate.doubleRoomPrice,
           status: candidate.status,
+          departureLocationId: candidate.departureLocationId,
+          arrivalLocationId: candidate.arrivalLocationId,
+          salesStatus: candidate.salesStatus,
+          operationStatus: candidate.operationStatus,
           createdById: actor?.id ?? null,
         })
         occupiedTrips.push(candidate)
@@ -405,6 +454,10 @@ const seedFutureTrips = async (
               singleRoomPrice: true,
               doubleRoomPrice: true,
               status: true,
+              departureLocationId: true,
+              arrivalLocationId: true,
+              salesStatus: true,
+              operationStatus: true,
             },
           })
         : []

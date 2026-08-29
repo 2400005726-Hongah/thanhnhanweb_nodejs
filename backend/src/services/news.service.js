@@ -99,15 +99,29 @@ const normalizeNewsInput = (payload) => {
 
 const listNews = async (query, { publicOnly = false } = {}) => {
   const { page, limit, skip } = parsePagination(query)
-  const where = {
-    ...(publicOnly
-      ? { status: 'PUBLISHED', publishedAt: { lte: new Date() } }
-      : query.status && { status: query.status }),
-    ...(query.keyword && {
+  const conditions = []
+
+  if (publicOnly) {
+    conditions.push(
+      { status: { in: ['PUBLISHED', 'ACTIVE'] } },
+      { OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+    )
+  } else if (query.status) {
+    conditions.push({ status: query.status })
+  }
+
+  if (query.keyword) {
+    const keyword = normalizeWhitespace(query.keyword)
+    conditions.push({
       OR: ['title', 'summary', 'slug'].map((field) => ({
-        [field]: { contains: normalizeWhitespace(query.keyword), mode: 'insensitive' },
+        [field]: { contains: keyword, mode: 'insensitive' },
       })),
-    }),
+    })
+  }
+
+  const where = {
+    deletedAt: null,
+    ...(conditions.length && { AND: conditions }),
   }
 
   const [news, total] = await Promise.all([
@@ -125,8 +139,8 @@ const listNews = async (query, { publicOnly = false } = {}) => {
 }
 
 const getNewsById = async (newsId) => {
-  const news = await prisma.news.findUnique({
-    where: { id: newsId },
+  const news = await prisma.news.findFirst({
+    where: { id: newsId, deletedAt: null },
     include: newsInclude,
   })
 
@@ -134,6 +148,28 @@ const getNewsById = async (newsId) => {
     throw new HttpError('Không tìm thấy tin tức', 404)
   }
   return news
+}
+
+const getPublicNewsById = async (newsId) => {
+  const now = new Date()
+  const news = await prisma.news.findFirst({
+    where: {
+      id: newsId,
+      deletedAt: null,
+      status: { in: ['PUBLISHED', 'ACTIVE'] },
+      OR: [{ publishedAt: null }, { publishedAt: { lte: now } }],
+    },
+    include: newsInclude,
+  })
+
+  if (!news) throw new HttpError('Không tìm thấy tin tức', 404)
+
+  const updated = await prisma.news.update({
+    where: { id: newsId },
+    data: { viewCount: { increment: 1 } },
+    include: newsInclude,
+  })
+  return updated
 }
 
 const createNews = async (payload, actor) => {
@@ -242,8 +278,32 @@ const changeNewsStatus = async (newsId, status, actor) => {
   })
 }
 
-const softDeleteNews = (newsId, actor) =>
-  changeNewsStatus(newsId, 'INACTIVE', actor)
+const softDeleteNews = async (newsId, actor) => {
+  const existing = await getNewsById(newsId)
+  return prisma.$transaction(async (transaction) => {
+    const news = await transaction.news.update({
+      where: { id: newsId },
+      data: {
+        status: 'INACTIVE',
+        deletedAt: new Date(),
+        updatedById: actor.id,
+      },
+      include: newsInclude,
+    })
+    await writeAuditLog(
+      {
+        userId: actor.id,
+        role: actor.role,
+        action: 'DELETE_NEWS',
+        entityType: 'NEWS',
+        entityId: newsId,
+        description: `Xóa mềm tin tức: ${existing.title}`,
+      },
+      transaction,
+    )
+    return news
+  })
+}
 
 export {
   NEWS_STATUSES,
@@ -251,6 +311,7 @@ export {
   cleanContent,
   createNews,
   getNewsById,
+  getPublicNewsById,
   listNews,
   makeSlug,
   softDeleteNews,

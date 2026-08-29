@@ -2,6 +2,7 @@ const STATUS_LABELS = {
   ACTIVE: 'Hoạt động',
   INACTIVE: 'Ngừng hoạt động',
   BLOCKED: 'Đã khóa',
+  ARCHIVED: 'Lưu trữ',
   OPEN: 'Đang mở bán',
   CLOSED: 'Ngừng bán',
   DEPARTED: 'Đã khởi hành',

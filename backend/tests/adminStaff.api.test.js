@@ -39,6 +39,8 @@ const busId = randomUUID()
 const newsId = randomUUID()
 const locationA = randomUUID()
 const locationB = randomUUID()
+const departureProvinceId = randomUUID()
+const arrivalProvinceId = randomUUID()
 
 const users = new Map([
   [admin.id, admin],
@@ -80,6 +82,7 @@ const tripService = {
 })),
 }
 const routeService = {
+  getRouteSummary: jest.fn(async () => ({ routes: [], total: 0 })),
   getRoutes: jest.fn(async () => ({ routes: [], pagination: {} })),
   getRouteById: jest.fn(async () => ({ id: routeId })),
   createRoute: jest.fn(async () => ({ id: routeId })),
@@ -90,6 +93,7 @@ const newsService = {
   NEWS_STATUSES: ['ACTIVE', 'INACTIVE', 'DRAFT', 'PUBLISHED'],
   listNews: jest.fn(async () => ({ news: [], pagination: {} })),
   getNewsById: jest.fn(async () => ({ id: newsId })),
+  getPublicNewsById: jest.fn(async () => ({ id: newsId, status: 'PUBLISHED' })),
   createNews: jest.fn(async () => ({ id: newsId })),
   updateNews: jest.fn(async () => ({ id: newsId })),
   changeNewsStatus: jest.fn(async () => ({ id: newsId })),
@@ -110,12 +114,18 @@ const adminService = {
   getDashboardSummary: jest.fn(async (role) => ({ role })),
   getRevenueSummary: jest.fn(async () => ({ revenue: 1000 })),
   listManagedBookings: jest.fn(async () => ({ bookings: [], pagination: {} })),
+  listManagedBookingsForExport: jest.fn(async () => []),
   getManagedBooking: jest.fn(async () => ({ bookingCode: 'TN-ABC12345' })),
+  lookupManagedBookingByIdentifier: jest.fn(async (identifier) => ({ bookingCode: identifier })),
   updateBookingContact: jest.fn(),
   markBookingNoShow: jest.fn(),
   listCustomers: jest.fn(async () => ({ customers: [], pagination: {} })),
+  listCustomersForExport: jest.fn(async () => []),
+  archiveCustomer: jest.fn(async () => ({ archived: true, deleted: false })),
   listUsers: jest.fn(async () => ({ users: [], pagination: {} })),
   createManagedUser: jest.fn(async () => ({ id: randomUUID() })),
+  updateManagedUser: jest.fn(async () => ({ id: randomUUID() })),
+  deleteManagedUser: jest.fn(async () => ({ deleted: false, archived: true })),
   changeUserStatus: jest.fn(),
   changeUserRole: jest.fn(),
   updateCustomer: jest.fn(),
@@ -167,6 +177,23 @@ describe('STAFF operation permissions', () => {
     expect(adminService.listUsers).not.toHaveBeenCalled()
   })
 
+  test('STAFF exports the filtered booking list as an Excel workbook', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/bookings/export.xlsx?status=CONFIRMED&departureDate=2099-07-20')
+      .set('Authorization', `Bearer ${staffToken}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(response.headers['content-type']).toContain(
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    expect(adminService.listManagedBookingsForExport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'CONFIRMED',
+        departureDate: '2099-07-20',
+      }),
+    )
+  })
+
   test('STAFF cancellation requires and forwards a reason', async () => {
     const bookingCode = 'TNABCDEF1234567890'
     const missingReason = await request(app)
@@ -211,12 +238,17 @@ describe('STAFF operation permissions', () => {
     expect(edit.statusCode).toBe(200)
     expect(create.statusCode).toBe(403)
     expect(remove.statusCode).toBe(403)
+    expect(tripService.updateTrip).toHaveBeenCalledWith(
+      tripId,
+      expect.objectContaining({ ticketPrice: 250000 }),
+      expect.objectContaining({ id: staff.id, role: 'STAFF' }),
+    )
     expect(tripService.getTrips).toHaveBeenCalledWith(
       expect.objectContaining({ isAdmin: true }),
     )
   })
 
-  test('STAFF views and edits routes, but cannot create or delete routes', async () => {
+  test('STAFF views legacy routes/summary but route writes are retired', async () => {
     const [list, edit, create, remove] = await Promise.all([
       request(app)
         .get('/api/v1/routes?status=INACTIVE')
@@ -235,7 +267,7 @@ describe('STAFF operation permissions', () => {
     ])
 
     expect(list.statusCode).toBe(200)
-    expect(edit.statusCode).toBe(200)
+    expect(edit.statusCode).toBe(410)
     expect(create.statusCode).toBe(403)
     expect(remove.statusCode).toBe(403)
     expect(routeService.getRoutes).toHaveBeenCalledWith(
@@ -309,7 +341,7 @@ describe('STAFF operation permissions', () => {
 })
 
 describe('ADMIN and CUSTOMER permission boundaries', () => {
-  test('ADMIN can create/delete trips and routes and view sensitive pages', async () => {
+  test('ADMIN manages trips; legacy route writes are retired; sensitive pages remain available', async () => {
     const future = new Date(Date.now() + 86_400_000)
     const later = new Date(future.getTime() + 3_600_000)
     const responses = await Promise.all([
@@ -317,7 +349,10 @@ describe('ADMIN and CUSTOMER permission boundaries', () => {
         .post('/api/v1/trips')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          route: routeId,
+          departureProvinceId,
+          departureLocationId: locationA,
+          arrivalProvinceId,
+          arrivalLocationId: locationB,
           bus: busId,
           departureTime: future.toISOString(),
           expectedArrivalTime: later.toISOString(),
@@ -350,7 +385,7 @@ describe('ADMIN and CUSTOMER permission boundaries', () => {
         .set('Authorization', `Bearer ${adminToken}`),
     ])
     expect(responses.map((response) => response.statusCode)).toEqual([
-      201, 200, 201, 200, 200, 200, 200,
+      201, 200, 410, 410, 200, 200, 200,
     ])
   })
 

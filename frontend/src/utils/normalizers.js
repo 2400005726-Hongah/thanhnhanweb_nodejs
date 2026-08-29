@@ -40,9 +40,13 @@ const isVietnamesePhone = (value) =>
 
 const formatPhoneInput = (value) => {
   const phone = normalizePhone(value)
-  if (phone.length <= 4) return phone
-  if (phone.length <= 7) return `${phone.slice(0, 4)} ${phone.slice(4)}`
-  return `${phone.slice(0, 4)} ${phone.slice(4, 7)} ${phone.slice(7)}`
+
+  // Khi người dùng đang gõ, không tự chèn khoảng trắng giữa chừng.
+  // Việc thay đổi độ dài value ở mỗi phím khiến caret của controlled input
+  // bị nhảy sang vị trí khác và tạo cảm giác nhập lặp/nhảy số.
+  if (phone.length < 10) return phone
+
+  return `${phone.slice(0, 4)} ${phone.slice(4, 7)} ${phone.slice(7, 10)}`
 }
 
 const normalizeLicensePlate = (value) =>
@@ -56,9 +60,12 @@ const isVietnameseLicensePlate = (value) =>
 
 const formatLicensePlate = (value) => {
   const plate = normalizeLicensePlate(value)
-  if (plate.length <= 3) return plate
-  if (plate.length <= 6) return `${plate.slice(0, 3)}-${plate.slice(3)}`
-  return `${plate.slice(0, 3)}-${plate.slice(3, 6)}.${plate.slice(6)}`
+
+  // Không tự chèn '-' / '.' trong lúc người dùng chưa nhập đủ biển số.
+  // Giữ value ổn định để con trỏ không bị React đẩy sang vị trí khác.
+  if (plate.length < 8) return plate
+
+  return `${plate.slice(0, 3)}-${plate.slice(3, 6)}.${plate.slice(6, 8)}`
 }
 
 
@@ -135,6 +142,15 @@ const normalizeBookingCode = (value) =>
     .trim()
     .toUpperCase()
     .replace(/\s+/g, '')
+    .replace(/^#/, '')
+
+const formatBookingCode = (value) => {
+  const normalized = normalizeBookingCode(value)
+  return /^\d{4}$/.test(normalized) ? `#${normalized}` : normalized
+}
+
+const normalizeTicketLookupIdentifier = (value) =>
+  normalizeBookingCode(value)
 
 const normalizeMoneyInput = (value) => String(value || '').replace(/\D/g, '')
 
@@ -163,7 +179,9 @@ export {
   isValidFullName,
   isVietnameseLicensePlate,
   isVietnamesePhone,
+  formatBookingCode,
   normalizeBookingCode,
+  normalizeTicketLookupIdentifier,
   normalizeEmail,
   normalizeFullName,
   normalizeLicensePlate,

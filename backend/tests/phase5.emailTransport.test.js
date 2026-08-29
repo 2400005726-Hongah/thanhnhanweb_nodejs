@@ -46,3 +46,18 @@ describe('Phase 5 Email transport configuration', () => {
     expect(transporter.sendMail).toHaveBeenCalledTimes(1)
   })
 })
+
+test('verifyEmailTransport can verify an injected SMTP transporter safely', async () => {
+  const { verifyEmailTransport } = await import(
+    '../src/services/emailTransport.service.js'
+  )
+  const transporter = {
+    verify: jest.fn(async () => true),
+  }
+
+  await expect(verifyEmailTransport(transporter)).resolves.toEqual({
+    ok: true,
+    reasonCode: null,
+  })
+  expect(transporter.verify).toHaveBeenCalledTimes(1)
+})

@@ -44,6 +44,17 @@ export type TripMinAggregateOutputType = {
   busId: string | null
   departureTime: Date | null
   expectedArrivalTime: Date | null
+  departureLocationId: string | null
+  arrivalLocationId: string | null
+  primaryPickupMode: string | null
+  primaryDropoffMode: string | null
+  allowPickupTransfer: boolean | null
+  allowPickupMeetingPoint: boolean | null
+  allowDropoffTransfer: boolean | null
+  allowDropoffStop: boolean | null
+  salesStatus: string | null
+  operationStatus: string | null
+  completedAt: Date | null
   ticketPrice: runtime.Decimal | null
   singleRoomPrice: runtime.Decimal | null
   doubleRoomPrice: runtime.Decimal | null
@@ -59,6 +70,17 @@ export type TripMaxAggregateOutputType = {
   busId: string | null
   departureTime: Date | null
   expectedArrivalTime: Date | null
+  departureLocationId: string | null
+  arrivalLocationId: string | null
+  primaryPickupMode: string | null
+  primaryDropoffMode: string | null
+  allowPickupTransfer: boolean | null
+  allowPickupMeetingPoint: boolean | null
+  allowDropoffTransfer: boolean | null
+  allowDropoffStop: boolean | null
+  salesStatus: string | null
+  operationStatus: string | null
+  completedAt: Date | null
   ticketPrice: runtime.Decimal | null
   singleRoomPrice: runtime.Decimal | null
   doubleRoomPrice: runtime.Decimal | null
@@ -74,6 +96,17 @@ export type TripCountAggregateOutputType = {
   busId: number
   departureTime: number
   expectedArrivalTime: number
+  departureLocationId: number
+  arrivalLocationId: number
+  primaryPickupMode: number
+  primaryDropoffMode: number
+  allowPickupTransfer: number
+  allowPickupMeetingPoint: number
+  allowDropoffTransfer: number
+  allowDropoffStop: number
+  salesStatus: number
+  operationStatus: number
+  completedAt: number
   ticketPrice: number
   singleRoomPrice: number
   doubleRoomPrice: number
@@ -103,6 +136,17 @@ export type TripMinAggregateInputType = {
   busId?: true
   departureTime?: true
   expectedArrivalTime?: true
+  departureLocationId?: true
+  arrivalLocationId?: true
+  primaryPickupMode?: true
+  primaryDropoffMode?: true
+  allowPickupTransfer?: true
+  allowPickupMeetingPoint?: true
+  allowDropoffTransfer?: true
+  allowDropoffStop?: true
+  salesStatus?: true
+  operationStatus?: true
+  completedAt?: true
   ticketPrice?: true
   singleRoomPrice?: true
   doubleRoomPrice?: true
@@ -118,6 +162,17 @@ export type TripMaxAggregateInputType = {
   busId?: true
   departureTime?: true
   expectedArrivalTime?: true
+  departureLocationId?: true
+  arrivalLocationId?: true
+  primaryPickupMode?: true
+  primaryDropoffMode?: true
+  allowPickupTransfer?: true
+  allowPickupMeetingPoint?: true
+  allowDropoffTransfer?: true
+  allowDropoffStop?: true
+  salesStatus?: true
+  operationStatus?: true
+  completedAt?: true
   ticketPrice?: true
   singleRoomPrice?: true
   doubleRoomPrice?: true
@@ -133,6 +188,17 @@ export type TripCountAggregateInputType = {
   busId?: true
   departureTime?: true
   expectedArrivalTime?: true
+  departureLocationId?: true
+  arrivalLocationId?: true
+  primaryPickupMode?: true
+  primaryDropoffMode?: true
+  allowPickupTransfer?: true
+  allowPickupMeetingPoint?: true
+  allowDropoffTransfer?: true
+  allowDropoffStop?: true
+  salesStatus?: true
+  operationStatus?: true
+  completedAt?: true
   ticketPrice?: true
   singleRoomPrice?: true
   doubleRoomPrice?: true
@@ -231,10 +297,21 @@ export type TripGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type TripGroupByOutputType = {
   id: string
-  routeId: string
+  routeId: string | null
   busId: string
   departureTime: Date
   expectedArrivalTime: Date
+  departureLocationId: string | null
+  arrivalLocationId: string | null
+  primaryPickupMode: string
+  primaryDropoffMode: string
+  allowPickupTransfer: boolean
+  allowPickupMeetingPoint: boolean
+  allowDropoffTransfer: boolean
+  allowDropoffStop: boolean
+  salesStatus: string
+  operationStatus: string
+  completedAt: Date | null
   ticketPrice: runtime.Decimal | null
   singleRoomPrice: runtime.Decimal | null
   doubleRoomPrice: runtime.Decimal | null
@@ -269,10 +346,21 @@ export type TripWhereInput = {
   OR?: Prisma.TripWhereInput[]
   NOT?: Prisma.TripWhereInput | Prisma.TripWhereInput[]
   id?: Prisma.UuidFilter<"Trip"> | string
-  routeId?: Prisma.UuidFilter<"Trip"> | string
+  routeId?: Prisma.UuidNullableFilter<"Trip"> | string | null
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
+  departureLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  arrivalLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  primaryPickupMode?: Prisma.StringFilter<"Trip"> | string
+  primaryDropoffMode?: Prisma.StringFilter<"Trip"> | string
+  allowPickupTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffStop?: Prisma.BoolFilter<"Trip"> | boolean
+  salesStatus?: Prisma.StringFilter<"Trip"> | string
+  operationStatus?: Prisma.StringFilter<"Trip"> | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -280,19 +368,33 @@ export type TripWhereInput = {
   createdById?: Prisma.UuidNullableFilter<"Trip"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Trip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Trip"> | Date | string
-  route?: Prisma.XOR<Prisma.RouteScalarRelationFilter, Prisma.RouteWhereInput>
+  route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   bus?: Prisma.XOR<Prisma.BusScalarRelationFilter, Prisma.BusWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  departureLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  arrivalLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  servicePoints?: Prisma.TripServicePointListRelationFilter
   tripSeats?: Prisma.TripSeatListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
 }
 
 export type TripOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  routeId?: Prisma.SortOrder
+  routeId?: Prisma.SortOrderInput | Prisma.SortOrder
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
+  departureLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  arrivalLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  primaryPickupMode?: Prisma.SortOrder
+  primaryDropoffMode?: Prisma.SortOrder
+  allowPickupTransfer?: Prisma.SortOrder
+  allowPickupMeetingPoint?: Prisma.SortOrder
+  allowDropoffTransfer?: Prisma.SortOrder
+  allowDropoffStop?: Prisma.SortOrder
+  salesStatus?: Prisma.SortOrder
+  operationStatus?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ticketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -303,6 +405,9 @@ export type TripOrderByWithRelationInput = {
   route?: Prisma.RouteOrderByWithRelationInput
   bus?: Prisma.BusOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
+  departureLocation?: Prisma.LocationOrderByWithRelationInput
+  arrivalLocation?: Prisma.LocationOrderByWithRelationInput
+  servicePoints?: Prisma.TripServicePointOrderByRelationAggregateInput
   tripSeats?: Prisma.TripSeatOrderByRelationAggregateInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
 }
@@ -312,10 +417,21 @@ export type TripWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TripWhereInput | Prisma.TripWhereInput[]
   OR?: Prisma.TripWhereInput[]
   NOT?: Prisma.TripWhereInput | Prisma.TripWhereInput[]
-  routeId?: Prisma.UuidFilter<"Trip"> | string
+  routeId?: Prisma.UuidNullableFilter<"Trip"> | string | null
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
+  departureLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  arrivalLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  primaryPickupMode?: Prisma.StringFilter<"Trip"> | string
+  primaryDropoffMode?: Prisma.StringFilter<"Trip"> | string
+  allowPickupTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffStop?: Prisma.BoolFilter<"Trip"> | boolean
+  salesStatus?: Prisma.StringFilter<"Trip"> | string
+  operationStatus?: Prisma.StringFilter<"Trip"> | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -323,19 +439,33 @@ export type TripWhereUniqueInput = Prisma.AtLeast<{
   createdById?: Prisma.UuidNullableFilter<"Trip"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Trip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Trip"> | Date | string
-  route?: Prisma.XOR<Prisma.RouteScalarRelationFilter, Prisma.RouteWhereInput>
+  route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   bus?: Prisma.XOR<Prisma.BusScalarRelationFilter, Prisma.BusWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  departureLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  arrivalLocation?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  servicePoints?: Prisma.TripServicePointListRelationFilter
   tripSeats?: Prisma.TripSeatListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
 }, "id">
 
 export type TripOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  routeId?: Prisma.SortOrder
+  routeId?: Prisma.SortOrderInput | Prisma.SortOrder
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
+  departureLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  arrivalLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  primaryPickupMode?: Prisma.SortOrder
+  primaryDropoffMode?: Prisma.SortOrder
+  allowPickupTransfer?: Prisma.SortOrder
+  allowPickupMeetingPoint?: Prisma.SortOrder
+  allowDropoffTransfer?: Prisma.SortOrder
+  allowDropoffStop?: Prisma.SortOrder
+  salesStatus?: Prisma.SortOrder
+  operationStatus?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ticketPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -355,10 +485,21 @@ export type TripScalarWhereWithAggregatesInput = {
   OR?: Prisma.TripScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TripScalarWhereWithAggregatesInput | Prisma.TripScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Trip"> | string
-  routeId?: Prisma.UuidWithAggregatesFilter<"Trip"> | string
+  routeId?: Prisma.UuidNullableWithAggregatesFilter<"Trip"> | string | null
   busId?: Prisma.UuidWithAggregatesFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeWithAggregatesFilter<"Trip"> | Date | string
+  departureLocationId?: Prisma.UuidNullableWithAggregatesFilter<"Trip"> | string | null
+  arrivalLocationId?: Prisma.UuidNullableWithAggregatesFilter<"Trip"> | string | null
+  primaryPickupMode?: Prisma.StringWithAggregatesFilter<"Trip"> | string
+  primaryDropoffMode?: Prisma.StringWithAggregatesFilter<"Trip"> | string
+  allowPickupTransfer?: Prisma.BoolWithAggregatesFilter<"Trip"> | boolean
+  allowPickupMeetingPoint?: Prisma.BoolWithAggregatesFilter<"Trip"> | boolean
+  allowDropoffTransfer?: Prisma.BoolWithAggregatesFilter<"Trip"> | boolean
+  allowDropoffStop?: Prisma.BoolWithAggregatesFilter<"Trip"> | boolean
+  salesStatus?: Prisma.StringWithAggregatesFilter<"Trip"> | string
+  operationStatus?: Prisma.StringWithAggregatesFilter<"Trip"> | string
+  completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Trip"> | Date | string | null
   ticketPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -372,25 +513,48 @@ export type TripCreateInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  route: Prisma.RouteCreateNestedOneWithoutTripsInput
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
   bus: Prisma.BusCreateNestedOneWithoutTripsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
 }
 
 export type TripUncheckedCreateInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -398,6 +562,7 @@ export type TripUncheckedCreateInput = {
   createdById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
 }
@@ -406,25 +571,48 @@ export type TripUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  route?: Prisma.RouteUpdateOneRequiredWithoutTripsNestedInput
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
   bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -432,16 +620,28 @@ export type TripUncheckedUpdateInput = {
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
 }
 
 export type TripCreateManyInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -455,6 +655,15 @@ export type TripUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -465,10 +674,21 @@ export type TripUpdateManyMutationInput = {
 
 export type TripUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -494,6 +714,17 @@ export type TripCountOrderByAggregateInput = {
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
+  departureLocationId?: Prisma.SortOrder
+  arrivalLocationId?: Prisma.SortOrder
+  primaryPickupMode?: Prisma.SortOrder
+  primaryDropoffMode?: Prisma.SortOrder
+  allowPickupTransfer?: Prisma.SortOrder
+  allowPickupMeetingPoint?: Prisma.SortOrder
+  allowDropoffTransfer?: Prisma.SortOrder
+  allowDropoffStop?: Prisma.SortOrder
+  salesStatus?: Prisma.SortOrder
+  operationStatus?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   ticketPrice?: Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrder
@@ -515,6 +746,17 @@ export type TripMaxOrderByAggregateInput = {
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
+  departureLocationId?: Prisma.SortOrder
+  arrivalLocationId?: Prisma.SortOrder
+  primaryPickupMode?: Prisma.SortOrder
+  primaryDropoffMode?: Prisma.SortOrder
+  allowPickupTransfer?: Prisma.SortOrder
+  allowPickupMeetingPoint?: Prisma.SortOrder
+  allowDropoffTransfer?: Prisma.SortOrder
+  allowDropoffStop?: Prisma.SortOrder
+  salesStatus?: Prisma.SortOrder
+  operationStatus?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   ticketPrice?: Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrder
@@ -530,6 +772,17 @@ export type TripMinOrderByAggregateInput = {
   busId?: Prisma.SortOrder
   departureTime?: Prisma.SortOrder
   expectedArrivalTime?: Prisma.SortOrder
+  departureLocationId?: Prisma.SortOrder
+  arrivalLocationId?: Prisma.SortOrder
+  primaryPickupMode?: Prisma.SortOrder
+  primaryDropoffMode?: Prisma.SortOrder
+  allowPickupTransfer?: Prisma.SortOrder
+  allowPickupMeetingPoint?: Prisma.SortOrder
+  allowDropoffTransfer?: Prisma.SortOrder
+  allowDropoffStop?: Prisma.SortOrder
+  salesStatus?: Prisma.SortOrder
+  operationStatus?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
   ticketPrice?: Prisma.SortOrder
   singleRoomPrice?: Prisma.SortOrder
   doubleRoomPrice?: Prisma.SortOrder
@@ -589,6 +842,90 @@ export type TripUncheckedUpdateManyWithoutCreatedByNestedInput = {
   connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
   update?: Prisma.TripUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.TripUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.TripUpdateManyWithWhereWithoutCreatedByInput | Prisma.TripUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
+}
+
+export type TripCreateNestedManyWithoutDepartureLocationInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput> | Prisma.TripCreateWithoutDepartureLocationInput[] | Prisma.TripUncheckedCreateWithoutDepartureLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutDepartureLocationInput | Prisma.TripCreateOrConnectWithoutDepartureLocationInput[]
+  createMany?: Prisma.TripCreateManyDepartureLocationInputEnvelope
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+}
+
+export type TripCreateNestedManyWithoutArrivalLocationInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput> | Prisma.TripCreateWithoutArrivalLocationInput[] | Prisma.TripUncheckedCreateWithoutArrivalLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutArrivalLocationInput | Prisma.TripCreateOrConnectWithoutArrivalLocationInput[]
+  createMany?: Prisma.TripCreateManyArrivalLocationInputEnvelope
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+}
+
+export type TripUncheckedCreateNestedManyWithoutDepartureLocationInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput> | Prisma.TripCreateWithoutDepartureLocationInput[] | Prisma.TripUncheckedCreateWithoutDepartureLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutDepartureLocationInput | Prisma.TripCreateOrConnectWithoutDepartureLocationInput[]
+  createMany?: Prisma.TripCreateManyDepartureLocationInputEnvelope
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+}
+
+export type TripUncheckedCreateNestedManyWithoutArrivalLocationInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput> | Prisma.TripCreateWithoutArrivalLocationInput[] | Prisma.TripUncheckedCreateWithoutArrivalLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutArrivalLocationInput | Prisma.TripCreateOrConnectWithoutArrivalLocationInput[]
+  createMany?: Prisma.TripCreateManyArrivalLocationInputEnvelope
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+}
+
+export type TripUpdateManyWithoutDepartureLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput> | Prisma.TripCreateWithoutDepartureLocationInput[] | Prisma.TripUncheckedCreateWithoutDepartureLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutDepartureLocationInput | Prisma.TripCreateOrConnectWithoutDepartureLocationInput[]
+  upsert?: Prisma.TripUpsertWithWhereUniqueWithoutDepartureLocationInput | Prisma.TripUpsertWithWhereUniqueWithoutDepartureLocationInput[]
+  createMany?: Prisma.TripCreateManyDepartureLocationInputEnvelope
+  set?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  disconnect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  delete?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  update?: Prisma.TripUpdateWithWhereUniqueWithoutDepartureLocationInput | Prisma.TripUpdateWithWhereUniqueWithoutDepartureLocationInput[]
+  updateMany?: Prisma.TripUpdateManyWithWhereWithoutDepartureLocationInput | Prisma.TripUpdateManyWithWhereWithoutDepartureLocationInput[]
+  deleteMany?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
+}
+
+export type TripUpdateManyWithoutArrivalLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput> | Prisma.TripCreateWithoutArrivalLocationInput[] | Prisma.TripUncheckedCreateWithoutArrivalLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutArrivalLocationInput | Prisma.TripCreateOrConnectWithoutArrivalLocationInput[]
+  upsert?: Prisma.TripUpsertWithWhereUniqueWithoutArrivalLocationInput | Prisma.TripUpsertWithWhereUniqueWithoutArrivalLocationInput[]
+  createMany?: Prisma.TripCreateManyArrivalLocationInputEnvelope
+  set?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  disconnect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  delete?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  update?: Prisma.TripUpdateWithWhereUniqueWithoutArrivalLocationInput | Prisma.TripUpdateWithWhereUniqueWithoutArrivalLocationInput[]
+  updateMany?: Prisma.TripUpdateManyWithWhereWithoutArrivalLocationInput | Prisma.TripUpdateManyWithWhereWithoutArrivalLocationInput[]
+  deleteMany?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
+}
+
+export type TripUncheckedUpdateManyWithoutDepartureLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput> | Prisma.TripCreateWithoutDepartureLocationInput[] | Prisma.TripUncheckedCreateWithoutDepartureLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutDepartureLocationInput | Prisma.TripCreateOrConnectWithoutDepartureLocationInput[]
+  upsert?: Prisma.TripUpsertWithWhereUniqueWithoutDepartureLocationInput | Prisma.TripUpsertWithWhereUniqueWithoutDepartureLocationInput[]
+  createMany?: Prisma.TripCreateManyDepartureLocationInputEnvelope
+  set?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  disconnect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  delete?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  update?: Prisma.TripUpdateWithWhereUniqueWithoutDepartureLocationInput | Prisma.TripUpdateWithWhereUniqueWithoutDepartureLocationInput[]
+  updateMany?: Prisma.TripUpdateManyWithWhereWithoutDepartureLocationInput | Prisma.TripUpdateManyWithWhereWithoutDepartureLocationInput[]
+  deleteMany?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
+}
+
+export type TripUncheckedUpdateManyWithoutArrivalLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput> | Prisma.TripCreateWithoutArrivalLocationInput[] | Prisma.TripUncheckedCreateWithoutArrivalLocationInput[]
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutArrivalLocationInput | Prisma.TripCreateOrConnectWithoutArrivalLocationInput[]
+  upsert?: Prisma.TripUpsertWithWhereUniqueWithoutArrivalLocationInput | Prisma.TripUpsertWithWhereUniqueWithoutArrivalLocationInput[]
+  createMany?: Prisma.TripCreateManyArrivalLocationInputEnvelope
+  set?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  disconnect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  delete?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  connect?: Prisma.TripWhereUniqueInput | Prisma.TripWhereUniqueInput[]
+  update?: Prisma.TripUpdateWithWhereUniqueWithoutArrivalLocationInput | Prisma.TripUpdateWithWhereUniqueWithoutArrivalLocationInput[]
+  updateMany?: Prisma.TripUpdateManyWithWhereWithoutArrivalLocationInput | Prisma.TripUpdateManyWithWhereWithoutArrivalLocationInput[]
   deleteMany?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
 }
 
@@ -680,6 +1017,20 @@ export type EnumTripStatusFieldUpdateOperationsInput = {
   set?: $Enums.TripStatus
 }
 
+export type TripCreateNestedOneWithoutServicePointsInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutServicePointsInput, Prisma.TripUncheckedCreateWithoutServicePointsInput>
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutServicePointsInput
+  connect?: Prisma.TripWhereUniqueInput
+}
+
+export type TripUpdateOneRequiredWithoutServicePointsNestedInput = {
+  create?: Prisma.XOR<Prisma.TripCreateWithoutServicePointsInput, Prisma.TripUncheckedCreateWithoutServicePointsInput>
+  connectOrCreate?: Prisma.TripCreateOrConnectWithoutServicePointsInput
+  upsert?: Prisma.TripUpsertWithoutServicePointsInput
+  connect?: Prisma.TripWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TripUpdateToOneWithWhereWithoutServicePointsInput, Prisma.TripUpdateWithoutServicePointsInput>, Prisma.TripUncheckedUpdateWithoutServicePointsInput>
+}
+
 export type TripCreateNestedOneWithoutTripSeatsInput = {
   create?: Prisma.XOR<Prisma.TripCreateWithoutTripSeatsInput, Prisma.TripUncheckedCreateWithoutTripSeatsInput>
   connectOrCreate?: Prisma.TripCreateOrConnectWithoutTripSeatsInput
@@ -712,30 +1063,54 @@ export type TripCreateWithoutCreatedByInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  route: Prisma.RouteCreateNestedOneWithoutTripsInput
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
   bus: Prisma.BusCreateNestedOneWithoutTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
 }
 
 export type TripUncheckedCreateWithoutCreatedByInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
 }
@@ -771,10 +1146,21 @@ export type TripScalarWhereInput = {
   OR?: Prisma.TripScalarWhereInput[]
   NOT?: Prisma.TripScalarWhereInput | Prisma.TripScalarWhereInput[]
   id?: Prisma.UuidFilter<"Trip"> | string
-  routeId?: Prisma.UuidFilter<"Trip"> | string
+  routeId?: Prisma.UuidNullableFilter<"Trip"> | string | null
   busId?: Prisma.UuidFilter<"Trip"> | string
   departureTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
   expectedArrivalTime?: Prisma.DateTimeFilter<"Trip"> | Date | string
+  departureLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  arrivalLocationId?: Prisma.UuidNullableFilter<"Trip"> | string | null
+  primaryPickupMode?: Prisma.StringFilter<"Trip"> | string
+  primaryDropoffMode?: Prisma.StringFilter<"Trip"> | string
+  allowPickupTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffTransfer?: Prisma.BoolFilter<"Trip"> | boolean
+  allowDropoffStop?: Prisma.BoolFilter<"Trip"> | boolean
+  salesStatus?: Prisma.StringFilter<"Trip"> | string
+  operationStatus?: Prisma.StringFilter<"Trip"> | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Trip"> | Date | string | null
   ticketPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.DecimalNullableFilter<"Trip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -784,10 +1170,183 @@ export type TripScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Trip"> | Date | string
 }
 
+export type TripCreateWithoutDepartureLocationInput = {
+  id?: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
+  bus: Prisma.BusCreateNestedOneWithoutTripsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
+  tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
+}
+
+export type TripUncheckedCreateWithoutDepartureLocationInput = {
+  id?: string
+  routeId?: string | null
+  busId: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
+  tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
+}
+
+export type TripCreateOrConnectWithoutDepartureLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  create: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput>
+}
+
+export type TripCreateManyDepartureLocationInputEnvelope = {
+  data: Prisma.TripCreateManyDepartureLocationInput | Prisma.TripCreateManyDepartureLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type TripCreateWithoutArrivalLocationInput = {
+  id?: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
+  bus: Prisma.BusCreateNestedOneWithoutTripsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
+  tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
+}
+
+export type TripUncheckedCreateWithoutArrivalLocationInput = {
+  id?: string
+  routeId?: string | null
+  busId: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
+  tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
+}
+
+export type TripCreateOrConnectWithoutArrivalLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  create: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput>
+}
+
+export type TripCreateManyArrivalLocationInputEnvelope = {
+  data: Prisma.TripCreateManyArrivalLocationInput | Prisma.TripCreateManyArrivalLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type TripUpsertWithWhereUniqueWithoutDepartureLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  update: Prisma.XOR<Prisma.TripUpdateWithoutDepartureLocationInput, Prisma.TripUncheckedUpdateWithoutDepartureLocationInput>
+  create: Prisma.XOR<Prisma.TripCreateWithoutDepartureLocationInput, Prisma.TripUncheckedCreateWithoutDepartureLocationInput>
+}
+
+export type TripUpdateWithWhereUniqueWithoutDepartureLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  data: Prisma.XOR<Prisma.TripUpdateWithoutDepartureLocationInput, Prisma.TripUncheckedUpdateWithoutDepartureLocationInput>
+}
+
+export type TripUpdateManyWithWhereWithoutDepartureLocationInput = {
+  where: Prisma.TripScalarWhereInput
+  data: Prisma.XOR<Prisma.TripUpdateManyMutationInput, Prisma.TripUncheckedUpdateManyWithoutDepartureLocationInput>
+}
+
+export type TripUpsertWithWhereUniqueWithoutArrivalLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  update: Prisma.XOR<Prisma.TripUpdateWithoutArrivalLocationInput, Prisma.TripUncheckedUpdateWithoutArrivalLocationInput>
+  create: Prisma.XOR<Prisma.TripCreateWithoutArrivalLocationInput, Prisma.TripUncheckedCreateWithoutArrivalLocationInput>
+}
+
+export type TripUpdateWithWhereUniqueWithoutArrivalLocationInput = {
+  where: Prisma.TripWhereUniqueInput
+  data: Prisma.XOR<Prisma.TripUpdateWithoutArrivalLocationInput, Prisma.TripUncheckedUpdateWithoutArrivalLocationInput>
+}
+
+export type TripUpdateManyWithWhereWithoutArrivalLocationInput = {
+  where: Prisma.TripScalarWhereInput
+  data: Prisma.XOR<Prisma.TripUpdateManyMutationInput, Prisma.TripUncheckedUpdateManyWithoutArrivalLocationInput>
+}
+
 export type TripCreateWithoutRouteInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -796,6 +1355,9 @@ export type TripCreateWithoutRouteInput = {
   updatedAt?: Date | string
   bus: Prisma.BusCreateNestedOneWithoutTripsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
 }
@@ -805,6 +1367,17 @@ export type TripUncheckedCreateWithoutRouteInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -812,6 +1385,7 @@ export type TripUncheckedCreateWithoutRouteInput = {
   createdById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
 }
@@ -846,23 +1420,46 @@ export type TripCreateWithoutBusInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  route: Prisma.RouteCreateNestedOneWithoutTripsInput
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
 }
 
 export type TripUncheckedCreateWithoutBusInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -870,6 +1467,7 @@ export type TripUncheckedCreateWithoutBusInput = {
   createdById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
 }
@@ -900,28 +1498,51 @@ export type TripUpdateManyWithWhereWithoutBusInput = {
   data: Prisma.XOR<Prisma.TripUpdateManyMutationInput, Prisma.TripUncheckedUpdateManyWithoutBusInput>
 }
 
-export type TripCreateWithoutTripSeatsInput = {
+export type TripCreateWithoutServicePointsInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  route: Prisma.RouteCreateNestedOneWithoutTripsInput
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
   bus: Prisma.BusCreateNestedOneWithoutTripsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
 }
 
-export type TripUncheckedCreateWithoutTripSeatsInput = {
+export type TripUncheckedCreateWithoutServicePointsInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -929,6 +1550,135 @@ export type TripUncheckedCreateWithoutTripSeatsInput = {
   createdById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
+}
+
+export type TripCreateOrConnectWithoutServicePointsInput = {
+  where: Prisma.TripWhereUniqueInput
+  create: Prisma.XOR<Prisma.TripCreateWithoutServicePointsInput, Prisma.TripUncheckedCreateWithoutServicePointsInput>
+}
+
+export type TripUpsertWithoutServicePointsInput = {
+  update: Prisma.XOR<Prisma.TripUpdateWithoutServicePointsInput, Prisma.TripUncheckedUpdateWithoutServicePointsInput>
+  create: Prisma.XOR<Prisma.TripCreateWithoutServicePointsInput, Prisma.TripUncheckedCreateWithoutServicePointsInput>
+  where?: Prisma.TripWhereInput
+}
+
+export type TripUpdateToOneWithWhereWithoutServicePointsInput = {
+  where?: Prisma.TripWhereInput
+  data: Prisma.XOR<Prisma.TripUpdateWithoutServicePointsInput, Prisma.TripUncheckedUpdateWithoutServicePointsInput>
+}
+
+export type TripUpdateWithoutServicePointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
+  bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
+}
+
+export type TripUncheckedUpdateWithoutServicePointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  busId?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
+}
+
+export type TripCreateWithoutTripSeatsInput = {
+  id?: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
+  bus: Prisma.BusCreateNestedOneWithoutTripsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutTripInput
+}
+
+export type TripUncheckedCreateWithoutTripSeatsInput = {
+  id?: string
+  routeId?: string | null
+  busId: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutTripInput
 }
 
@@ -952,24 +1702,47 @@ export type TripUpdateWithoutTripSeatsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  route?: Prisma.RouteUpdateOneRequiredWithoutTripsNestedInput
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
   bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateWithoutTripSeatsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -977,6 +1750,7 @@ export type TripUncheckedUpdateWithoutTripSeatsInput = {
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
 }
 
@@ -984,24 +1758,47 @@ export type TripCreateWithoutBookingsInput = {
   id?: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: $Enums.TripStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  route: Prisma.RouteCreateNestedOneWithoutTripsInput
+  route?: Prisma.RouteCreateNestedOneWithoutTripsInput
   bus: Prisma.BusCreateNestedOneWithoutTripsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutCreatedTripsInput
+  departureLocation?: Prisma.LocationCreateNestedOneWithoutTripDepartureLocationsInput
+  arrivalLocation?: Prisma.LocationCreateNestedOneWithoutTripArrivalLocationsInput
+  servicePoints?: Prisma.TripServicePointCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatCreateNestedManyWithoutTripInput
 }
 
 export type TripUncheckedCreateWithoutBookingsInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1009,6 +1806,7 @@ export type TripUncheckedCreateWithoutBookingsInput = {
   createdById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutTripInput
   tripSeats?: Prisma.TripSeatUncheckedCreateNestedManyWithoutTripInput
 }
 
@@ -1032,24 +1830,47 @@ export type TripUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  route?: Prisma.RouteUpdateOneRequiredWithoutTripsNestedInput
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
   bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1057,15 +1878,27 @@ export type TripUncheckedUpdateWithoutBookingsInput = {
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
 }
 
 export type TripCreateManyCreatedByInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1078,44 +1911,291 @@ export type TripUpdateWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  route?: Prisma.RouteUpdateOneRequiredWithoutTripsNestedInput
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
   bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TripCreateManyDepartureLocationInput = {
+  id?: string
+  routeId?: string | null
+  busId: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TripCreateManyArrivalLocationInput = {
+  id?: string
+  routeId?: string | null
+  busId: string
+  departureTime: Date | string
+  expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
+  ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.TripStatus
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TripUpdateWithoutDepartureLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
+  bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
+  tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
+}
+
+export type TripUncheckedUpdateWithoutDepartureLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  busId?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
+  tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
+}
+
+export type TripUncheckedUpdateManyWithoutDepartureLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  busId?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TripUpdateWithoutArrivalLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
+  bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
+  tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
+}
+
+export type TripUncheckedUpdateWithoutArrivalLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  busId?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
+  tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
+}
+
+export type TripUncheckedUpdateManyWithoutArrivalLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  busId?: Prisma.StringFieldUpdateOperationsInput | string
+  departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1125,6 +2205,17 @@ export type TripCreateManyRouteInput = {
   busId: string
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1138,6 +2229,15 @@ export type TripUpdateWithoutRouteInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1146,6 +2246,9 @@ export type TripUpdateWithoutRouteInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bus?: Prisma.BusUpdateOneRequiredWithoutTripsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
 }
@@ -1155,6 +2258,17 @@ export type TripUncheckedUpdateWithoutRouteInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1162,6 +2276,7 @@ export type TripUncheckedUpdateWithoutRouteInput = {
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
 }
@@ -1171,6 +2286,17 @@ export type TripUncheckedUpdateManyWithoutRouteInput = {
   busId?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1182,9 +2308,20 @@ export type TripUncheckedUpdateManyWithoutRouteInput = {
 
 export type TripCreateManyBusInput = {
   id?: string
-  routeId: string
+  routeId?: string | null
   departureTime: Date | string
   expectedArrivalTime: Date | string
+  departureLocationId?: string | null
+  arrivalLocationId?: string | null
+  primaryPickupMode?: string
+  primaryDropoffMode?: string
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: string
+  operationStatus?: string
+  completedAt?: Date | string | null
   ticketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1198,23 +2335,46 @@ export type TripUpdateWithoutBusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   status?: Prisma.EnumTripStatusFieldUpdateOperationsInput | $Enums.TripStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  route?: Prisma.RouteUpdateOneRequiredWithoutTripsNestedInput
+  route?: Prisma.RouteUpdateOneWithoutTripsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutCreatedTripsNestedInput
+  departureLocation?: Prisma.LocationUpdateOneWithoutTripDepartureLocationsNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneWithoutTripArrivalLocationsNestedInput
+  servicePoints?: Prisma.TripServicePointUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateWithoutBusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1222,15 +2382,27 @@ export type TripUncheckedUpdateWithoutBusInput = {
   createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  servicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutTripNestedInput
   tripSeats?: Prisma.TripSeatUncheckedUpdateManyWithoutTripNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutTripNestedInput
 }
 
 export type TripUncheckedUpdateManyWithoutBusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  routeId?: Prisma.StringFieldUpdateOperationsInput | string
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expectedArrivalTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  arrivalLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primaryPickupMode?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryDropoffMode?: Prisma.StringFieldUpdateOperationsInput | string
+  allowPickupTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowPickupMeetingPoint?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffTransfer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDropoffStop?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salesStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  operationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ticketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   singleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   doubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1246,11 +2418,13 @@ export type TripUncheckedUpdateManyWithoutBusInput = {
  */
 
 export type TripCountOutputType = {
+  servicePoints: number
   tripSeats: number
   bookings: number
 }
 
 export type TripCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  servicePoints?: boolean | TripCountOutputTypeCountServicePointsArgs
   tripSeats?: boolean | TripCountOutputTypeCountTripSeatsArgs
   bookings?: boolean | TripCountOutputTypeCountBookingsArgs
 }
@@ -1263,6 +2437,13 @@ export type TripCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the TripCountOutputType
    */
   select?: Prisma.TripCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * TripCountOutputType without action
+ */
+export type TripCountOutputTypeCountServicePointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TripServicePointWhereInput
 }
 
 /**
@@ -1286,6 +2467,17 @@ export type TripSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   busId?: boolean
   departureTime?: boolean
   expectedArrivalTime?: boolean
+  departureLocationId?: boolean
+  arrivalLocationId?: boolean
+  primaryPickupMode?: boolean
+  primaryDropoffMode?: boolean
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: boolean
+  operationStatus?: boolean
+  completedAt?: boolean
   ticketPrice?: boolean
   singleRoomPrice?: boolean
   doubleRoomPrice?: boolean
@@ -1293,9 +2485,12 @@ export type TripSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
+  servicePoints?: boolean | Prisma.Trip$servicePointsArgs<ExtArgs>
   tripSeats?: boolean | Prisma.Trip$tripSeatsArgs<ExtArgs>
   bookings?: boolean | Prisma.Trip$bookingsArgs<ExtArgs>
   _count?: boolean | Prisma.TripCountOutputTypeDefaultArgs<ExtArgs>
@@ -1307,6 +2502,17 @@ export type TripSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   busId?: boolean
   departureTime?: boolean
   expectedArrivalTime?: boolean
+  departureLocationId?: boolean
+  arrivalLocationId?: boolean
+  primaryPickupMode?: boolean
+  primaryDropoffMode?: boolean
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: boolean
+  operationStatus?: boolean
+  completedAt?: boolean
   ticketPrice?: boolean
   singleRoomPrice?: boolean
   doubleRoomPrice?: boolean
@@ -1314,9 +2520,11 @@ export type TripSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
 }, ExtArgs["result"]["trip"]>
 
 export type TripSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1325,6 +2533,17 @@ export type TripSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   busId?: boolean
   departureTime?: boolean
   expectedArrivalTime?: boolean
+  departureLocationId?: boolean
+  arrivalLocationId?: boolean
+  primaryPickupMode?: boolean
+  primaryDropoffMode?: boolean
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: boolean
+  operationStatus?: boolean
+  completedAt?: boolean
   ticketPrice?: boolean
   singleRoomPrice?: boolean
   doubleRoomPrice?: boolean
@@ -1332,9 +2551,11 @@ export type TripSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
 }, ExtArgs["result"]["trip"]>
 
 export type TripSelectScalar = {
@@ -1343,6 +2564,17 @@ export type TripSelectScalar = {
   busId?: boolean
   departureTime?: boolean
   expectedArrivalTime?: boolean
+  departureLocationId?: boolean
+  arrivalLocationId?: boolean
+  primaryPickupMode?: boolean
+  primaryDropoffMode?: boolean
+  allowPickupTransfer?: boolean
+  allowPickupMeetingPoint?: boolean
+  allowDropoffTransfer?: boolean
+  allowDropoffStop?: boolean
+  salesStatus?: boolean
+  operationStatus?: boolean
+  completedAt?: boolean
   ticketPrice?: boolean
   singleRoomPrice?: boolean
   doubleRoomPrice?: boolean
@@ -1352,41 +2584,62 @@ export type TripSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TripOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeId" | "busId" | "departureTime" | "expectedArrivalTime" | "ticketPrice" | "singleRoomPrice" | "doubleRoomPrice" | "status" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["trip"]>
+export type TripOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeId" | "busId" | "departureTime" | "expectedArrivalTime" | "departureLocationId" | "arrivalLocationId" | "primaryPickupMode" | "primaryDropoffMode" | "allowPickupTransfer" | "allowPickupMeetingPoint" | "allowDropoffTransfer" | "allowDropoffStop" | "salesStatus" | "operationStatus" | "completedAt" | "ticketPrice" | "singleRoomPrice" | "doubleRoomPrice" | "status" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["trip"]>
 export type TripInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
+  servicePoints?: boolean | Prisma.Trip$servicePointsArgs<ExtArgs>
   tripSeats?: boolean | Prisma.Trip$tripSeatsArgs<ExtArgs>
   bookings?: boolean | Prisma.Trip$bookingsArgs<ExtArgs>
   _count?: boolean | Prisma.TripCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TripIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
 }
 export type TripIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  route?: boolean | Prisma.RouteDefaultArgs<ExtArgs>
+  route?: boolean | Prisma.Trip$routeArgs<ExtArgs>
   bus?: boolean | Prisma.BusDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.Trip$createdByArgs<ExtArgs>
+  departureLocation?: boolean | Prisma.Trip$departureLocationArgs<ExtArgs>
+  arrivalLocation?: boolean | Prisma.Trip$arrivalLocationArgs<ExtArgs>
 }
 
 export type $TripPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Trip"
   objects: {
-    route: Prisma.$RoutePayload<ExtArgs>
+    route: Prisma.$RoutePayload<ExtArgs> | null
     bus: Prisma.$BusPayload<ExtArgs>
     createdBy: Prisma.$UserPayload<ExtArgs> | null
+    departureLocation: Prisma.$LocationPayload<ExtArgs> | null
+    arrivalLocation: Prisma.$LocationPayload<ExtArgs> | null
+    servicePoints: Prisma.$TripServicePointPayload<ExtArgs>[]
     tripSeats: Prisma.$TripSeatPayload<ExtArgs>[]
     bookings: Prisma.$BookingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    routeId: string
+    routeId: string | null
     busId: string
     departureTime: Date
     expectedArrivalTime: Date
+    departureLocationId: string | null
+    arrivalLocationId: string | null
+    primaryPickupMode: string
+    primaryDropoffMode: string
+    allowPickupTransfer: boolean
+    allowPickupMeetingPoint: boolean
+    allowDropoffTransfer: boolean
+    allowDropoffStop: boolean
+    salesStatus: string
+    operationStatus: string
+    completedAt: Date | null
     ticketPrice: runtime.Decimal | null
     singleRoomPrice: runtime.Decimal | null
     doubleRoomPrice: runtime.Decimal | null
@@ -1788,9 +3041,12 @@ readonly fields: TripFieldRefs;
  */
 export interface Prisma__TripClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  route<T extends Prisma.RouteDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RouteDefaultArgs<ExtArgs>>): Prisma.Prisma__RouteClient<runtime.Types.Result.GetResult<Prisma.$RoutePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  route<T extends Prisma.Trip$routeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$routeArgs<ExtArgs>>): Prisma.Prisma__RouteClient<runtime.Types.Result.GetResult<Prisma.$RoutePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   bus<T extends Prisma.BusDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BusDefaultArgs<ExtArgs>>): Prisma.Prisma__BusClient<runtime.Types.Result.GetResult<Prisma.$BusPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.Trip$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  departureLocation<T extends Prisma.Trip$departureLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$departureLocationArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  arrivalLocation<T extends Prisma.Trip$arrivalLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$arrivalLocationArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  servicePoints<T extends Prisma.Trip$servicePointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$servicePointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripServicePointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tripSeats<T extends Prisma.Trip$tripSeatsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$tripSeatsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripSeatPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bookings<T extends Prisma.Trip$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Trip$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1827,6 +3083,17 @@ export interface TripFieldRefs {
   readonly busId: Prisma.FieldRef<"Trip", 'String'>
   readonly departureTime: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly expectedArrivalTime: Prisma.FieldRef<"Trip", 'DateTime'>
+  readonly departureLocationId: Prisma.FieldRef<"Trip", 'String'>
+  readonly arrivalLocationId: Prisma.FieldRef<"Trip", 'String'>
+  readonly primaryPickupMode: Prisma.FieldRef<"Trip", 'String'>
+  readonly primaryDropoffMode: Prisma.FieldRef<"Trip", 'String'>
+  readonly allowPickupTransfer: Prisma.FieldRef<"Trip", 'Boolean'>
+  readonly allowPickupMeetingPoint: Prisma.FieldRef<"Trip", 'Boolean'>
+  readonly allowDropoffTransfer: Prisma.FieldRef<"Trip", 'Boolean'>
+  readonly allowDropoffStop: Prisma.FieldRef<"Trip", 'Boolean'>
+  readonly salesStatus: Prisma.FieldRef<"Trip", 'String'>
+  readonly operationStatus: Prisma.FieldRef<"Trip", 'String'>
+  readonly completedAt: Prisma.FieldRef<"Trip", 'DateTime'>
   readonly ticketPrice: Prisma.FieldRef<"Trip", 'Decimal'>
   readonly singleRoomPrice: Prisma.FieldRef<"Trip", 'Decimal'>
   readonly doubleRoomPrice: Prisma.FieldRef<"Trip", 'Decimal'>
@@ -2235,6 +3502,25 @@ export type TripDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * Trip.route
+ */
+export type Trip$routeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Route
+   */
+  select?: Prisma.RouteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Route
+   */
+  omit?: Prisma.RouteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RouteInclude<ExtArgs> | null
+  where?: Prisma.RouteWhereInput
+}
+
+/**
  * Trip.createdBy
  */
 export type Trip$createdByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2251,6 +3537,68 @@ export type Trip$createdByArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * Trip.departureLocation
+ */
+export type Trip$departureLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Location
+   */
+  select?: Prisma.LocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Location
+   */
+  omit?: Prisma.LocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationInclude<ExtArgs> | null
+  where?: Prisma.LocationWhereInput
+}
+
+/**
+ * Trip.arrivalLocation
+ */
+export type Trip$arrivalLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Location
+   */
+  select?: Prisma.LocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Location
+   */
+  omit?: Prisma.LocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationInclude<ExtArgs> | null
+  where?: Prisma.LocationWhereInput
+}
+
+/**
+ * Trip.servicePoints
+ */
+export type Trip$servicePointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TripServicePoint
+   */
+  select?: Prisma.TripServicePointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TripServicePoint
+   */
+  omit?: Prisma.TripServicePointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripServicePointInclude<ExtArgs> | null
+  where?: Prisma.TripServicePointWhereInput
+  orderBy?: Prisma.TripServicePointOrderByWithRelationInput | Prisma.TripServicePointOrderByWithRelationInput[]
+  cursor?: Prisma.TripServicePointWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TripServicePointScalarFieldEnum | Prisma.TripServicePointScalarFieldEnum[]
 }
 
 /**

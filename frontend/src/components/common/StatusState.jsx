@@ -1,29 +1,41 @@
+import './StatusState.css'
+
 function LoadingState({ label = 'Đang tải dữ liệu...' }) {
   return (
-    <div className="status-state" role="status" aria-live="polite">
-      <span className="spinner-border text-primary" aria-hidden="true" />
-      <p>{label}</p>
+    <div className="ui-state ui-state--loading" role="status" aria-live="polite">
+      <span className="ui-state__spinner" aria-hidden="true" />
+      <span className="ui-state__text">{label}</span>
     </div>
   )
 }
 
 function ErrorState({ message, onRetry }) {
   return (
-    <div className="status-state status-state--error" role="alert">
-      <span className="status-symbol">!</span>
-      <h3>Chưa thể tải dữ liệu</h3>
-      <p>{message}</p>
-      {onRetry && <button className="btn btn-primary" onClick={onRetry}>Thử lại</button>}
+    <div className="ui-state ui-state--error" role="alert">
+      <div className="ui-state__body">
+        <strong>Không tải được dữ liệu</strong>
+        {message && <p>{message}</p>}
+      </div>
+      {onRetry && (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={onRetry}
+          type="button"
+        >
+          Tải lại
+        </button>
+      )}
     </div>
   )
 }
 
 function EmptyState({ title = 'Chưa có dữ liệu', message }) {
   return (
-    <div className="status-state">
-      <span className="status-symbol status-symbol--muted">0</span>
-      <h3>{title}</h3>
-      <p>{message}</p>
+    <div className="ui-state ui-state--empty">
+      <div className="ui-state__body">
+        <strong>{title}</strong>
+        {message && <p>{message}</p>}
+      </div>
     </div>
   )
 }

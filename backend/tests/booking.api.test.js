@@ -151,21 +151,23 @@ describe('Seat hold and booking API validation', () => {
     })
   })
 
-  test('keeps HTTP 201 and exposes a safe warning when Email delivery fails', async () => {
-    attachEmailDelivery.mockResolvedValueOnce({
+  test('returns HTTP 201 before Email delivery finishes', async () => {
+    createBooking.mockResolvedValueOnce({
       booking: {
         bookingCode: 'TNTESTBOOKING',
         status: 'CONFIRMED',
         paymentStatus: 'SUCCESS',
+        passenger: { email: 'a@example.com' },
         payment: { paymentMethod: 'BANK_TRANSFER', status: 'SUCCESS' },
-        emailSent: false,
-        emailStatus: 'FAILED',
-        emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
       },
-      emailSent: false,
-      emailStatus: 'FAILED',
-      emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
     })
+
+    let resolveEmail
+    attachEmailDelivery.mockImplementationOnce(
+      () => new Promise((resolve) => {
+        resolveEmail = resolve
+      }),
+    )
 
     const response = await request(app)
       .post('/api/v1/public/bookings')
@@ -179,11 +181,18 @@ describe('Seat hold and booking API validation', () => {
     expect(response.statusCode).toBe(201)
     expect(response.body.data).toMatchObject({
       emailSent: false,
-      emailStatus: 'FAILED',
-      emailWarning: 'Đặt vé thành công nhưng Email vé chưa được gửi.',
-      booking: { status: 'CONFIRMED', paymentStatus: 'SUCCESS' },
+      emailStatus: 'QUEUED',
+      booking: {
+        status: 'CONFIRMED',
+        paymentStatus: 'SUCCESS',
+        emailStatus: 'QUEUED',
+      },
     })
     expect(JSON.stringify(response.body)).not.toMatch(/SMTP_PASSWORD|stack/i)
+
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(attachEmailDelivery).toHaveBeenCalled()
+    resolveEmail?.({})
   })
 
   test('attaches an active user when a valid JWT is supplied', async () => {

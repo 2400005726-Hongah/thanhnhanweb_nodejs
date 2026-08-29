@@ -18,7 +18,8 @@
     "seed:admin": "node src/jobs/seedAdmin.js",
     "seed:data": "node src/jobs/seedData.js",
     "db:normalize:check": "node src/jobs/normalizeExistingData.js",
-    "db:normalize:apply": "node src/jobs/normalizeExistingData.js --apply"
+    "db:normalize:apply": "node src/jobs/normalizeExistingData.js --apply",
+    "email:verify": "node src/jobs/verifyEmail.js"
   },
   "keywords": [
     "express",

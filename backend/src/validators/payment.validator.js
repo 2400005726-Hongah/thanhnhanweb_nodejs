@@ -6,7 +6,8 @@ import {
   normalizePhone,
 } from '../utils/normalize.js'
 
-const BOOKING_CODE_PATTERN = /^TN[A-F0-9]{16}$/i
+const BOOKING_CODE_PATTERN = /^(?:\d{4}|TN[A-F0-9]{16})$/i
+const LOOKUP_IDENTIFIER_PATTERN = /^(?:\d{4}|TN\d{9}|TN[A-F0-9]{16})$/i
 
 const bookingCodeParamValidator = param('bookingCode')
   .customSanitizer(normalizeBookingCode)
@@ -37,8 +38,8 @@ const simulatePaymentValidator = [
 const lookupBookingValidator = [
   query('bookingCode')
     .customSanitizer(normalizeBookingCode)
-    .matches(BOOKING_CODE_PATTERN)
-    .withMessage('Mã đặt vé không hợp lệ'),
+    .matches(LOOKUP_IDENTIFIER_PATTERN)
+    .withMessage('Mã vé hoặc mã giao dịch không hợp lệ'),
   query('phone')
     .isString()
     .withMessage('Số điện thoại là bắt buộc')
@@ -49,6 +50,7 @@ const lookupBookingValidator = [
 
 export {
   BOOKING_CODE_PATTERN,
+  LOOKUP_IDENTIFIER_PATTERN,
   lookupBookingValidator,
   simulatePaymentValidator,
 }

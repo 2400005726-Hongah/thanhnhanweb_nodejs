@@ -12,7 +12,6 @@ process.env.JWT_EXPIRES_IN = '1h'
 const adminId = randomUUID()
 const customerId = randomUUID()
 const locationId = randomUUID()
-let existingLocation = null
 
 const users = new Map([
   [adminId, { id: adminId, role: 'ADMIN', status: 'ACTIVE' }],
@@ -24,8 +23,8 @@ const prisma = {
     findUnique: jest.fn(async ({ where }) => users.get(where.id) || null),
   },
   location: {
-    findFirst: jest.fn(async () => existingLocation),
-    create: jest.fn(async ({ data }) => ({ id: locationId, ...data })),
+    create: jest.fn(),
+    update: jest.fn(),
   },
 }
 
@@ -40,12 +39,11 @@ const adminToken = tokenFor(adminId, 'ADMIN')
 const customerToken = tokenFor(customerId, 'CUSTOMER')
 
 beforeEach(() => {
-  existingLocation = null
   jest.clearAllMocks()
 })
 
-describe('Prisma management authorization and Location API', () => {
-  test('CUSTOMER cannot create a location', async () => {
+describe('Location API sau khi chuyển sang kiến trúc danh mục mới', () => {
+  test('CUSTOMER không được ghi dữ liệu qua API địa điểm legacy', async () => {
     const response = await request(app)
       .post('/api/v1/locations')
       .set('Authorization', `Bearer ${customerToken}`)
@@ -55,29 +53,34 @@ describe('Prisma management authorization and Location API', () => {
     expect(prisma.location.create).not.toHaveBeenCalled()
   })
 
-  test('ADMIN creates a location', async () => {
-    const response = await request(app)
-      .post('/api/v1/locations')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({ name: '  Krong   Nang  ', province: 'Dak Lak' })
-
-    expect(response.statusCode).toBe(201)
-    expect(response.body.data.location.name).toBe('Krông Năng')
-    expect(prisma.location.create).toHaveBeenCalledTimes(1)
-  })
-
-  test('does not create a duplicate location', async () => {
-    existingLocation = { id: locationId }
+  test('ADMIN cũng không thể tạo địa điểm bằng API legacy thiếu tỉnh + bộ lọc chuẩn', async () => {
     const response = await request(app)
       .post('/api/v1/locations')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ name: 'Krong Nang', province: 'Dak Lak' })
 
-    expect(response.statusCode).toBe(409)
+    expect(response.statusCode).toBe(410)
+    expect(response.body.message).toContain('/locations/specific')
     expect(prisma.location.create).not.toHaveBeenCalled()
   })
 
-  test('CUSTOMER cannot update or delete management data', async () => {
+  test('API sửa và xóa địa điểm legacy cũng bị khóa đối với ADMIN', async () => {
+    const [updateResponse, deleteResponse] = await Promise.all([
+      request(app)
+        .patch(`/api/v1/locations/${locationId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Updated location' }),
+      request(app)
+        .delete(`/api/v1/locations/${locationId}`)
+        .set('Authorization', `Bearer ${adminToken}`),
+    ])
+
+    expect(updateResponse.statusCode).toBe(410)
+    expect(deleteResponse.statusCode).toBe(410)
+    expect(prisma.location.update).not.toHaveBeenCalled()
+  })
+
+  test('CUSTOMER không thể sửa hoặc xóa dữ liệu quản trị', async () => {
     const [updateResponse, deleteResponse] = await Promise.all([
       request(app)
         .patch(`/api/v1/locations/${locationId}`)

@@ -3,7 +3,6 @@ import { jest } from '@jest/globals'
 process.env.NODE_ENV = 'test'
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 process.env.JWT_SECRET = 'test-only-jwt-secret-at-least-32-characters'
-process.env.BOOKING_CANCEL_BEFORE_MINUTES = '120'
 
 const userId = '018f4d8f-a096-7b3d-b476-9a0cd8fd3f54'
 const departureTime = new Date('2099-08-01T12:00:00.000Z')
@@ -118,13 +117,11 @@ describe('Customer booking history service', () => {
     expect(result.payment.amount).toBe(640000)
   })
 
-  test('calculates cancellation deadline from the configured window', () => {
+  test('uses departure time as the cancellation deadline', () => {
     const result = serializeHistoryBooking(booking, new Date('2099-07-20T10:00:00.000Z'))
 
     expect(result.canCancel).toBe(true)
-    expect(result.cancelDeadline).toEqual(
-      new Date('2099-08-01T10:00:00.000Z'),
-    )
+    expect(result.cancelDeadline).toEqual(departureTime)
   })
 
   test('does not expose passwordHash, JWT or internal payment identifiers', () => {

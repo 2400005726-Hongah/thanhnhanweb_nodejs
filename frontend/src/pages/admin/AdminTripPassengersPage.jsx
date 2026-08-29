@@ -9,14 +9,17 @@ import {
 } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
+import { useAuth } from '../../contexts/authContext.js'
 import {
   EmptyState,
   ErrorState,
   LoadingState,
 } from '../../components/common/StatusState.jsx'
 import {
+  collectBookingPayment,
   getTripPassengers,
   markNoShow,
+  undoBookingPayment,
 } from '../../services/admin.service.js'
 import {
   getApiErrorMessage,
@@ -49,6 +52,20 @@ const SOURCE_LABELS = {
   HOTLINE: 'Hotline',
   COUNTER: 'Tại quầy',
 }
+
+const SERVICE_MODE_LABELS = {
+  TaiVanPhong: 'Tại văn phòng nhà xe',
+  DonTaiBenXe: 'Đón trực tiếp tại bến xe trung tâm',
+  DonTaiDiemHen: 'Đón tại điểm hẹn',
+  TrungChuyenDonKhach: 'Xe trung chuyển đón khách',
+  TraTaiBenXe: 'Trả khách tại bến xe trung tâm đích đến',
+  TraTaiVanPhong: 'Trả khách tại văn phòng nhà xe',
+  TraTaiDiemDung: 'Trả khách tại điểm dừng',
+  TrungChuyenTraKhach: 'Xe trung chuyển trả tận nơi khu vực nội thành',
+}
+
+const getServiceModeLabel = (value) =>
+  SERVICE_MODE_LABELS[value] || value || 'Chưa xác định'
 
 const displayDateTime = (value) =>
   value
@@ -172,6 +189,8 @@ function AdminTripPassengersPage() {
   const { tripId } =
     useParams()
 
+  const { user } = useAuth()
+
   const [data, setData] =
     useState(null)
 
@@ -287,6 +306,51 @@ function AdminTripPassengersPage() {
     }
   }
 
+  const handleCollectPayment = async (passenger) => {
+    const confirmed = window.confirm(
+      `Xác nhận đã nhận đủ ${formatCurrency(passenger.totalAmount ?? 0)} từ khách của vé ${passenger.bookingCode}?`,
+    )
+
+    if (!confirmed) return
+
+    setProcessingBookingCode(passenger.bookingCode)
+    try {
+      await collectBookingPayment(passenger.bookingCode)
+      window.alert('Đã xác nhận thu tiền của vé.')
+      await load()
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setProcessingBookingCode('')
+    }
+  }
+
+  const handleUndoPayment = async (passenger) => {
+    const reason = window.prompt(
+      `Nhập lý do hoàn tác xác nhận thu tiền cho vé ${passenger.bookingCode}:`,
+    )
+
+    if (reason === null) return
+    const normalizedReason = reason.trim()
+    if (normalizedReason.length < 5 || normalizedReason.length > 500) {
+      window.alert('Lý do hoàn tác phải có từ 5 đến 500 ký tự.')
+      return
+    }
+
+    if (!window.confirm('Xác nhận đưa thanh toán của vé về Chưa thanh toán?')) return
+
+    setProcessingBookingCode(passenger.bookingCode)
+    try {
+      await undoBookingPayment(passenger.bookingCode, normalizedReason)
+      window.alert('Đã hoàn tác xác nhận thu tiền.')
+      await load()
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setProcessingBookingCode('')
+    }
+  }
+
   const exportExcel = () => {
     if (!data?.trip) {
       window.alert(
@@ -298,6 +362,7 @@ function AdminTripPassengersPage() {
     const {
       trip,
       summary,
+      serviceSummary,
       finance,
       passengers = [],
     } = data
@@ -362,6 +427,14 @@ function AdminTripPassengersPage() {
         'Ghế đã đặt',
         `${summary?.bookedSeats ?? 0}/${summary?.capacity ?? 0}`,
       ]),
+      buildCsvRow([
+        'Khách cần trung chuyển đón',
+        serviceSummary?.pickupTransferCount ?? 0,
+      ]),
+      buildCsvRow([
+        'Khách cần trung chuyển trả',
+        serviceSummary?.dropoffTransferCount ?? 0,
+      ]),
     ]
 
     if (canViewFinance) {
@@ -385,7 +458,9 @@ function AdminTripPassengersPage() {
       'Ghế',
       'Nguồn đặt',
       'Điểm đón chi tiết',
+      'Hình thức đón',
       'Điểm trả chi tiết',
+      'Hình thức trả',
       'Ngày đặt',
       'Trạng thái thanh toán',
       'Phương thức thanh toán',
@@ -395,7 +470,7 @@ function AdminTripPassengersPage() {
 
     if (canViewFinance) {
       headers.splice(
-        10,
+        12,
         0,
         'Tổng tiền',
       )
@@ -434,7 +509,11 @@ function AdminTripPassengersPage() {
 
           passenger.pickupPoint || '',
 
+          getServiceModeLabel(passenger.pickupServiceMode),
+
           passenger.dropoffPoint || '',
+
+          getServiceModeLabel(passenger.dropoffServiceMode),
 
           displayDateTime(
             passenger.createdAt,
@@ -462,7 +541,7 @@ function AdminTripPassengersPage() {
 
         if (canViewFinance) {
           passengerRow.splice(
-            10,
+            12,
             0,
             passenger.totalAmount ??
               0,
@@ -546,6 +625,7 @@ function AdminTripPassengersPage() {
   const {
     trip,
     summary,
+    serviceSummary,
     finance,
     passengers = [],
   } = data
@@ -568,7 +648,7 @@ function AdminTripPassengersPage() {
             <>
               <Link
                 className="btn btn-outline-secondary"
-                to="/admin/chuyen-xe-tuyen-duong"
+                to="/admin/chuyen-xe"
               >
                 ← Quay lại
               </Link>
@@ -707,6 +787,47 @@ function AdminTripPassengersPage() {
           )}
         </div>
 
+        <div className="passenger-service-summary passenger-list-no-print">
+          <section>
+            <div className="passenger-service-summary__heading">
+              <strong>Nhóm theo điểm đón</strong>
+              <span>Trung chuyển: {serviceSummary?.pickupTransferCount ?? 0} khách</span>
+            </div>
+            <div className="passenger-service-summary__groups">
+              {(serviceSummary?.pickupGroups || []).length ? (
+                serviceSummary.pickupGroups.map((group) => (
+                  <div key={`${group.point}-${group.serviceMode || ''}`}>
+                    <strong>{group.point}</strong>
+                    <small>{getServiceModeLabel(group.serviceMode)}</small>
+                    <b>{group.count} khách</b>
+                  </div>
+                ))
+              ) : (
+                <small>Chưa có dữ liệu điểm đón.</small>
+              )}
+            </div>
+          </section>
+          <section>
+            <div className="passenger-service-summary__heading">
+              <strong>Nhóm theo điểm trả</strong>
+              <span>Trung chuyển: {serviceSummary?.dropoffTransferCount ?? 0} khách</span>
+            </div>
+            <div className="passenger-service-summary__groups">
+              {(serviceSummary?.dropoffGroups || []).length ? (
+                serviceSummary.dropoffGroups.map((group) => (
+                  <div key={`${group.point}-${group.serviceMode || ''}`}>
+                    <strong>{group.point}</strong>
+                    <small>{getServiceModeLabel(group.serviceMode)}</small>
+                    <b>{group.count} khách</b>
+                  </div>
+                ))
+              ) : (
+                <small>Chưa có dữ liệu điểm trả.</small>
+              )}
+            </div>
+          </section>
+        </div>
+
         {!tripHasDeparted && (
           <div className="alert alert-info passenger-list-no-print">
             Chức năng “Khách không
@@ -778,6 +899,17 @@ function AdminTripPassengersPage() {
                         passenger.status ===
                           'CONFIRMED'
 
+                      const canCollectPayment =
+                        passenger.status === 'CONFIRMED' &&
+                        passenger.payment?.paymentMethod === 'PAY_AT_BUS' &&
+                        passenger.payment?.status === 'PENDING'
+
+                      const canUndoPayment =
+                        user?.role === 'ADMIN' &&
+                        passenger.status === 'CONFIRMED' &&
+                        passenger.payment?.paymentMethod === 'PAY_AT_BUS' &&
+                        passenger.payment?.status === 'SUCCESS'
+
                       const isProcessing =
                         processingBookingCode ===
                         passenger.bookingCode
@@ -836,13 +968,16 @@ function AdminTripPassengersPage() {
 
                           <td>
                             <strong>
-                              {passenger.pickupPoint ||
-                                'Theo điểm đi của tuyến'}
+                              Đón: {passenger.pickupPoint || 'Chưa xác định'}
                             </strong>
-
                             <small>
-                              {passenger.dropoffPoint ||
-                                'Theo điểm đến của tuyến'}
+                              {getServiceModeLabel(passenger.pickupServiceMode)}
+                            </small>
+                            <strong className="mt-1">
+                              Trả: {passenger.dropoffPoint || 'Chưa xác định'}
+                            </strong>
+                            <small>
+                              {getServiceModeLabel(passenger.dropoffServiceMode)}
                             </small>
                           </td>
 
@@ -904,6 +1039,26 @@ function AdminTripPassengersPage() {
                               >
                                 Chi tiết vé
                               </Link>
+
+                              {canCollectPayment && (
+                                <button
+                                  disabled={isProcessing}
+                                  onClick={() => handleCollectPayment(passenger)}
+                                  type="button"
+                                >
+                                  {isProcessing ? 'Đang xử lý...' : 'Đã thu tiền'}
+                                </button>
+                              )}
+
+                              {canUndoPayment && (
+                                <button
+                                  disabled={isProcessing}
+                                  onClick={() => handleUndoPayment(passenger)}
+                                  type="button"
+                                >
+                                  {isProcessing ? 'Đang xử lý...' : 'Hoàn tác thu tiền'}
+                                </button>
+                              )}
 
                               {canMarkNoShow && (
                                 <button

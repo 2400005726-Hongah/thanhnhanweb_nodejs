@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
+import { buildTripRouteSnapshot } from '../utils/tripJourney.js'
 import { getCancellationState } from './cancellation.service.js'
 
 const SORT_OPTIONS = {
@@ -26,11 +27,14 @@ const bookingHistoryInclude = {
       departureTime: true,
       expectedArrivalTime: true,
       status: true,
+      departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+      arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
       route: {
         select: {
+          id: true,
           routeName: true,
-          departureLocation: { select: { name: true, province: true } },
-          arrivalLocation: { select: { name: true, province: true } },
+          departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+          arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
         },
       },
       bus: {
@@ -80,7 +84,10 @@ const serializeHistoryBooking = (booking, now = new Date()) => {
     paymentStatus: booking.paymentStatus,
     expiresAt: booking.expiresAt,
     createdAt: booking.createdAt,
-    trip: booking.trip,
+    trip: {
+      ...booking.trip,
+      route: buildTripRouteSnapshot(booking.trip),
+    },
     seats: booking.items.map((item) => ({
       seatCode: item.seatCode,
       seatType: item.seatType,

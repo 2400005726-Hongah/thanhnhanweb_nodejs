@@ -49,12 +49,8 @@ const listBusValidator = [
 ]
 
 const createBusValidator = [
-  body('busName')
-    .customSanitizer(normalizeWhitespace)
-    .notEmpty()
-    .withMessage('Tên xe là bắt buộc')
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Tên xe phải có từ 2 đến 100 ký tự'),
+  // busName là trường legacy: frontend mới không gửi và backend tự sinh.
+  body('busName').optional().customSanitizer(normalizeWhitespace),
   body('licensePlate')
     .customSanitizer(normalizeLicensePlate)
     .notEmpty()
@@ -82,13 +78,8 @@ const createBusValidator = [
 
 const updateBusValidator = [
   ...busIdValidator,
-  body('busName')
-    .optional()
-    .customSanitizer(normalizeWhitespace)
-    .notEmpty()
-    .withMessage('Tên xe không được để trống')
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Tên xe phải có từ 2 đến 100 ký tự'),
+  // Chấp nhận busName cũ để không phá client legacy, nhưng service sẽ bỏ qua.
+  body('busName').optional().customSanitizer(normalizeWhitespace),
   body('licensePlate')
     .optional()
     .customSanitizer(normalizeLicensePlate)

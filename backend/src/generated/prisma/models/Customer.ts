@@ -33,6 +33,7 @@ export type CustomerMinAggregateOutputType = {
   blockedReason: string | null
   blockedAt: Date | null
   blockedById: string | null
+  note: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +47,7 @@ export type CustomerMaxAggregateOutputType = {
   blockedReason: string | null
   blockedAt: Date | null
   blockedById: string | null
+  note: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -59,6 +61,7 @@ export type CustomerCountAggregateOutputType = {
   blockedReason: number
   blockedAt: number
   blockedById: number
+  note: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -74,6 +77,7 @@ export type CustomerMinAggregateInputType = {
   blockedReason?: true
   blockedAt?: true
   blockedById?: true
+  note?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -87,6 +91,7 @@ export type CustomerMaxAggregateInputType = {
   blockedReason?: true
   blockedAt?: true
   blockedById?: true
+  note?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +105,7 @@ export type CustomerCountAggregateInputType = {
   blockedReason?: true
   blockedAt?: true
   blockedById?: true
+  note?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -186,6 +192,7 @@ export type CustomerGroupByOutputType = {
   blockedReason: string | null
   blockedAt: Date | null
   blockedById: string | null
+  note: string | null
   createdAt: Date
   updatedAt: Date
   _count: CustomerCountAggregateOutputType | null
@@ -220,6 +227,7 @@ export type CustomerWhereInput = {
   blockedReason?: Prisma.StringNullableFilter<"Customer"> | string | null
   blockedAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   blockedById?: Prisma.UuidNullableFilter<"Customer"> | string | null
+  note?: Prisma.StringNullableFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   blockedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -235,6 +243,7 @@ export type CustomerOrderByWithRelationInput = {
   blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   blockedBy?: Prisma.UserOrderByWithRelationInput
@@ -253,6 +262,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   blockedReason?: Prisma.StringNullableFilter<"Customer"> | string | null
   blockedAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   blockedById?: Prisma.UuidNullableFilter<"Customer"> | string | null
+  note?: Prisma.StringNullableFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   blockedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -268,6 +278,7 @@ export type CustomerOrderByWithAggregationInput = {
   blockedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   blockedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CustomerCountOrderByAggregateInput
@@ -287,6 +298,7 @@ export type CustomerScalarWhereWithAggregatesInput = {
   blockedReason?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   blockedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   blockedById?: Prisma.UuidNullableWithAggregatesFilter<"Customer"> | string | null
+  note?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
 }
@@ -299,6 +311,7 @@ export type CustomerCreateInput = {
   status?: $Enums.CustomerStatus
   blockedReason?: string | null
   blockedAt?: Date | string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   blockedBy?: Prisma.UserCreateNestedOneWithoutBlockedCustomersInput
@@ -314,6 +327,7 @@ export type CustomerUncheckedCreateInput = {
   blockedReason?: string | null
   blockedAt?: Date | string | null
   blockedById?: string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutCustomerInput
@@ -327,6 +341,7 @@ export type CustomerUpdateInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blockedBy?: Prisma.UserUpdateOneWithoutBlockedCustomersNestedInput
@@ -342,6 +357,7 @@ export type CustomerUncheckedUpdateInput = {
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutCustomerNestedInput
@@ -356,6 +372,7 @@ export type CustomerCreateManyInput = {
   blockedReason?: string | null
   blockedAt?: Date | string | null
   blockedById?: string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -368,6 +385,7 @@ export type CustomerUpdateManyMutationInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -381,6 +399,7 @@ export type CustomerUncheckedUpdateManyInput = {
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -404,6 +423,7 @@ export type CustomerCountOrderByAggregateInput = {
   blockedReason?: Prisma.SortOrder
   blockedAt?: Prisma.SortOrder
   blockedById?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -417,6 +437,7 @@ export type CustomerMaxOrderByAggregateInput = {
   blockedReason?: Prisma.SortOrder
   blockedAt?: Prisma.SortOrder
   blockedById?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -430,6 +451,7 @@ export type CustomerMinOrderByAggregateInput = {
   blockedReason?: Prisma.SortOrder
   blockedAt?: Prisma.SortOrder
   blockedById?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -481,10 +503,6 @@ export type CustomerUncheckedUpdateManyWithoutBlockedByNestedInput = {
   deleteMany?: Prisma.CustomerScalarWhereInput | Prisma.CustomerScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type EnumCustomerStatusFieldUpdateOperationsInput = {
   set?: $Enums.CustomerStatus
 }
@@ -513,6 +531,7 @@ export type CustomerCreateWithoutBlockedByInput = {
   status?: $Enums.CustomerStatus
   blockedReason?: string | null
   blockedAt?: Date | string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   bookings?: Prisma.BookingCreateNestedManyWithoutCustomerInput
@@ -526,6 +545,7 @@ export type CustomerUncheckedCreateWithoutBlockedByInput = {
   status?: $Enums.CustomerStatus
   blockedReason?: string | null
   blockedAt?: Date | string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutCustomerInput
@@ -569,6 +589,7 @@ export type CustomerScalarWhereInput = {
   blockedReason?: Prisma.StringNullableFilter<"Customer"> | string | null
   blockedAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   blockedById?: Prisma.UuidNullableFilter<"Customer"> | string | null
+  note?: Prisma.StringNullableFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
 }
@@ -581,6 +602,7 @@ export type CustomerCreateWithoutBookingsInput = {
   status?: $Enums.CustomerStatus
   blockedReason?: string | null
   blockedAt?: Date | string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   blockedBy?: Prisma.UserCreateNestedOneWithoutBlockedCustomersInput
@@ -595,6 +617,7 @@ export type CustomerUncheckedCreateWithoutBookingsInput = {
   blockedReason?: string | null
   blockedAt?: Date | string | null
   blockedById?: string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -623,6 +646,7 @@ export type CustomerUpdateWithoutBookingsInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blockedBy?: Prisma.UserUpdateOneWithoutBlockedCustomersNestedInput
@@ -637,6 +661,7 @@ export type CustomerUncheckedUpdateWithoutBookingsInput = {
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   blockedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -649,6 +674,7 @@ export type CustomerCreateManyBlockedByInput = {
   status?: $Enums.CustomerStatus
   blockedReason?: string | null
   blockedAt?: Date | string | null
+  note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -661,6 +687,7 @@ export type CustomerUpdateWithoutBlockedByInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUpdateManyWithoutCustomerNestedInput
@@ -674,6 +701,7 @@ export type CustomerUncheckedUpdateWithoutBlockedByInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutCustomerNestedInput
@@ -687,6 +715,7 @@ export type CustomerUncheckedUpdateManyWithoutBlockedByInput = {
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -731,6 +760,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   blockedReason?: boolean
   blockedAt?: boolean
   blockedById?: boolean
+  note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   blockedBy?: boolean | Prisma.Customer$blockedByArgs<ExtArgs>
@@ -747,6 +777,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   blockedReason?: boolean
   blockedAt?: boolean
   blockedById?: boolean
+  note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   blockedBy?: boolean | Prisma.Customer$blockedByArgs<ExtArgs>
@@ -761,6 +792,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   blockedReason?: boolean
   blockedAt?: boolean
   blockedById?: boolean
+  note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   blockedBy?: boolean | Prisma.Customer$blockedByArgs<ExtArgs>
@@ -775,11 +807,12 @@ export type CustomerSelectScalar = {
   blockedReason?: boolean
   blockedAt?: boolean
   blockedById?: boolean
+  note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fullName" | "phone" | "email" | "status" | "blockedReason" | "blockedAt" | "blockedById" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fullName" | "phone" | "email" | "status" | "blockedReason" | "blockedAt" | "blockedById" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   blockedBy?: boolean | Prisma.Customer$blockedByArgs<ExtArgs>
   bookings?: boolean | Prisma.Customer$bookingsArgs<ExtArgs>
@@ -807,6 +840,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     blockedReason: string | null
     blockedAt: Date | null
     blockedById: string | null
+    note: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["customer"]>
@@ -1242,6 +1276,7 @@ export interface CustomerFieldRefs {
   readonly blockedReason: Prisma.FieldRef<"Customer", 'String'>
   readonly blockedAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly blockedById: Prisma.FieldRef<"Customer", 'String'>
+  readonly note: Prisma.FieldRef<"Customer", 'String'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Customer", 'DateTime'>
 }

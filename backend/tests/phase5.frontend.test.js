@@ -6,7 +6,7 @@ const paths = {
     import.meta.url,
   ),
   onlineBooking: new URL(
-    '../../frontend/src/pages/BookingPage.jsx',
+    '../../frontend/src/pages/BookingPaymentPage.jsx',
     import.meta.url,
   ),
   managedBooking: new URL(
@@ -82,13 +82,11 @@ describe('Phase 5 payment frontend and route boundaries', () => {
     expect(files.adminBookings).toContain('getPaymentStatusLabel')
   })
 
-  test('does not expose a PAY_AT_BUS collection or confirmation API/button', () => {
+  test('supports PAY_AT_BUS collection through authenticated admin management', () => {
     const routeText = `${files.publicRoutes}\n${files.adminRoutes}`
     const frontendText = `${files.bookingSuccess}\n${files.adminBookings}`
 
-    expect(routeText).not.toMatch(/confirm-payment|mark-paid|collect-payment/i)
-    expect(frontendText).not.toMatch(
-      /Xác nhận đã thanh toán|Đã thu tiền|confirm-payment|mark-paid|collect-payment/i,
-    )
+    expect(routeText).toMatch(/collect-payment/i)
+    expect(frontendText).toMatch(/Đã thu tiền|collect-payment/i)
   })
 })

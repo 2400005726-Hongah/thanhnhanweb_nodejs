@@ -10,11 +10,17 @@ import apiClient, { authApiClient } from './apiClient.js'
 
 const unwrap = (response) => response.data.data
 
-const holdSeats = async (tripId, tripSeatIds, roomSelections = []) =>
+const holdSeats = async (
+  tripId,
+  tripSeatIds,
+  roomSelections = [],
+  holdToken = undefined,
+) =>
   unwrap(
     await apiClient.post(`/public/trips/${tripId}/seats/hold`, {
       tripSeatIds,
       ...(roomSelections.length && { roomSelections }),
+      ...(holdToken && { holdToken }),
     }),
   )
 
@@ -29,27 +35,45 @@ const createBooking = async ({
   tripId,
   holdToken,
   passenger,
-  pickupPoint,
-  dropoffPoint,
+  pickupKind,
+  dropoffKind,
+  pickupServicePointId,
+  dropoffServicePointId,
+  pickupRequestedAddress,
+  dropoffRequestedAddress,
   customerNote,
   paymentMethod,
   roomSelections = [],
 }) => {
   return unwrap(
-    await apiClient.post('/public/bookings', {
-      tripId,
-      holdToken,
-      ...(roomSelections.length && { roomSelections }),
-      passenger: {
-        fullName: normalizeFullName(passenger?.fullName),
-        phone: normalizePhone(passenger?.phone),
-        email: normalizeEmail(passenger?.email),
+    await apiClient.post(
+      '/public/bookings',
+      {
+        tripId,
+        holdToken,
+        ...(roomSelections.length && { roomSelections }),
+        passenger: {
+          fullName: normalizeFullName(passenger?.fullName),
+          phone: normalizePhone(passenger?.phone),
+          email: normalizeEmail(passenger?.email),
+        },
+        pickupKind,
+        dropoffKind,
+        pickupServicePointId: pickupServicePointId || undefined,
+        dropoffServicePointId: dropoffServicePointId || undefined,
+        pickupRequestedAddress:
+          normalizeWhitespace(pickupRequestedAddress) || undefined,
+        dropoffRequestedAddress:
+          normalizeWhitespace(dropoffRequestedAddress) || undefined,
+        customerNote: normalizeMultilineText(customerNote) || undefined,
+        paymentMethod,
       },
-      pickupPoint: normalizeWhitespace(pickupPoint) || undefined,
-      dropoffPoint: normalizeWhitespace(dropoffPoint) || undefined,
-      customerNote: normalizeMultilineText(customerNote) || undefined,
-      paymentMethod,
-    }),
+      {
+        // Transaction backend tối đa 15 giây. Cho request tạo vé dư thời gian
+        // để frontend không tự ngắt kết nối trước khi máy chủ trả kết quả.
+        timeout: 45_000,
+      },
+    ),
   )
 }
 

@@ -1,58 +1,95 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { getApiErrorMessage } from '../../services/apiClient.js'
-import { getLocations } from '../../services/publicTrip.service.js'
+import { getTripSearchCatalog } from '../../services/publicTrip.service.js'
 import { getVietnamToday } from '../../utils/formatDateTime.js'
 
-const emptyForm = { departureLocationId: '', arrivalLocationId: '', departureDate: '' }
+const emptyForm = {
+  departureProvinceId: '',
+  arrivalProvinceId: '',
+  departureDate: '',
+}
 
 function TripSearchForm({ initialValues = emptyForm, compact = false }) {
   const navigate = useNavigate()
-  const [locations, setLocations] = useState([])
+  const [catalog, setCatalog] = useState({ provinces: [] })
   const [form, setForm] = useState({ ...emptyForm, ...initialValues })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [validation, setValidation] = useState('')
   const today = getVietnamToday()
-  const initialDeparture = initialValues.departureLocationId
-  const initialArrival = initialValues.arrivalLocationId
+
+  const initialDeparture = initialValues.departureProvinceId
+  const initialArrival = initialValues.arrivalProvinceId
   const initialDate = initialValues.departureDate
 
   useEffect(() => {
     let active = true
     setLoading(true)
-    getLocations()
-      .then((data) => active && setLocations(data.locations))
+    getTripSearchCatalog()
+      .then((data) => active && setCatalog({ provinces: data?.provinces ?? [] }))
       .catch((requestError) => active && setError(getApiErrorMessage(requestError)))
       .finally(() => active && setLoading(false))
-    return () => { active = false }
+
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
     setForm((current) => ({
       ...current,
-      departureLocationId: initialDeparture,
-      arrivalLocationId: initialArrival,
-      departureDate: initialDate,
+      departureProvinceId: initialDeparture || '',
+      arrivalProvinceId: initialArrival || '',
+      departureDate: initialDate || '',
     }))
   }, [initialDeparture, initialArrival, initialDate])
 
+  const arrivalProvinces = useMemo(
+    () =>
+      catalog.provinces.filter(
+        (province) => province.id !== form.departureProvinceId,
+      ),
+    [catalog.provinces, form.departureProvinceId],
+  )
+
   const update = (event) => {
+    const { name, value } = event.target
     setValidation('')
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+
+    setForm((current) => {
+      if (name === 'departureProvinceId') {
+        return {
+          ...current,
+          departureProvinceId: value,
+          arrivalProvinceId:
+            current.arrivalProvinceId === value ? '' : current.arrivalProvinceId,
+        }
+      }
+      return { ...current, [name]: value }
+    })
   }
 
   const submit = (event) => {
     event.preventDefault()
-    if (!form.departureLocationId || !form.arrivalLocationId || !form.departureDate) {
-      setValidation('Vui lòng chọn đầy đủ điểm đi, điểm đến và ngày đi.')
+
+    if (
+      !form.departureProvinceId ||
+      !form.arrivalProvinceId ||
+      !form.departureDate
+    ) {
+      setValidation(
+        'Vui lòng chọn đầy đủ Tỉnh/Thành đi, Tỉnh/Thành đến và ngày đi.',
+      )
       return
     }
-    if (form.departureLocationId === form.arrivalLocationId) {
-      setValidation('Điểm đi phải khác điểm đến.')
+
+    if (form.departureProvinceId === form.arrivalProvinceId) {
+      setValidation('Tỉnh/Thành đi phải khác Tỉnh/Thành đến.')
       return
     }
+
     if (form.departureDate < today) {
       setValidation('Ngày đi không được trước ngày hiện tại.')
       return
@@ -62,36 +99,101 @@ function TripSearchForm({ initialValues = emptyForm, compact = false }) {
   }
 
   return (
-    <form className={`trip-search-form${compact ? ' trip-search-form--compact' : ''}`} onSubmit={submit}>
+    <form
+      className={`trip-search-form${compact ? ' trip-search-form--compact' : ''}`}
+      onSubmit={submit}
+    >
       <div className="search-form-heading">
-        <span className="eyebrow">{compact ? 'ĐẶT CHỖ TRỰC TUYẾN' : 'HỆ THỐNG MUA VÉ TRỰC TUYẾN TỰ ĐỘNG'}</span>
+        <span className="eyebrow">
+          {compact ? 'ĐẶT CHỖ TRỰC TUYẾN' : 'HỆ THỐNG MUA VÉ TRỰC TUYẾN TỰ ĐỘNG'}
+        </span>
         <h2>Tìm chuyến xe phù hợp</h2>
       </div>
-      {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
+
+      {error && (
+        <div className="alert alert-danger py-2" role="alert">
+          {error}
+        </div>
+      )}
+
       <div className="row g-3 align-items-end">
-        <div className="col-md-6 col-lg-4">
-          <label className="form-label" htmlFor="departureLocationId">Điểm đi</label>
-          <select id="departureLocationId" name="departureLocationId" className="form-select" value={form.departureLocationId} onChange={update} disabled={loading}>
-            <option value="">{loading ? 'Đang tải địa điểm...' : 'Chọn điểm đi'}</option>
-            {locations.map((location) => <option key={location.id} value={location.id}>{location.name} — {location.province}</option>)}
+        <div className="col-md-6 col-lg-3">
+          <label className="form-label" htmlFor="departureProvinceId">
+            Tỉnh/Thành đi
+          </label>
+          <select
+            id="departureProvinceId"
+            name="departureProvinceId"
+            className="form-select"
+            value={form.departureProvinceId}
+            onChange={update}
+            disabled={loading}
+          >
+            <option value="">
+              {loading ? 'Đang tải danh mục...' : '-- Chọn tỉnh/thành đi --'}
+            </option>
+            {catalog.provinces.map((province) => (
+              <option key={province.id} value={province.id}>
+                {province.name}
+              </option>
+            ))}
           </select>
         </div>
-        <div className="col-md-6 col-lg-4">
-          <label className="form-label" htmlFor="arrivalLocationId">Điểm đến</label>
-          <select id="arrivalLocationId" name="arrivalLocationId" className="form-select" value={form.arrivalLocationId} onChange={update} disabled={loading}>
-            <option value="">{loading ? 'Đang tải địa điểm...' : 'Chọn điểm đến'}</option>
-            {locations.map((location) => <option key={location.id} value={location.id}>{location.name} — {location.province}</option>)}
+
+        <div className="col-md-6 col-lg-3">
+          <label className="form-label" htmlFor="arrivalProvinceId">
+            Tỉnh/Thành đến
+          </label>
+          <select
+            id="arrivalProvinceId"
+            name="arrivalProvinceId"
+            className="form-select"
+            value={form.arrivalProvinceId}
+            onChange={update}
+            disabled={loading}
+          >
+            <option value="">
+              {loading ? 'Đang tải danh mục...' : '-- Chọn tỉnh/thành đến --'}
+            </option>
+            {arrivalProvinces.map((province) => (
+              <option key={province.id} value={province.id}>
+                {province.name}
+              </option>
+            ))}
           </select>
         </div>
-        <div className="col-md-6 col-lg-2">
-          <label className="form-label" htmlFor="departureDate">Ngày đi</label>
-          <input id="departureDate" name="departureDate" type="date" min={today} className="form-control" value={form.departureDate} onChange={update} />
+
+        <div className="col-md-6 col-lg-3">
+          <label className="form-label" htmlFor="departureDate">
+            Ngày khởi hành
+          </label>
+          <input
+            id="departureDate"
+            name="departureDate"
+            type="date"
+            min={today}
+            className="form-control"
+            value={form.departureDate}
+            onChange={update}
+          />
         </div>
-        <div className="col-md-6 col-lg-2 d-grid">
-          <button type="submit" className="btn btn-warning btn-search" disabled={loading}>{compact ? 'Tìm chuyến' : 'Tìm kiếm chuyến xe'}</button>
+
+        <div className="col-md-6 col-lg-3 d-grid">
+          <button
+            type="submit"
+            className="btn btn-warning btn-search"
+            disabled={loading}
+          >
+            {compact ? 'Tìm chuyến' : 'Tìm kiếm chuyến xe'}
+          </button>
         </div>
       </div>
-      {validation && <p className="form-error" role="alert">{validation}</p>}
+
+      {validation && (
+        <p className="form-error" role="alert">
+          {validation}
+        </p>
+      )}
     </form>
   )
 }

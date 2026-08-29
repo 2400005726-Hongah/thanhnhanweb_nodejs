@@ -1,0 +1,190 @@
+.admin-bus-trip-count-button {
+  display: flex;
+  min-width: 150px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 5px 8px;
+  border: 1px solid #ef4444;
+  border-radius: 5px;
+  background: #fff;
+  color: #b91c1c;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-bus-trip-count-button:hover:not(:disabled) {
+  background: #fff5f5;
+}
+
+.admin-bus-trip-count-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.admin-bus-trip-count-button strong {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.admin-bus-trip-count-button small {
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.admin-bus-row.is-expanded > td {
+  background: #fffaf7;
+}
+
+.admin-bus-trips-expanded-row > td {
+  padding: 0 !important;
+  border-top: 0 !important;
+}
+
+.admin-bus-trips-panel {
+  margin: 0 10px 10px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-top: 3px solid #73010c;
+  background: #fbfbfc;
+}
+
+.admin-bus-trips-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-bus-trips-panel__heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.admin-bus-trips-panel__heading strong {
+  font-size: 13px;
+}
+
+.admin-bus-trips-panel__heading small,
+.admin-bus-trips-empty {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.admin-bus-trip-list {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-bus-trip-card {
+  display: grid;
+  grid-template-columns: minmax(120px, .7fr) minmax(240px, 1.6fr) minmax(210px, 1.2fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.admin-bus-trip-card__code,
+.admin-bus-trip-card__time {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-bus-trip-card__code > strong {
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.admin-bus-trip-status {
+  width: max-content;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-bus-trip-status.is-open {
+  background: #15803d;
+  color: #fff;
+}
+
+.admin-bus-trip-status.is-departed,
+.admin-bus-trip-status.is-cancelled {
+  background: #dc2626;
+  color: #fff;
+}
+
+.admin-bus-trip-status.is-completed,
+.admin-bus-trip-status.is-closed {
+  background: #64748b;
+  color: #fff;
+}
+
+.admin-bus-trip-card__journey {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.admin-bus-trip-card__journey > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-bus-trip-card__journey .is-departure {
+  color: #07883c;
+}
+
+.admin-bus-trip-card__journey .is-arrival {
+  color: #dc2626;
+}
+
+.admin-bus-trip-card__time span,
+.admin-bus-trip-card__time small {
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.admin-bus-trip-card__time strong {
+  font-size: 11px;
+}
+
+.admin-bus-trip-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.admin-bus-trip-card__actions a {
+  padding: 4px 7px;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #dc2626;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-bus-trip-card__actions a:hover {
+  background: #fff1f2;
+}
+
+@media (max-width: 1100px) {
+  .admin-bus-trip-card {
+    grid-template-columns: 1fr 1.5fr;
+  }
+
+  .admin-bus-trip-card__actions {
+    justify-content: flex-start;
+  }
+}

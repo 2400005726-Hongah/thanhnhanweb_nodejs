@@ -1,4 +1,5 @@
 import {
+  normalizeAddress,
   normalizeBookingCode,
   normalizeEmail,
   normalizeFullName,
@@ -67,6 +68,90 @@ const resendBookingEmail = async (bookingCode) =>
 const getLocations = async (params = {}) =>
   unwrap(await authApiClient.get('/locations', { params: normalizeParams(params) }))
 
+const getLocationCatalog = async () =>
+  unwrap(await authApiClient.get('/locations/catalog'))
+
+const getProvinces = async () =>
+  unwrap(await authApiClient.get('/locations/provinces'))
+
+const createProvince = async (payload) =>
+  unwrap(
+    await authApiClient.post('/locations/provinces', {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeProvince(payload.name) }),
+    }),
+  )
+
+const updateProvince = async (id, payload) =>
+  unwrap(
+    await authApiClient.patch(`/locations/provinces/${id}`, {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeProvince(payload.name) }),
+    }),
+  )
+
+const getLocationAreas = async (params = {}) =>
+  unwrap(await authApiClient.get('/locations/areas', { params }))
+
+const createLocationArea = async (payload) =>
+  unwrap(
+    await authApiClient.post('/locations/areas', {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeWhitespace(payload.name) }),
+      ...(payload.legacyRegion !== undefined && {
+        legacyRegion: normalizeWhitespace(payload.legacyRegion) || null,
+      }),
+      ...(payload.detailedAddress !== undefined && {
+        detailedAddress: normalizeAddress(payload.detailedAddress) || null,
+      }),
+    }),
+  )
+
+const updateLocationArea = async (id, payload) =>
+  unwrap(
+    await authApiClient.patch(`/locations/areas/${id}`, {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeWhitespace(payload.name) }),
+      ...(payload.legacyRegion !== undefined && {
+        legacyRegion: normalizeWhitespace(payload.legacyRegion) || null,
+      }),
+      ...(payload.detailedAddress !== undefined && {
+        detailedAddress: normalizeAddress(payload.detailedAddress) || null,
+      }),
+    }),
+  )
+
+const deleteLocationArea = async (id) =>
+  unwrap(await authApiClient.delete(`/locations/areas/${id}`))
+
+const getSpecificLocations = async (params = {}) =>
+  unwrap(await authApiClient.get('/locations/specific', { params }))
+
+const createSpecificLocation = async (payload) =>
+  unwrap(
+    await authApiClient.post('/locations/specific', {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeLocationName(payload.name) }),
+      ...(payload.address !== undefined && {
+        address: normalizeAddress(payload.address) || null,
+      }),
+    }),
+  )
+
+const updateSpecificLocation = async (id, payload) =>
+  unwrap(
+    await authApiClient.patch(`/locations/specific/${id}`, {
+      ...payload,
+      ...(payload.name !== undefined && { name: normalizeLocationName(payload.name) }),
+      ...(payload.address !== undefined && {
+        address: normalizeAddress(payload.address) || null,
+      }),
+    }),
+  )
+
+const deleteSpecificLocation = async (id) =>
+  unwrap(await authApiClient.delete(`/locations/specific/${id}`))
+
 const createLocation = async (payload) =>
   unwrap(await authApiClient.post('/locations', normalizeLocationPayload(payload)))
 
@@ -83,6 +168,15 @@ const getDashboard = async () =>
 
 const getTrips = async (params = {}) =>
   unwrap(await authApiClient.get('/trips', { params: normalizeParams(params) }))
+
+const getTrip = async (tripId) =>
+  unwrap(await authApiClient.get(`/trips/${tripId}`))
+
+const getTripServicePoints = async (tripId) =>
+  unwrap(await authApiClient.get(`/trips/${tripId}/service-points`))
+
+const configureTripServicePoints = async (tripId, payload) =>
+  unwrap(await authApiClient.put(`/trips/${tripId}/service-points`, payload))
 
 const getTripSeatMap = async (tripId) =>
   unwrap(await authApiClient.get(`/trips/${tripId}/seats`))
@@ -107,6 +201,18 @@ const deleteTrip = async (id) =>
 
 const getRoutes = async (params = {}) =>
   unwrap(await authApiClient.get('/routes', { params: normalizeParams(params) }))
+
+const getRouteSummary = async () =>
+  unwrap(await authApiClient.get('/routes/summary'))
+
+const getRoute = async (routeId) =>
+  unwrap(await authApiClient.get(`/routes/${routeId}`))
+
+const getRouteStops = async (routeId) =>
+  unwrap(await authApiClient.get(`/routes/${routeId}/stops`))
+
+const configureRouteStops = async (routeId, payload) =>
+  unwrap(await authApiClient.put(`/routes/${routeId}/stops`, payload))
 
 const createRoute = async (payload) =>
   unwrap(await authApiClient.post('/routes', normalizeRoutePayload(payload)))
@@ -138,6 +244,20 @@ const getBookings = async (params = {}) =>
     }),
   )
 
+const exportBookingsExcel = async (params = {}) =>
+  authApiClient.get('/admin/bookings/export.xlsx', {
+    params: normalizeParams(params),
+    responseType: 'blob',
+  })
+
+
+const lookupBookingForAdmin = async (identifier) =>
+  unwrap(
+    await authApiClient.get('/admin/bookings/lookup', {
+      params: { identifier: normalizeBookingCode(identifier) },
+    }),
+  )
+
 const getBookingDetail = async (bookingCode) =>
   unwrap(
     await authApiClient.get(
@@ -156,6 +276,9 @@ const updateBookingContact = async (bookingCode, payload) =>
         }),
         ...(payload.passengerPhone !== undefined && {
           passengerPhone: normalizePhone(payload.passengerPhone),
+        }),
+        ...(payload.staffNote !== undefined && {
+          staffNote: normalizeMultilineText(payload.staffNote),
         }),
         ...(payload.passengerEmail !== undefined && {
           passengerEmail: payload.passengerEmail
@@ -177,8 +300,10 @@ const createManagedBooking = async (payload) =>
     await authApiClient.post('/admin/bookings', {
       ...payload,
       passenger: normalizePassengerPayload(payload.passenger),
-      pickupPoint: normalizeWhitespace(payload.pickupPoint) || undefined,
-      dropoffPoint: normalizeWhitespace(payload.dropoffPoint) || undefined,
+      pickupRequestedAddress:
+        normalizeWhitespace(payload.pickupRequestedAddress) || undefined,
+      dropoffRequestedAddress:
+        normalizeWhitespace(payload.dropoffRequestedAddress) || undefined,
       customerNote: normalizeMultilineText(payload.customerNote) || undefined,
       staffNote: normalizeMultilineText(payload.staffNote) || undefined,
     }),
@@ -208,12 +333,36 @@ const markNoShow = async (bookingCode, reason) =>
     ),
   )
 
+const collectBookingPayment = async (bookingCode) =>
+  unwrap(
+    await authApiClient.post(
+      `/admin/bookings/${normalizeBookingCode(bookingCode)}/collect-payment`,
+      { confirmed: true },
+    ),
+  )
+
+const undoBookingPayment = async (bookingCode, reason) =>
+  unwrap(
+    await authApiClient.post(
+      `/admin/bookings/${normalizeBookingCode(bookingCode)}/undo-payment`,
+      { reason: normalizeMultilineText(reason) },
+    ),
+  )
+
 const getCustomers = async (params = {}) =>
   unwrap(
     await authApiClient.get('/admin/customers', {
       params: normalizeParams(params),
     }),
   )
+
+const exportCustomersExcel = async () =>
+  authApiClient.get('/admin/customers/export.xlsx', {
+    responseType: 'blob',
+  })
+
+const archiveCustomer = async (id) =>
+  unwrap(await authApiClient.delete(`/admin/customers/${id}`))
 
 const getCustomerDetail = async (id, params = {}) =>
   unwrap(await authApiClient.get(`/admin/customers/${id}`, { params }))
@@ -230,6 +379,9 @@ const updateCustomer = async (id, payload) =>
       }),
       ...(payload.email !== undefined && {
         email: payload.email ? normalizeEmail(payload.email) : '',
+      }),
+      ...(payload.note !== undefined && {
+        note: normalizeMultilineText(payload.note) || '',
       }),
     }),
   )
@@ -264,14 +416,33 @@ const createUser = async (payload) =>
     }),
   )
 
+const updateUser = async (id, payload) =>
+  unwrap(
+    await authApiClient.patch(`/admin/users/${id}`, {
+      ...payload,
+      ...(payload.fullName !== undefined && { fullName: normalizeFullName(payload.fullName) }),
+      ...(payload.email !== undefined && { email: normalizeEmail(payload.email) }),
+      ...(payload.phone !== undefined && { phone: normalizePhone(payload.phone) }),
+    }),
+  )
+
+const deleteUser = async (id) =>
+  unwrap(await authApiClient.delete(`/admin/users/${id}`))
+
 const updateUserStatus = async (id, status) =>
   unwrap(await authApiClient.patch(`/admin/users/${id}/status`, { status }))
+
+const updateUserRole = async (id, role) =>
+  unwrap(await authApiClient.patch(`/admin/users/${id}/role`, { role }))
 
 const getAuditLogs = async (params = {}) =>
   unwrap(await authApiClient.get('/admin/audit-logs', { params }))
 
 const getNews = async (params = {}) =>
   unwrap(await authApiClient.get('/admin/news', { params }))
+
+const getNewsDetail = async (id) =>
+  unwrap(await authApiClient.get(`/admin/news/${id}`))
 
 const createNews = async (payload) =>
   unwrap(await authApiClient.post('/admin/news', payload))
@@ -286,7 +457,24 @@ const deleteNews = async (id) =>
   unwrap(await authApiClient.delete(`/admin/news/${id}`))
 
 export {
+  configureRouteStops,
+  getRoute,
+  getRouteStops,
+  configureTripServicePoints,
+  createLocationArea,
+  createProvince,
+  createSpecificLocation,
+  getLocationAreas,
+  getLocationCatalog,
+  getSpecificLocations,
+  getProvinces,
+  getTrip,
+  getTripServicePoints,
+  updateLocationArea,
+  updateProvince,
+  updateSpecificLocation,
   cancelBooking,
+  collectBookingPayment,
   changeTripStatus,
   createBus,
   createLocation,
@@ -297,21 +485,30 @@ export {
   createUser,
   deleteBooking,
   deleteBus,
+  deleteLocationArea,
+  deleteSpecificLocation,
   deleteLocation,
   deleteNews,
   deleteRoute,
   deleteTrip,
+  deleteUser,
   getAuditLogs,
   getBookingDetail,
+  lookupBookingForAdmin,
+  exportBookingsExcel,
   getBookings,
   getBuses,
   getCustomerDetail,
   getCustomers,
+  exportCustomersExcel,
+  archiveCustomer,
   getDashboard,
   getLocations,
   getNews,
+  getNewsDetail,
   getRevenue,
   getRoutes,
+  getRouteSummary,
   getTripPassengers,
   getTripCompletionPreview,
   getTripSeatMap,
@@ -319,6 +516,7 @@ export {
   getUsers,
   markNoShow,
   resendBookingEmail,
+  undoBookingPayment,
   updateBookingContact,
   updateBus,
   updateCustomer,
@@ -328,5 +526,7 @@ export {
   updateNewsStatus,
   updateRoute,
   updateTrip,
+  updateUser,
   updateUserStatus,
+  updateUserRole,
 }

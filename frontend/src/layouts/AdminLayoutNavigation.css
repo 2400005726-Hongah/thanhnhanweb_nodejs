@@ -1,0 +1,25 @@
+/* Phân cấp menu: Chuyến xe là mục chính, Tuyến đường là mục phụ cùng trang. */
+.admin-nav-link--sub {
+  box-sizing: border-box;
+  width: calc(100% - 18px);
+  margin-left: 18px;
+  font-size: 0.92em;
+  opacity: 0.88;
+}
+
+.admin-nav-link--sub .admin-nav-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.78;
+}
+
+.admin-nav-link--sub::before {
+  content: '↳';
+  margin-right: 2px;
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.admin-nav-link--sub.active {
+  opacity: 1;
+}

@@ -17,10 +17,14 @@ function Header() {
         <div className="collapse navbar-collapse" id="customerNav">
           <div className="navbar-nav ms-auto align-items-lg-center gap-lg-1">
             <NavLink className={navClass} to="/" end>Trang chủ</NavLink>
-            <NavLink className={navClass} to="/tim-chuyen">Tìm chuyến</NavLink>
-            <NavLink className={navClass} to="/tra-cuu-ve">Tra cứu vé</NavLink>
             <NavLink className={navClass} to="/thong-tin/gioi-thieu">Giới thiệu</NavLink>
+            <NavLink className={navClass} to="/tim-chuyen">Đặt vé Online</NavLink>
+            <NavLink className={navClass} to="/tra-cuu-ve">Tra cứu vé</NavLink>
+            <NavLink className={navClass} to="/tin-tuc">Tin tức</NavLink>
             <NavLink className={navClass} to="/thong-tin/lien-he">Liên hệ</NavLink>
+            <a className="btn btn-warning btn-sm ms-lg-2 customer-hotline" href="tel:0979406406" aria-label="Gọi Hotline 0979 406 406">
+              Hotline 0979 406 406
+            </a>
           </div>
         </div>
       </nav>

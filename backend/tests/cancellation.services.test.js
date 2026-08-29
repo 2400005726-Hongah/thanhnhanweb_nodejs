@@ -5,7 +5,6 @@ import { jest } from '@jest/globals'
 process.env.NODE_ENV = 'test'
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 process.env.JWT_SECRET = 'test-only-jwt-secret-at-least-32-characters'
-process.env.BOOKING_CANCEL_BEFORE_MINUTES = '120'
 
 const bookingId = randomUUID()
 const userId = randomUUID()
@@ -251,7 +250,7 @@ describe('Booking cancellation transaction service', () => {
     })
   })
 
-  test.each(['CANCELLED', 'COMPLETED', 'EXPIRED'])(
+  test.each(['PENDING', 'CANCELLED', 'COMPLETED', 'EXPIRED'])(
     'rejects a booking in %s status',
     async (status) => {
       booking.status = status
@@ -262,14 +261,13 @@ describe('Booking cancellation transaction service', () => {
     },
   )
 
-  test('rejects cancellation after the configured deadline', async () => {
+  test('allows cancellation at any time before departure to match MVC', async () => {
     booking.trip.departureTime = new Date('2099-07-20T09:30:00.000Z')
 
     await expect(
       cancelWithReason({ bookingCode, userId, now }),
-    ).rejects.toMatchObject({
-      statusCode: 409,
-      message: 'Đã quá thời hạn cho phép hủy vé',
+    ).resolves.toMatchObject({
+      status: 'CANCELLED',
     })
   })
 
@@ -280,12 +278,12 @@ describe('Booking cancellation transaction service', () => {
       cancelWithReason({ bookingCode, userId, now }),
     ).rejects.toMatchObject({
       statusCode: 409,
-      message: 'Không thể hủy vé sau khi chuyến đã khởi hành',
+      message: 'Chuyến đã xuất bến. Hãy dùng chức năng Khách không đi.',
     })
   })
 
-  test('unpaid booking creates no Payment and preserves payment status', async () => {
-    booking.status = 'PENDING'
+  test('unpaid confirmed booking creates no refund and preserves payment status', async () => {
+    booking.status = 'CONFIRMED'
     booking.paymentStatus = 'PENDING'
     payments = []
 
@@ -373,12 +371,10 @@ describe('Booking cancellation transaction service', () => {
     )
   })
 
-  test('calculates canCancel and cancelDeadline from backend configuration', () => {
+  test('uses trip departure time as cancellation deadline like MVC', () => {
     const state = getCancellationState(booking, now)
 
     expect(state.canCancel).toBe(true)
-    expect(state.cancelDeadline).toEqual(
-      new Date('2099-07-20T12:00:00.000Z'),
-    )
+    expect(state.cancelDeadline).toEqual(booking.trip.departureTime)
   })
 })

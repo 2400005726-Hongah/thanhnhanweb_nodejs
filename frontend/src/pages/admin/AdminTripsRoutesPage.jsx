@@ -1,29 +1,31 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
+import AdminRoutesSummaryPage from './AdminRoutesSummaryPage.jsx'
 import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusState.jsx'
 import { useAuth } from '../../contexts/authContext.js'
 import {
   changeTripStatus,
-  createRoute,
+  configureTripServicePoints,
   createTrip,
-  deleteRoute,
   deleteTrip,
   getBuses,
-  getRoutes,
+  getLocationCatalog,
+  getTrip,
   getTripCompletionPreview,
+  getTripServicePoints,
   getTrips,
-  updateRoute,
   updateTrip,
 } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
-import { getLocations } from '../../services/publicTrip.service.js'
 import { hasPermission, PERMISSIONS } from '../../utils/adminPermissions.js'
 import { getBusTypeLabel, isRoomBusType } from '../../utils/busTypes.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
-import { formatLicensePlate, normalizeRouteName } from '../../utils/normalizers.js'
+import { formatLicensePlate } from '../../utils/normalizers.js'
+
+import './AdminTripsRoutesPage.css'
 
 const TRIP_PAGE_SIZE = 30
 
@@ -35,42 +37,58 @@ const TRIP_STATUS_LABELS = {
   CANCELLED: 'Đã hủy',
 }
 
-const ROUTE_STATUS_LABELS = {
-  ACTIVE: 'Hoạt động',
-  INACTIVE: 'Ngừng hoạt động',
-}
-
-// Giữ thông điệp nghiệp vụ dùng trong biểu mẫu và bộ kiểm thử giao diện.
-const ROUTE_PRICE_HELP_TEXT = {
-  single: 'Giá phòng đơn mặc định (để trống nếu chưa cấu hình):',
-  double: 'Giá phòng đôi mặc định (để trống nếu chưa cấu hình):',
-}
-
 const EMPTY_TRIP_FILTERS = {
   status: '',
   departureDate: '',
 }
 
 const EMPTY_TRIP_FORM = {
-  route: '',
+  departureProvinceId: '',
+  departureLocationId: '',
+  arrivalProvinceId: '',
+  arrivalLocationId: '',
   bus: '',
   departureTime: '',
   expectedArrivalTime: '',
   ticketPrice: '',
   singleRoomPrice: '',
   doubleRoomPrice: '',
+  status: 'OPEN',
 }
 
-const EMPTY_ROUTE_FORM = {
-  routeName: '',
-  departureLocation: '',
-  arrivalLocation: '',
-  distanceKm: '',
-  estimatedDurationMinutes: '',
-  defaultTicketPrice: '',
-  defaultSingleRoomPrice: '',
-  defaultDoubleRoomPrice: '',
+const EMPTY_SERVICE_CONFIG = {
+  primaryPickupMode: 'DonTaiBenXe',
+  primaryDropoffMode: 'TraTaiBenXe',
+  allowPickupTransfer: false,
+  allowPickupMeetingPoint: false,
+  allowDropoffTransfer: false,
+  allowDropoffStop: false,
+  meetingPoints: [],
+  dropoffStops: [],
 }
+
+let serviceRowSequence = 0
+const createServiceRowId = () => {
+  serviceRowSequence += 1
+  return `service-row-${Date.now()}-${serviceRowSequence}`
+}
+
+const toTimeInput = (value) => {
+  if (!value) return ''
+  const raw = String(value)
+  const match = raw.match(/(?:T|^)(\d{2}:\d{2})/)
+  return match?.[1] || raw.slice(0, 5)
+}
+
+const createServiceRow = (pointType, locationId = '', options = {}) => ({
+  clientId: options.clientId || options.id || createServiceRowId(),
+  id: options.id || '',
+  locationId,
+  pointType,
+  serviceMode: pointType === 'PICKUP' ? 'DonTaiDiemHen' : 'TraTaiDiemDung',
+  estimatedTime: options.estimatedTime || '',
+  sortOrder: String(options.sortOrder ?? 1),
+})
 
 const shortCode = (id, prefix) =>
   `${prefix}-${String(id || '').split('-')[0].toUpperCase()}`
@@ -95,7 +113,7 @@ const toLocalDateTimeInput = (value) => {
 const nullableNumber = (value) => {
   if (value === '' || value == null) return null
   const number = Number(value)
-  return Number.isFinite(number) ? number : Number.NaN
+  return Number.isFinite(number) && number >= 0 ? number : Number.NaN
 }
 
 const getTripStatusClass = (status) => {
@@ -112,13 +130,76 @@ const getEffectiveTripStatus = (trip, now = new Date()) => {
   return new Date(trip.departureTime) <= now ? 'DEPARTED' : trip.status
 }
 
-const getRouteStatusClass = (status) =>
-  status === 'ACTIVE'
-    ? 'status-badge status-badge--active'
-    : 'status-badge status-badge--inactive'
+const locationProvinceId = (location) =>
+  location?.provinceId || location?.provinceRef?.id || null
 
-function AdminTripsRoutesPage() {
+const locationProvinceName = (location) =>
+  location?.provinceRef?.name || location?.province || 'Chưa xác định'
+
+
+const formatAdminDate = (value) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+}
+
+const formatAdminTime = (value) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date)
+}
+
+const isToday = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return false
+  const now = new Date()
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  )
+}
+
+const getTripCapacity = (trip) => {
+  const direct = Number(
+    trip?.seatStats?.total ??
+    trip?.bus?.seatCount ??
+    trip?.bus?.capacity ??
+    trip?.bus?.totalSeats,
+  )
+  if (Number.isFinite(direct) && direct > 0) return direct
+
+  const available = Number(trip?.seatStats?.available ?? 0)
+  const booked = Number(trip?.seatStats?.booked ?? 0)
+  const held = Number(trip?.seatStats?.held ?? 0)
+  const calculated = available + booked + held
+  return calculated > 0 ? calculated : 0
+}
+
+const getJourneyDayBadge = (trip, effectiveStatus) => {
+  if (effectiveStatus === 'COMPLETED') return { label: 'Hoàn thành', className: 'is-completed' }
+  if (effectiveStatus === 'CANCELLED') return { label: 'Đã hủy', className: 'is-cancelled' }
+  if (effectiveStatus === 'DEPARTED') return { label: 'Đã khởi hành', className: 'is-departed' }
+  if (isToday(trip.departureTime)) return { label: 'Hôm nay', className: 'is-today' }
+  return null
+}
+
+function AdminTripsRoutesPage({ pageMode = 'list' }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const { tripId } = useParams()
+  const isFormPage = pageMode !== 'list'
+  const editLoadRef = useRef('')
 
   const [trips, setTrips] = useState([])
   const [tripPage, setTripPage] = useState(1)
@@ -128,54 +209,140 @@ function AdminTripsRoutesPage() {
     ...EMPTY_TRIP_FILTERS,
   })
 
-  const [routes, setRoutes] = useState([])
   const [buses, setBuses] = useState([])
-  const [locations, setLocations] = useState([])
-
-  const [showTripForm, setShowTripForm] = useState(false)
-  const [showRouteForm, setShowRouteForm] = useState(false)
+  const [catalog, setCatalog] = useState({ provinces: [], locations: [] })
   const [editingTrip, setEditingTrip] = useState(null)
-  const [editingRoute, setEditingRoute] = useState(null)
   const [tripForm, setTripForm] = useState({ ...EMPTY_TRIP_FORM })
-  const [routeForm, setRouteForm] = useState({ ...EMPTY_ROUTE_FORM })
+  const [serviceConfig, setServiceConfig] = useState({ ...EMPTY_SERVICE_CONFIG })
 
   const [loading, setLoading] = useState(true)
   const [submittingTrip, setSubmittingTrip] = useState(false)
-  const [submittingRoute, setSubmittingRoute] = useState(false)
   const [error, setError] = useState('')
   const [processingTripId, setProcessingTripId] = useState('')
-  const [processingRouteId, setProcessingRouteId] = useState('')
+  const [showTripFilters, setShowTripFilters] = useState(false)
+  const [formSections, setFormSections] = useState(() => ({
+    route: pageMode === 'create',
+    pickup: true,
+    dropoff: false,
+    operation: true,
+  }))
+  const [formRecordLoading, setFormRecordLoading] = useState(pageMode === 'edit')
 
   const canCreateTrips = hasPermission(user, PERMISSIONS.CREATE_TRIPS)
   const canEditTrips = hasPermission(user, PERMISSIONS.EDIT_TRIPS)
   const canDeleteTrips = hasPermission(user, PERMISSIONS.DELETE_TRIPS)
-  const canCreateRoutes = hasPermission(user, PERMISSIONS.CREATE_ROUTES)
-  const canEditRoutes = hasPermission(user, PERMISSIONS.EDIT_ROUTES)
-  const canDeleteRoutes = hasPermission(user, PERMISSIONS.DELETE_ROUTES)
+  const canViewRoutes = hasPermission(user, PERMISSIONS.VIEW_ROUTES)
 
   const selectedTripBus = useMemo(
     () => buses.find((bus) => bus.id === tripForm.bus),
     [buses, tripForm.bus],
   )
 
+  const activeProvinces = useMemo(
+    () =>
+      [...catalog.provinces]
+        .filter((province) => province.status === 'ACTIVE')
+        .sort((left, right) => left.name.localeCompare(right.name, 'vi')),
+    [catalog.provinces],
+  )
+
+  const departureLocations = useMemo(
+    () =>
+      catalog.locations
+        .filter(
+          (location) =>
+            location.status === 'ACTIVE' &&
+            location.defaultAreaId &&
+            location.defaultArea?.status !== 'INACTIVE' &&
+            locationProvinceId(location) === tripForm.departureProvinceId &&
+            ['PICKUP', 'BOTH'].includes(location.locationType),
+        )
+        .sort((left, right) => left.name.localeCompare(right.name, 'vi')),
+    [catalog.locations, tripForm.departureProvinceId],
+  )
+
+  const arrivalLocations = useMemo(
+    () =>
+      catalog.locations
+        .filter(
+          (location) =>
+            location.status === 'ACTIVE' &&
+            location.defaultAreaId &&
+            location.defaultArea?.status !== 'INACTIVE' &&
+            locationProvinceId(location) === tripForm.arrivalProvinceId &&
+            ['DROPOFF', 'BOTH'].includes(location.locationType),
+        )
+        .sort((left, right) => left.name.localeCompare(right.name, 'vi')),
+    [catalog.locations, tripForm.arrivalProvinceId],
+  )
+
+  const pickupMeetingCatalog = useMemo(() => {
+    const existingIds = new Set(serviceConfig.meetingPoints.map((point) => point.locationId))
+    return catalog.locations
+      .filter(
+        (location) =>
+          locationProvinceId(location) === tripForm.departureProvinceId &&
+          ['PICKUP', 'BOTH'].includes(location.locationType) &&
+          location.id !== tripForm.departureLocationId &&
+          (
+            existingIds.has(location.id) ||
+            (
+              location.status === 'ACTIVE' &&
+              location.isDeleted !== true &&
+              location.defaultArea?.status !== 'INACTIVE'
+            )
+          ),
+      )
+      .sort((left, right) => left.name.localeCompare(right.name, 'vi'))
+  }, [catalog.locations, serviceConfig.meetingPoints, tripForm.departureLocationId, tripForm.departureProvinceId])
+
+  const dropoffStopCatalog = useMemo(() => {
+    const existingIds = new Set(serviceConfig.dropoffStops.map((point) => point.locationId))
+    return catalog.locations
+      .filter(
+        (location) =>
+          locationProvinceId(location) === tripForm.arrivalProvinceId &&
+          ['DROPOFF', 'BOTH'].includes(location.locationType) &&
+          location.id !== tripForm.arrivalLocationId &&
+          (
+            existingIds.has(location.id) ||
+            (
+              location.status === 'ACTIVE' &&
+              location.isDeleted !== true &&
+              location.defaultArea?.status !== 'INACTIVE'
+            )
+          ),
+      )
+      .sort((left, right) => left.name.localeCompare(right.name, 'vi'))
+  }, [catalog.locations, serviceConfig.dropoffStops, tripForm.arrivalLocationId, tripForm.arrivalProvinceId])
+
   const load = useCallback(async (targetPage = 1, filters = EMPTY_TRIP_FILTERS) => {
     setLoading(true)
     setError('')
-
     try {
-      const [tripData, routeData, busData, locationData] = await Promise.all([
+      if (isFormPage) {
+        const [busData, locationData] = await Promise.all([
+          getBuses({ page: 1, limit: 100 }),
+          getLocationCatalog(),
+        ])
+        setBuses(busData?.buses ?? [])
+        setCatalog({
+          provinces: locationData?.provinces ?? [],
+          locations: locationData?.locations ?? [],
+        })
+        return
+      }
+
+      const [tripData, busData, locationData] = await Promise.all([
         getTrips({
           page: targetPage,
           limit: TRIP_PAGE_SIZE,
           sort: 'asc',
           ...(filters.status && { status: filters.status }),
-          ...(filters.departureDate && {
-            departureDate: filters.departureDate,
-          }),
+          ...(filters.departureDate && { departureDate: filters.departureDate }),
         }),
-        getRoutes({ page: 1, limit: 100 }),
         getBuses({ page: 1, limit: 100 }),
-        getLocations(),
+        getLocationCatalog(),
       ])
 
       setTrips(tripData?.trips ?? [])
@@ -187,131 +354,336 @@ function AdminTripsRoutesPage() {
           totalPages: 1,
         },
       )
-      setRoutes(routeData?.routes ?? [])
       setBuses(busData?.buses ?? [])
-      setLocations(locationData?.locations ?? [])
+      setCatalog({
+        provinces: locationData?.provinces ?? [],
+        locations: locationData?.locations ?? [],
+      })
     } catch (requestError) {
       setError(getApiErrorMessage(requestError))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isFormPage])
 
   useEffect(() => {
     load(tripPage, appliedTripFilters)
   }, [appliedTripFilters, load, tripPage])
 
   const resetTripForm = () => {
-    setShowTripForm(false)
+    if (isFormPage) {
+      navigate('/admin/chuyen-xe')
+      return
+    }
     setEditingTrip(null)
     setTripForm({ ...EMPTY_TRIP_FORM })
+    setServiceConfig({ ...EMPTY_SERVICE_CONFIG })
   }
 
-  const resetRouteForm = () => {
-    setShowRouteForm(false)
-    setEditingRoute(null)
-    setRouteForm({ ...EMPTY_ROUTE_FORM })
+  const openEditTrip = async (trip) => {
+    const departureLocation = trip.departureLocation || trip.route?.departureLocation || null
+    const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation || null
+
+    setProcessingTripId(trip.id)
+    try {
+      let serviceData = null
+      try {
+        serviceData = await getTripServicePoints(trip.id)
+      } catch {
+        // Chuyến cũ chưa từng cấu hình vẫn mở được form sửa với giá trị mặc định.
+      }
+
+      const serviceTrip = serviceData?.trip || trip
+      const servicePoints = serviceData?.servicePoints ?? []
+      const meetingPoints = servicePoints
+        .filter(
+          (point) =>
+            point.status === 'ACTIVE' &&
+            point.isDefault !== true &&
+            point.pointType === 'PICKUP' &&
+            point.serviceMode === 'DonTaiDiemHen',
+        )
+        .map((point, index) =>
+          createServiceRow('PICKUP', point.locationId || point.location?.id || '', {
+            id: point.id,
+            estimatedTime: toTimeInput(point.estimatedTime),
+            sortOrder: point.sortOrder ?? index + 2,
+          }),
+        )
+      const dropoffStops = servicePoints
+        .filter(
+          (point) =>
+            point.status === 'ACTIVE' &&
+            point.isDefault !== true &&
+            point.pointType === 'DROPOFF' &&
+            point.serviceMode === 'TraTaiDiemDung',
+        )
+        .map((point, index) =>
+          createServiceRow('DROPOFF', point.locationId || point.location?.id || '', {
+            id: point.id,
+            estimatedTime: toTimeInput(point.estimatedTime),
+            sortOrder: point.sortOrder ?? index + 2,
+          }),
+        )
+
+      setEditingTrip(trip)
+      setTripForm({
+        departureProvinceId:
+          trip.departureProvince?.id || locationProvinceId(departureLocation) || '',
+        departureLocationId: departureLocation?.id || '',
+        arrivalProvinceId:
+          trip.arrivalProvince?.id || locationProvinceId(arrivalLocation) || '',
+        arrivalLocationId: arrivalLocation?.id || '',
+        bus: trip.bus?.id ?? trip.busId ?? '',
+        departureTime: toLocalDateTimeInput(trip.departureTime),
+        expectedArrivalTime: toLocalDateTimeInput(trip.expectedArrivalTime),
+        ticketPrice: trip.ticketPrice == null ? '' : String(Number(trip.ticketPrice)),
+        singleRoomPrice:
+          trip.singleRoomPrice == null ? '' : String(Number(trip.singleRoomPrice)),
+        doubleRoomPrice:
+          trip.doubleRoomPrice == null ? '' : String(Number(trip.doubleRoomPrice)),
+        status: trip.status === 'CLOSED' ? 'CLOSED' : 'OPEN',
+      })
+      setServiceConfig({
+        primaryPickupMode: serviceTrip.primaryPickupMode || 'DonTaiBenXe',
+        primaryDropoffMode: serviceTrip.primaryDropoffMode || 'TraTaiBenXe',
+        allowPickupTransfer: serviceTrip.allowPickupTransfer === true,
+        allowPickupMeetingPoint:
+          serviceTrip.allowPickupMeetingPoint === true || meetingPoints.length > 0,
+        allowDropoffTransfer: serviceTrip.allowDropoffTransfer === true,
+        allowDropoffStop: serviceTrip.allowDropoffStop === true || dropoffStops.length > 0,
+        meetingPoints,
+        dropoffStops,
+      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setProcessingTripId('')
+    }
   }
 
-  const openCreateTrip = () => {
-    resetRouteForm()
+  useEffect(() => {
+    if (pageMode !== 'create') return
     setEditingTrip(null)
     setTripForm({ ...EMPTY_TRIP_FORM })
-    setShowTripForm(true)
-  }
+    setServiceConfig({ ...EMPTY_SERVICE_CONFIG })
+    setFormSections({ route: true, pickup: true, dropoff: false, operation: true })
+    setFormRecordLoading(false)
+  }, [pageMode])
 
-  const openEditTrip = (trip) => {
-    resetRouteForm()
-    setEditingTrip(trip)
-    setTripForm({
-      route: trip.route?.id ?? trip.routeId ?? '',
-      bus: trip.bus?.id ?? trip.busId ?? '',
-      departureTime: toLocalDateTimeInput(trip.departureTime),
-      expectedArrivalTime: toLocalDateTimeInput(trip.expectedArrivalTime),
-      ticketPrice: trip.ticketPrice == null ? '' : String(Number(trip.ticketPrice)),
-      singleRoomPrice:
-        trip.singleRoomPrice == null ? '' : String(Number(trip.singleRoomPrice)),
-      doubleRoomPrice:
-        trip.doubleRoomPrice == null ? '' : String(Number(trip.doubleRoomPrice)),
-    })
-    setShowTripForm(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  useEffect(() => {
+    if (pageMode !== 'edit' || !tripId || editLoadRef.current === tripId) return
+    editLoadRef.current = tripId
+    setFormSections({ route: false, pickup: true, dropoff: false, operation: true })
+    let cancelled = false
 
-  const openCreateRoute = () => {
-    resetTripForm()
-    setEditingRoute(null)
-    setRouteForm({ ...EMPTY_ROUTE_FORM })
-    setShowRouteForm(true)
-  }
+    const loadTripForEdit = async () => {
+      setFormRecordLoading(true)
+      try {
+        const result = await getTrip(tripId)
+        const trip = result?.trip || result
+        if (!trip?.id) throw new Error('Không tìm thấy chuyến xe cần sửa.')
+        if (!cancelled) await openEditTrip(trip)
+      } catch (requestError) {
+        if (!cancelled) setError(getApiErrorMessage(requestError))
+      } finally {
+        if (!cancelled) setFormRecordLoading(false)
+      }
+    }
 
-  const openEditRoute = (route) => {
-    resetTripForm()
-    setEditingRoute(route)
-    setRouteForm({
-      routeName: route.routeName ?? '',
-      departureLocation:
-        route.departureLocation?.id ?? route.departureLocationId ?? '',
-      arrivalLocation: route.arrivalLocation?.id ?? route.arrivalLocationId ?? '',
-      distanceKm: route.distanceKm == null ? '' : String(Number(route.distanceKm)),
-      estimatedDurationMinutes:
-        route.estimatedDurationMinutes == null
-          ? ''
-          : String(Number(route.estimatedDurationMinutes)),
-      defaultTicketPrice:
-        route.defaultTicketPrice == null ? '' : String(Number(route.defaultTicketPrice)),
-      defaultSingleRoomPrice:
-        route.defaultSingleRoomPrice == null
-          ? ''
-          : String(Number(route.defaultSingleRoomPrice)),
-      defaultDoubleRoomPrice:
-        route.defaultDoubleRoomPrice == null
-          ? ''
-          : String(Number(route.defaultDoubleRoomPrice)),
-    })
-    setShowRouteForm(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    loadTripForEdit()
+    return () => { cancelled = true }
+    // openEditTrip intentionally uses current form helpers; route id is the reload key.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageMode, tripId])
+
+  const toggleFormSection = (section) => {
+    setFormSections((current) => ({ ...current, [section]: !current[section] }))
   }
 
   const changeTripField = (event) => {
     const { name, value } = event.target
-    setTripForm((current) => ({ ...current, [name]: value }))
+    setTripForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'departureProvinceId' ? { departureLocationId: '' } : {}),
+      ...(name === 'arrivalProvinceId' ? { arrivalLocationId: '' } : {}),
+    }))
+
+    if (name === 'departureProvinceId') {
+      setServiceConfig((current) => ({ ...current, meetingPoints: [] }))
+    }
+    if (name === 'arrivalProvinceId') {
+      setServiceConfig((current) => ({ ...current, dropoffStops: [] }))
+    }
+    if (name === 'departureLocationId') {
+      setServiceConfig((current) => ({
+        ...current,
+        meetingPoints: current.meetingPoints.filter((point) => point.locationId !== value),
+      }))
+    }
+    if (name === 'arrivalLocationId') {
+      setServiceConfig((current) => ({
+        ...current,
+        dropoffStops: current.dropoffStops.filter((point) => point.locationId !== value),
+      }))
+    }
   }
 
-  const changeRouteField = (event) => {
-    const { name, value } = event.target
-
-    setRouteForm((current) => {
-      const next = { ...current, [name]: value }
-
-      if (['departureLocation', 'arrivalLocation'].includes(name)) {
-        const departure = locations.find(
-          (location) => location.id === next.departureLocation,
-        )
-        const arrival = locations.find(
-          (location) => location.id === next.arrivalLocation,
-        )
-
-        next.routeName = departure && arrival
-          ? `${departure.name} → ${arrival.name}`
-          : ''
-      }
-
-      return next
-    })
+  const setServiceSetting = (name, value) => {
+    setServiceConfig((current) => ({ ...current, [name]: value }))
   }
+
+  const addMeetingPoint = () => {
+    const used = new Set(serviceConfig.meetingPoints.map((point) => point.locationId))
+    const location = pickupMeetingCatalog.find((item) => !used.has(item.id))
+    if (!location) {
+      window.alert('Không còn địa điểm đón phù hợp để thêm làm điểm hẹn.')
+      return
+    }
+    setServiceConfig((current) => ({
+      ...current,
+      meetingPoints: [
+        ...current.meetingPoints,
+        createServiceRow('PICKUP', location.id, {
+          sortOrder: current.meetingPoints.length + 2,
+        }),
+      ],
+    }))
+  }
+
+  const addDropoffStop = () => {
+    const used = new Set(serviceConfig.dropoffStops.map((point) => point.locationId))
+    const location = dropoffStopCatalog.find((item) => !used.has(item.id))
+    if (!location) {
+      window.alert('Không còn địa điểm trả phù hợp để thêm làm điểm dừng.')
+      return
+    }
+    setServiceConfig((current) => ({
+      ...current,
+      dropoffStops: [
+        ...current.dropoffStops,
+        createServiceRow('DROPOFF', location.id, {
+          sortOrder: current.dropoffStops.length + 2,
+        }),
+      ],
+    }))
+  }
+
+  const updateServiceRow = (key, rowIndex, field, value) => {
+    setServiceConfig((current) => ({
+      ...current,
+      [key]: current[key].map((point, index) =>
+        index === rowIndex ? { ...point, [field]: value } : point,
+      ),
+    }))
+  }
+
+  const removeServiceRow = (key, rowIndex) => {
+    setServiceConfig((current) => ({
+      ...current,
+      [key]: current[key]
+        .filter((_, index) => index !== rowIndex)
+        .map((point, index) => ({ ...point, sortOrder: String(index + 2) })),
+    }))
+  }
+
+  const availableLocationsForRow = (items, rows, rowIndex) => {
+    const used = new Set(
+      rows
+        .filter((_, index) => index !== rowIndex)
+        .map((point) => point.locationId)
+        .filter(Boolean),
+    )
+    return items.filter((location) => !used.has(location.id))
+  }
+
+  const buildServicePointPayload = () => ({
+    primaryPickupMode: serviceConfig.primaryPickupMode,
+    primaryDropoffMode: serviceConfig.primaryDropoffMode,
+    allowPickupTransfer: serviceConfig.allowPickupTransfer,
+    allowPickupMeetingPoint: serviceConfig.allowPickupMeetingPoint,
+    allowDropoffTransfer: serviceConfig.allowDropoffTransfer,
+    allowDropoffStop: serviceConfig.allowDropoffStop,
+    servicePoints: [
+      ...(serviceConfig.allowPickupMeetingPoint
+        ? serviceConfig.meetingPoints.map((point, index) => ({
+            ...(point.id && { id: point.id }),
+            locationId: point.locationId,
+            pointType: 'PICKUP',
+            serviceMode: 'DonTaiDiemHen',
+            estimatedTime: point.estimatedTime,
+            sortOrder: Number(point.sortOrder || index + 2),
+            status: 'ACTIVE',
+          }))
+        : []),
+      ...(serviceConfig.allowDropoffStop
+        ? serviceConfig.dropoffStops.map((point, index) => ({
+            ...(point.id && { id: point.id }),
+            locationId: point.locationId,
+            pointType: 'DROPOFF',
+            serviceMode: 'TraTaiDiemDung',
+            estimatedTime: point.estimatedTime,
+            sortOrder: Number(point.sortOrder || index + 2),
+            status: 'ACTIVE',
+          }))
+        : []),
+    ],
+  })
 
   const submitTrip = async (event) => {
     event.preventDefault()
 
-    const departureTime = new Date(tripForm.departureTime)
-    const expectedArrivalTime = new Date(tripForm.expectedArrivalTime)
-
-    if (!tripForm.route || !tripForm.bus || Number.isNaN(departureTime.getTime())) {
-      window.alert('Vui lòng chọn tuyến, xe và thời gian khởi hành.')
+    if (
+      !tripForm.departureProvinceId ||
+      !tripForm.departureLocationId ||
+      !tripForm.arrivalProvinceId ||
+      !tripForm.arrivalLocationId ||
+      !tripForm.bus
+    ) {
+      window.alert('Vui lòng chọn đầy đủ tỉnh/thành, địa điểm cụ thể và xe.')
+      return
+    }
+    if (tripForm.departureProvinceId === tripForm.arrivalProvinceId) {
+      window.alert('Tỉnh/Thành đi phải khác Tỉnh/Thành đến.')
+      return
+    }
+    if (tripForm.departureLocationId === tripForm.arrivalLocationId) {
+      window.alert('Điểm đi cụ thể phải khác điểm đến cụ thể.')
       return
     }
 
+    if (serviceConfig.allowPickupMeetingPoint && serviceConfig.meetingPoints.length === 0) {
+      window.alert('Bạn đã bật Đón khách tại điểm hẹn. Hãy thêm ít nhất một điểm hẹn.')
+      return
+    }
+    if (serviceConfig.allowDropoffStop && serviceConfig.dropoffStops.length === 0) {
+      window.alert('Bạn đã bật Trả khách tại điểm dừng. Hãy thêm ít nhất một điểm dừng.')
+      return
+    }
+    const activeServiceRows = [
+      ...(serviceConfig.allowPickupMeetingPoint ? serviceConfig.meetingPoints : []),
+      ...(serviceConfig.allowDropoffStop ? serviceConfig.dropoffStops : []),
+    ]
+    if (activeServiceRows.some((point) => !point.locationId || !point.estimatedTime)) {
+      window.alert('Vui lòng chọn đầy đủ địa điểm và giờ dự kiến cho điểm hẹn/điểm dừng.')
+      return
+    }
+    if (activeServiceRows.some((point) => {
+      const sortOrder = Number(point.sortOrder)
+      return !Number.isInteger(sortOrder) || sortOrder < 0
+    })) {
+      window.alert('Thứ tự điểm hẹn/điểm dừng phải là số nguyên không âm.')
+      return
+    }
+
+    const departureTime = new Date(tripForm.departureTime)
+    const expectedArrivalTime = new Date(tripForm.expectedArrivalTime)
+    if (Number.isNaN(departureTime.getTime())) {
+      window.alert('Vui lòng nhập thời gian khởi hành.')
+      return
+    }
     if (
       Number.isNaN(expectedArrivalTime.getTime()) ||
       expectedArrivalTime <= departureTime
@@ -323,29 +695,47 @@ function AdminTripsRoutesPage() {
     const ticketPrice = nullableNumber(tripForm.ticketPrice)
     const singleRoomPrice = nullableNumber(tripForm.singleRoomPrice)
     const doubleRoomPrice = nullableNumber(tripForm.doubleRoomPrice)
-
     if ([ticketPrice, singleRoomPrice, doubleRoomPrice].some(Number.isNaN)) {
-      window.alert('Giá vé phải là số không âm hoặc để trống.')
+      window.alert('Giá vé phải là số không âm.')
+      return
+    }
+
+    if (isRoomBusType(selectedTripBus?.busType)) {
+      if (singleRoomPrice == null || doubleRoomPrice == null) {
+        window.alert('Xe 22 phòng phải nhập giá phòng đơn và giá phòng đôi.')
+        return
+      }
+    } else if (ticketPrice == null) {
+      window.alert('Vui lòng nhập giá vé cho chuyến.')
       return
     }
 
     setSubmittingTrip(true)
+    let newlyCreatedTripId = ''
     try {
-      const pricingPayload = {
+      const common = {
+        departureProvinceId: tripForm.departureProvinceId,
+        arrivalProvinceId: tripForm.arrivalProvinceId,
         ticketPrice,
         singleRoomPrice,
         doubleRoomPrice,
       }
 
       if (editingTrip) {
+        const oldDeparture =
+          editingTrip.departureLocation?.id || editingTrip.route?.departureLocation?.id || ''
+        const oldArrival =
+          editingTrip.arrivalLocation?.id || editingTrip.route?.arrivalLocation?.id || ''
+        const oldBus = editingTrip.bus?.id ?? editingTrip.busId ?? ''
         const payload = {
-          ...pricingPayload,
-          ...(tripForm.route !== (editingTrip.route?.id ?? editingTrip.routeId) && {
-            route: tripForm.route,
+          ...common,
+          ...(tripForm.departureLocationId !== oldDeparture && {
+            departureLocationId: tripForm.departureLocationId,
           }),
-          ...(tripForm.bus !== (editingTrip.bus?.id ?? editingTrip.busId) && {
-            bus: tripForm.bus,
+          ...(tripForm.arrivalLocationId !== oldArrival && {
+            arrivalLocationId: tripForm.arrivalLocationId,
           }),
+          ...(tripForm.bus !== oldBus && { bus: tripForm.bus }),
           ...(departureTime.getTime() !== new Date(editingTrip.departureTime).getTime() && {
             departureTime: departureTime.toISOString(),
           }),
@@ -354,85 +744,47 @@ function AdminTripsRoutesPage() {
             expectedArrivalTime: expectedArrivalTime.toISOString(),
           }),
         }
-
         await updateTrip(editingTrip.id, payload)
+        await configureTripServicePoints(editingTrip.id, buildServicePointPayload())
       } else {
-        await createTrip({
-          route: tripForm.route,
+        const created = await createTrip({
+          ...common,
+          departureLocationId: tripForm.departureLocationId,
+          arrivalLocationId: tripForm.arrivalLocationId,
           bus: tripForm.bus,
           departureTime: departureTime.toISOString(),
           expectedArrivalTime: expectedArrivalTime.toISOString(),
-          ...pricingPayload,
+          status: tripForm.status,
         })
+        const createdTripId = created?.trip?.id || created?.id
+        if (!createdTripId) {
+          throw new Error('Đã tạo chuyến nhưng không nhận được mã chuyến để lưu cấu hình điểm đón/trả.')
+        }
+        newlyCreatedTripId = createdTripId
+        await configureTripServicePoints(createdTripId, buildServicePointPayload())
       }
 
-      resetTripForm()
-      await load(tripPage, appliedTripFilters)
+      if (isFormPage) {
+        navigate('/admin/chuyen-xe', { replace: true })
+      } else {
+        resetTripForm()
+        await load(tripPage, appliedTripFilters)
+      }
     } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
+      if (newlyCreatedTripId) {
+        window.alert(
+          `Chuyến đã được tạo nhưng cấu hình điểm đón/trả chưa lưu hoàn tất.\n\n${getApiErrorMessage(requestError)}\n\nHãy bấm Sửa chuyến vừa tạo để lưu lại cấu hình điểm đón/trả.`,
+        )
+        if (isFormPage) {
+          navigate(`/admin/chuyen-xe/${newlyCreatedTripId}/sua`, { replace: true })
+        } else {
+          await load(tripPage, appliedTripFilters)
+        }
+      } else {
+        window.alert(getApiErrorMessage(requestError))
+      }
     } finally {
       setSubmittingTrip(false)
-    }
-  }
-
-  const submitRoute = async (event) => {
-    event.preventDefault()
-
-    if (routeForm.departureLocation === routeForm.arrivalLocation) {
-      window.alert('Điểm đi và điểm đến phải khác nhau.')
-      return
-    }
-
-    const distanceKm = Number(routeForm.distanceKm)
-    const estimatedDurationMinutes = Number(routeForm.estimatedDurationMinutes)
-    const defaultTicketPrice = nullableNumber(routeForm.defaultTicketPrice)
-    const defaultSingleRoomPrice = nullableNumber(routeForm.defaultSingleRoomPrice)
-    const defaultDoubleRoomPrice = nullableNumber(routeForm.defaultDoubleRoomPrice)
-
-    if (!Number.isFinite(distanceKm) || distanceKm <= 0) {
-      window.alert('Khoảng cách phải là số lớn hơn 0.')
-      return
-    }
-
-    if (!Number.isInteger(estimatedDurationMinutes) || estimatedDurationMinutes <= 0) {
-      window.alert('Thời gian dự kiến phải là số phút nguyên dương.')
-      return
-    }
-
-    if (
-      [defaultTicketPrice, defaultSingleRoomPrice, defaultDoubleRoomPrice].some(
-        Number.isNaN,
-      )
-    ) {
-      window.alert('Giá mặc định phải là số không âm hoặc để trống.')
-      return
-    }
-
-    setSubmittingRoute(true)
-    try {
-      const payload = {
-        routeName: normalizeRouteName(routeForm.routeName),
-        departureLocation: routeForm.departureLocation,
-        arrivalLocation: routeForm.arrivalLocation,
-        distanceKm,
-        estimatedDurationMinutes,
-        defaultTicketPrice,
-        defaultSingleRoomPrice,
-        defaultDoubleRoomPrice,
-      }
-
-      if (editingRoute) {
-        await updateRoute(editingRoute.id, payload)
-      } else {
-        await createRoute(payload)
-      }
-
-      resetRouteForm()
-      await load(tripPage, appliedTripFilters)
-    } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
-    } finally {
-      setSubmittingRoute(false)
     }
   }
 
@@ -442,9 +794,7 @@ function AdminTripsRoutesPage() {
       !window.confirm(
         `Chuyển chuyến ${shortCode(trip.id, 'CX')} sang trạng thái "${nextLabel}"?`,
       )
-    ) {
-      return
-    }
+    ) return
 
     setProcessingTripId(trip.id)
     try {
@@ -459,7 +809,6 @@ function AdminTripsRoutesPage() {
 
   const completeTrip = async (trip) => {
     setProcessingTripId(trip.id)
-
     try {
       const previewData = await getTripCompletionPreview(trip.id)
       const preview = previewData.preview
@@ -467,16 +816,13 @@ function AdminTripsRoutesPage() {
       if (!preview.canComplete) {
         if (preview.missingPaymentCount > 0) {
           window.alert(
-            `Có ${preview.missingPaymentCount} vé thiếu dữ liệu thanh toán. ` +
-              'Hãy kiểm tra từng vé trong danh sách hành khách trước.',
+            `Có ${preview.missingPaymentCount} vé thiếu dữ liệu thanh toán. Hãy kiểm tra danh sách hành khách trước.`,
           )
           return
         }
-
         if (preview.abnormalPaymentCount > 0) {
           window.alert(
-            `Có ${preview.abnormalPaymentCount} vé có trạng thái thanh toán bất thường hoặc đã hoàn tiền. ` +
-              'Hãy xử lý từng vé trước khi hoàn thành chuyến.',
+            `Có ${preview.abnormalPaymentCount} vé có trạng thái thanh toán bất thường hoặc đã hoàn tiền.`,
           )
           return
         }
@@ -486,25 +832,24 @@ function AdminTripsRoutesPage() {
         preview.unpaidBookingCount > 0
           ? `Chuyến còn ${preview.unpaidBookingCount} vé chưa thanh toán, tổng ${formatCurrency(
               preview.unpaidAmount,
-            )}.\n\nNếu tiếp tục, toàn bộ vé đang Đã đặt và chưa thanh toán sẽ được chuyển thành Đã thanh toán và tính vào doanh thu.\n\nBạn có chắc chắn muốn hoàn thành chuyến?`
-          : 'Tất cả vé hiệu lực đã thanh toán. Bạn có chắc chắn muốn hoàn thành chuyến?'
+            )}.\n\nNếu tiếp tục, các vé hợp lệ chưa thanh toán sẽ được chuyển thành Đã thanh toán.\n\nBạn có chắc muốn hoàn thành chuyến?`
+          : 'Tất cả vé hiệu lực đã thanh toán. Bạn có chắc muốn hoàn thành chuyến?'
 
       if (!window.confirm(confirmMessage)) return
 
       const result = await changeTripStatus(trip.id, 'COMPLETED', {
         confirmCollectUnpaid: preview.unpaidBookingCount > 0,
       })
-
       const summary = result.trip?.completionSummary
       if (summary?.collectedBookings > 0) {
         window.alert(
-          `Đã hoàn thành chuyến và xác nhận thanh toán ${summary.collectedBookings} vé, ` +
-            `tổng ${formatCurrency(summary.collectedAmount)}.`,
+          `Đã hoàn thành chuyến và xác nhận thanh toán ${summary.collectedBookings} vé, tổng ${formatCurrency(
+            summary.collectedAmount,
+          )}.`,
         )
       } else {
         window.alert('Đã hoàn thành chuyến xe.')
       }
-
       await load(tripPage, appliedTripFilters)
     } catch (requestError) {
       window.alert(getApiErrorMessage(requestError))
@@ -515,7 +860,6 @@ function AdminTripsRoutesPage() {
 
   const removeTrip = async (trip) => {
     if (!window.confirm(`Hủy chuyến ${shortCode(trip.id, 'CX')}?`)) return
-
     setProcessingTripId(trip.id)
     try {
       await deleteTrip(trip.id)
@@ -524,42 +868,6 @@ function AdminTripsRoutesPage() {
       window.alert(getApiErrorMessage(requestError))
     } finally {
       setProcessingTripId('')
-    }
-  }
-
-  const removeRoute = async (route) => {
-    if (
-      !window.confirm(
-        `Ngừng hoạt động tuyến "${route.routeName}"?\n\nTuyến vẫn được giữ trong lịch sử và không thể dùng để tạo chuyến mới.`,
-      )
-    ) {
-      return
-    }
-
-    setProcessingRouteId(route.id)
-    try {
-      await deleteRoute(route.id)
-      await load(tripPage, appliedTripFilters)
-    } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
-    } finally {
-      setProcessingRouteId('')
-    }
-  }
-
-  const restoreRoute = async (route) => {
-    if (!window.confirm(`Khôi phục tuyến "${route.routeName}" về trạng thái hoạt động?`)) {
-      return
-    }
-
-    setProcessingRouteId(route.id)
-    try {
-      await updateRoute(route.id, { status: 'ACTIVE' })
-      await load(tripPage, appliedTripFilters)
-    } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
-    } finally {
-      setProcessingRouteId('')
     }
   }
 
@@ -575,71 +883,83 @@ function AdminTripsRoutesPage() {
     setTripPage(1)
   }
 
-  if (error && !trips.length && !routes.length) {
-    return <ErrorState message={error} onRetry={() => load(tripPage, appliedTripFilters)} />
+  const selectedDepartureLocation = catalog.locations.find(
+    (location) => location.id === tripForm.departureLocationId,
+  )
+  const selectedArrivalLocation = catalog.locations.find(
+    (location) => location.id === tripForm.arrivalLocationId,
+  )
+  const selectedDepartureProvince = catalog.provinces.find(
+    (province) => province.id === tripForm.departureProvinceId,
+  )
+  const selectedArrivalProvince = catalog.provinces.find(
+    (province) => province.id === tripForm.arrivalProvinceId,
+  )
+
+  const formSectionSummary = {
+    route:
+      selectedDepartureProvince && selectedArrivalProvince
+        ? `${selectedDepartureProvince.name} → ${selectedArrivalProvince.name}`
+        : 'Chọn tuyến và điểm đi/đến',
+    pickup:
+      serviceConfig.primaryPickupMode === 'TaiVanPhong'
+        ? 'Tập trung tại văn phòng nhà xe'
+        : 'Đón trực tiếp tại bến xe trung tâm',
+    dropoff:
+      serviceConfig.primaryDropoffMode === 'TraTaiVanPhong'
+        ? 'Trả tại văn phòng nhà xe'
+        : 'Trả tại bến xe trung tâm đích đến',
+    operation:
+      selectedTripBus && tripForm.departureTime
+        ? `${formatLicensePlate(selectedTripBus.licensePlate)} · ${formatDateTime(tripForm.departureTime)}`
+        : 'Xe, thời gian và trạng thái bán vé',
   }
 
-  if (loading && !trips.length && !routes.length) return <LoadingState />
+  const formSectionDone = {
+    route: Boolean(
+      tripForm.departureProvinceId &&
+      tripForm.departureLocationId &&
+      tripForm.arrivalProvinceId &&
+      tripForm.arrivalLocationId,
+    ),
+    pickup: Boolean(tripForm.departureLocationId),
+    dropoff: Boolean(tripForm.arrivalLocationId),
+    operation: Boolean(tripForm.bus && tripForm.departureTime && tripForm.expectedArrivalTime),
+  }
 
-  return (
+  const renderFormSectionHeader = (number, key, title, subtitle) => (
+    <button
+      className="admin-trip-v2-accordion__header"
+      onClick={() => toggleFormSection(key)}
+      type="button"
+    >
+      <span className={`admin-trip-v2-step-number ${formSectionDone[key] ? 'is-done' : ''}`}>
+        {formSectionDone[key] ? '✓' : number}
+      </span>
+      <span className="admin-trip-v2-accordion__heading">
+        <strong>{number}. {title}</strong>
+        <small>{formSectionSummary[key] || subtitle}</small>
+      </span>
+      <span className={`admin-trip-v2-chevron ${formSections[key] ? 'is-open' : ''}`}>⌄</span>
+    </button>
+  )
+
+  const renderTripFormPage = () => (
     <>
       <AdminPageHeader
-        title="Chuyến xe & Tuyến đường"
-        description="Quản lý chuyến, trạng thái vận hành, giá vé và tuyến đường."
-        actions={(
-          <>
-            {canCreateTrips && (
-              <button className="btn btn-primary" onClick={openCreateTrip} type="button">
-                + Thêm chuyến mới
-              </button>
-            )}
-            {canCreateRoutes && (
-              <button
-                className="btn btn-outline-primary"
-                onClick={openCreateRoute}
-                type="button"
-              >
-                + Thêm tuyến đường
-              </button>
-            )}
-          </>
-        )}
+        title={pageMode === 'edit' ? 'Sửa chuyến xe' : 'Thêm chuyến xe'}
+        description=""
       />
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {showTripForm && (
-        <section className="admin-panel">
-          <div className="admin-panel-heading">
-            <div>
-              <span>QUẢN LÝ CHUYẾN</span>
-              <h2>{editingTrip ? 'Sửa chuyến xe' : 'Thêm chuyến mới'}</h2>
-            </div>
+      <form className="admin-trip-compact-form" onSubmit={submitTrip}>
+        <section className="admin-trip-compact-panel admin-trip-compact-operation">
+          <div className="admin-trip-compact-panel__title">
+            <strong>Thông tin chuyến xe</strong>
           </div>
 
-          <form className="admin-form-grid" onSubmit={submitTrip}>
-            <label className="admin-field">
-              <span>Tuyến đường</span>
-              <select
-                className="form-select"
-                name="route"
-                onChange={changeTripField}
-                required
-                value={tripForm.route}
-              >
-                <option value="">Chọn tuyến</option>
-                {routes
-                  .filter(
-                    (route) =>
-                      route.status === 'ACTIVE' ||
-                      route.id === (editingTrip?.route?.id ?? editingTrip?.routeId),
-                  )
-                  .map((route) => (
-                    <option key={route.id} value={route.id}>{route.routeName}</option>
-                  ))}
-              </select>
-            </label>
-
+          <div className="admin-trip-compact-operation-grid">
             <label className="admin-field">
               <span>Xe</span>
               <select
@@ -649,7 +969,7 @@ function AdminTripsRoutesPage() {
                 required
                 value={tripForm.bus}
               >
-                <option value="">Chọn xe</option>
+                <option value="">Chọn xe đang hoạt động</option>
                 {buses
                   .filter(
                     (bus) =>
@@ -658,7 +978,7 @@ function AdminTripsRoutesPage() {
                   )
                   .map((bus) => (
                     <option key={bus.id} value={bus.id}>
-                      {bus.busName} – {formatLicensePlate(bus.licensePlate)} – {getBusTypeLabel(bus.busType)}
+                      {getBusTypeLabel(bus.busType)} – {formatLicensePlate(bus.licensePlate)}
                     </option>
                   ))}
               </select>
@@ -688,6 +1008,27 @@ function AdminTripsRoutesPage() {
               />
             </label>
 
+            <label className="admin-field">
+              <span>Trạng thái bán vé</span>
+              {pageMode === 'edit' ? (
+                <input
+                  className="form-control"
+                  readOnly
+                  value={TRIP_STATUS_LABELS[editingTrip?.status] || 'Không xác định'}
+                />
+              ) : (
+                <select
+                  className="form-select"
+                  name="status"
+                  onChange={changeTripField}
+                  value={tripForm.status}
+                >
+                  <option value="OPEN">Đang mở bán</option>
+                  <option value="CLOSED">Đã đóng đặt vé</option>
+                </select>
+              )}
+            </label>
+
             {isRoomBusType(selectedTripBus?.busType) ? (
               <>
                 <label className="admin-field">
@@ -697,7 +1038,8 @@ function AdminTripsRoutesPage() {
                     min="0"
                     name="singleRoomPrice"
                     onChange={changeTripField}
-                    placeholder="Để trống để dùng giá tuyến"
+                    required
+                    step="1000"
                     type="number"
                     value={tripForm.singleRoomPrice}
                   />
@@ -709,388 +1051,702 @@ function AdminTripsRoutesPage() {
                     min="0"
                     name="doubleRoomPrice"
                     onChange={changeTripField}
-                    placeholder="Để trống để dùng giá tuyến"
+                    required
+                    step="1000"
                     type="number"
                     value={tripForm.doubleRoomPrice}
                   />
                 </label>
               </>
             ) : (
-              <label className="admin-field admin-field--wide">
-                <span>Giá vé tại chuyến</span>
+              <label className="admin-field">
+                <span>Giá vé</span>
                 <input
                   className="form-control"
                   min="0"
                   name="ticketPrice"
                   onChange={changeTripField}
-                  placeholder="Để trống để dùng giá tuyến"
+                  required
+                  step="1000"
                   type="number"
                   value={tripForm.ticketPrice}
                 />
               </label>
             )}
-
-            <div className="admin-field admin-field--wide d-flex gap-2">
-              <button className="btn btn-primary" disabled={submittingTrip} type="submit">
-                {submittingTrip
-                  ? 'Đang lưu...'
-                  : editingTrip
-                    ? 'Lưu thay đổi chuyến'
-                    : 'Tạo chuyến và ghế'}
-              </button>
-              <button
-                className="btn btn-outline-secondary"
-                disabled={submittingTrip}
-                onClick={resetTripForm}
-                type="button"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      {showRouteForm && (
-        <section className="admin-panel">
-          <div className="admin-panel-heading">
-            <div>
-              <span>QUẢN LÝ TUYẾN</span>
-              <h2>{editingRoute ? 'Sửa tuyến đường' : 'Thêm tuyến đường'}</h2>
-            </div>
           </div>
-
-          <form className="admin-form-grid" onSubmit={submitRoute}>
-            <label className="admin-field admin-field--wide">
-              <span>Tên tuyến</span>
-              <input
-                className="form-control"
-                maxLength="150"
-                name="routeName"
-                readOnly
-                required
-                value={routeForm.routeName}
-              />
-              <small>Tên tuyến được tạo tự động từ điểm đi và điểm đến.</small>
-            </label>
-
-            <label className="admin-field">
-              <span>Điểm đi</span>
-              <select
-                className="form-select"
-                name="departureLocation"
-                onChange={changeRouteField}
-                required
-                value={routeForm.departureLocation}
-              >
-                <option value="">Chọn điểm đi</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name} – {location.province}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="admin-field">
-              <span>Điểm đến</span>
-              <select
-                className="form-select"
-                name="arrivalLocation"
-                onChange={changeRouteField}
-                required
-                value={routeForm.arrivalLocation}
-              >
-                <option value="">Chọn điểm đến</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name} – {location.province}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="admin-field">
-              <span>Khoảng cách (km)</span>
-              <input
-                className="form-control"
-                min="1"
-                name="distanceKm"
-                onChange={changeRouteField}
-                required
-                type="number"
-                value={routeForm.distanceKm}
-              />
-            </label>
-
-            <label className="admin-field">
-              <span>Thời gian dự kiến (phút)</span>
-              <input
-                className="form-control"
-                min="1"
-                name="estimatedDurationMinutes"
-                onChange={changeRouteField}
-                required
-                type="number"
-                value={routeForm.estimatedDurationMinutes}
-              />
-            </label>
-
-            <label className="admin-field">
-              <span>Giá vé 34 giường</span>
-              <input
-                className="form-control"
-                min="0"
-                name="defaultTicketPrice"
-                onChange={changeRouteField}
-                type="number"
-                value={routeForm.defaultTicketPrice}
-              />
-            </label>
-
-            <label className="admin-field" title={ROUTE_PRICE_HELP_TEXT.single}>
-              <span>Giá phòng đơn</span>
-              <input
-                className="form-control"
-                min="0"
-                name="defaultSingleRoomPrice"
-                onChange={changeRouteField}
-                type="number"
-                value={routeForm.defaultSingleRoomPrice}
-              />
-            </label>
-
-            <label className="admin-field" title={ROUTE_PRICE_HELP_TEXT.double}>
-              <span>Giá phòng đôi</span>
-              <input
-                className="form-control"
-                min="0"
-                name="defaultDoubleRoomPrice"
-                onChange={changeRouteField}
-                type="number"
-                value={routeForm.defaultDoubleRoomPrice}
-              />
-            </label>
-
-            {editingRoute && (
-              <div className="admin-field admin-field--wide">
-                <small>
-                  Tuyến đã có lịch sử chuyến chỉ được sửa tên, khoảng cách, thời gian và giá;
-                  máy chủ sẽ chặn việc đổi điểm đi hoặc điểm đến.
-                </small>
-              </div>
-            )}
-
-            <div className="admin-field admin-field--wide d-flex gap-2">
-              <button className="btn btn-primary" disabled={submittingRoute} type="submit">
-                {submittingRoute
-                  ? 'Đang lưu...'
-                  : editingRoute
-                    ? 'Lưu thay đổi tuyến'
-                    : 'Tạo tuyến đường'}
-              </button>
-              <button
-                className="btn btn-outline-secondary"
-                disabled={submittingRoute}
-                onClick={resetRouteForm}
-                type="button"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
         </section>
-      )}
 
-      <form className="admin-filter-bar" onSubmit={submitTripFilters}>
-        <select
-          className="form-select"
-          name="status"
-          onChange={(event) =>
-            setTripFilters((current) => ({ ...current, status: event.target.value }))
-          }
-          value={tripFilters.status}
-        >
-          <option value="">Tất cả trạng thái chuyến</option>
-          {Object.entries(TRIP_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-        <input
-          className="form-control"
-          name="departureDate"
-          onChange={(event) =>
-            setTripFilters((current) => ({
-              ...current,
-              departureDate: event.target.value,
-            }))
-          }
-          type="date"
-          value={tripFilters.departureDate}
-        />
-        <div className="d-flex gap-2">
-          <button className="btn btn-primary" type="submit">Lọc chuyến</button>
+        <div className="admin-trip-compact-service-grid">
+          <section className="admin-trip-compact-service admin-trip-compact-service--pickup">
+            <div className="admin-trip-compact-service__title">
+              <strong>● Cấu hình điểm đón</strong>
+            </div>
+
+            <div className="admin-trip-compact-route-row">
+              <label className="admin-field">
+                <span>Tỉnh/Thành đi</span>
+                <select
+                  className="form-select"
+                  name="departureProvinceId"
+                  onChange={changeTripField}
+                  required
+                  value={tripForm.departureProvinceId}
+                >
+                  <option value="">Chọn tỉnh/thành</option>
+                  {activeProvinces
+                    .filter((province) => province.id !== tripForm.arrivalProvinceId)
+                    .map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="admin-field">
+                <span>Địa điểm chính</span>
+                <select
+                  className="form-select"
+                  disabled={!tripForm.departureProvinceId}
+                  name="departureLocationId"
+                  onChange={changeTripField}
+                  required
+                  value={tripForm.departureLocationId}
+                >
+                  <option value="">Chọn địa điểm</option>
+                  {departureLocations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="admin-trip-compact-section">
+              <strong className="admin-trip-compact-section__label">1. Điểm đón chính</strong>
+              <div className="admin-trip-compact-choice-grid">
+                <label
+                  className={
+                    serviceConfig.primaryPickupMode === 'DonTaiBenXe'
+                      ? 'is-selected'
+                      : ''
+                  }
+                >
+                  <input
+                    checked={serviceConfig.primaryPickupMode === 'DonTaiBenXe'}
+                    name="primaryPickupMode"
+                    onChange={() =>
+                      setServiceSetting('primaryPickupMode', 'DonTaiBenXe')
+                    }
+                    type="radio"
+                  />
+                  <strong>Đón trực tiếp tại bến xe trung tâm</strong>
+                </label>
+
+                <label
+                  className={
+                    serviceConfig.primaryPickupMode === 'TaiVanPhong'
+                      ? 'is-selected'
+                      : ''
+                  }
+                >
+                  <input
+                    checked={serviceConfig.primaryPickupMode === 'TaiVanPhong'}
+                    name="primaryPickupMode"
+                    onChange={() =>
+                      setServiceSetting('primaryPickupMode', 'TaiVanPhong')
+                    }
+                    type="radio"
+                  />
+                  <strong>Tập trung tại văn phòng nhà xe</strong>
+                </label>
+              </div>
+            </div>
+
+            <div className="admin-trip-compact-section admin-trip-compact-toggle-section">
+              <strong className="admin-trip-compact-section__label">
+                2. Xe trung chuyển đón khách
+              </strong>
+              <label className="admin-trip-compact-switch-line">
+                <input
+                  checked={serviceConfig.allowPickupTransfer}
+                  onChange={(event) =>
+                    setServiceSetting('allowPickupTransfer', event.target.checked)
+                  }
+                  type="checkbox"
+                />
+                <span>Cho phép xe trung chuyển đón khách</span>
+              </label>
+            </div>
+
+            <div className="admin-trip-compact-section">
+              <div className="admin-trip-compact-section__head">
+                <strong className="admin-trip-compact-section__label">
+                  3. Đón khách tại điểm hẹn
+                </strong>
+                {serviceConfig.allowPickupMeetingPoint && (
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    disabled={!tripForm.departureLocationId}
+                    onClick={addMeetingPoint}
+                    type="button"
+                  >
+                    + Thêm điểm hẹn
+                  </button>
+                )}
+              </div>
+
+              <label className="admin-trip-compact-switch-line">
+                <input
+                  checked={serviceConfig.allowPickupMeetingPoint}
+                  onChange={(event) =>
+                    setServiceSetting(
+                      'allowPickupMeetingPoint',
+                      event.target.checked,
+                    )
+                  }
+                  type="checkbox"
+                />
+                <span>Cho phép đón khách tại điểm hẹn</span>
+              </label>
+
+              {serviceConfig.allowPickupMeetingPoint &&
+                serviceConfig.meetingPoints.length > 0 && (
+                  <div className="admin-trip-compact-point-list">
+                    {serviceConfig.meetingPoints.map((point, index) => (
+                      <div
+                        className="admin-trip-compact-point-row"
+                        key={point.clientId}
+                      >
+                        <label>
+                          <span>Điểm hẹn</span>
+                          <select
+                            className="form-select"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'meetingPoints',
+                                index,
+                                'locationId',
+                                event.target.value,
+                              )
+                            }
+                            value={point.locationId}
+                          >
+                            <option value="">Chọn địa điểm</option>
+                            {availableLocationsForRow(
+                              pickupMeetingCatalog,
+                              serviceConfig.meetingPoints,
+                              index,
+                            ).map((location) => (
+                              <option key={location.id} value={location.id}>
+                                {location.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>Giờ đón</span>
+                          <input
+                            className="form-control"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'meetingPoints',
+                                index,
+                                'estimatedTime',
+                                event.target.value,
+                              )
+                            }
+                            type="time"
+                            value={point.estimatedTime}
+                          />
+                        </label>
+
+                        <label>
+                          <span>Thứ tự</span>
+                          <input
+                            className="form-control"
+                            min="0"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'meetingPoints',
+                                index,
+                                'sortOrder',
+                                event.target.value,
+                              )
+                            }
+                            type="number"
+                            value={point.sortOrder}
+                          />
+                        </label>
+
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() =>
+                            removeServiceRow('meetingPoints', index)
+                          }
+                          type="button"
+                        >
+                          Bỏ
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </section>
+
+          <section className="admin-trip-compact-service admin-trip-compact-service--dropoff">
+            <div className="admin-trip-compact-service__title">
+              <strong>● Cấu hình điểm trả</strong>
+            </div>
+
+            <div className="admin-trip-compact-route-row">
+              <label className="admin-field">
+                <span>Tỉnh/Thành đến</span>
+                <select
+                  className="form-select"
+                  name="arrivalProvinceId"
+                  onChange={changeTripField}
+                  required
+                  value={tripForm.arrivalProvinceId}
+                >
+                  <option value="">Chọn tỉnh/thành</option>
+                  {activeProvinces
+                    .filter(
+                      (province) => province.id !== tripForm.departureProvinceId,
+                    )
+                    .map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="admin-field">
+                <span>Địa điểm chính</span>
+                <select
+                  className="form-select"
+                  disabled={!tripForm.arrivalProvinceId}
+                  name="arrivalLocationId"
+                  onChange={changeTripField}
+                  required
+                  value={tripForm.arrivalLocationId}
+                >
+                  <option value="">Chọn địa điểm</option>
+                  {arrivalLocations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="admin-trip-compact-section">
+              <strong className="admin-trip-compact-section__label">1. Điểm trả chính</strong>
+              <div className="admin-trip-compact-choice-grid">
+                <label
+                  className={
+                    serviceConfig.primaryDropoffMode === 'TraTaiBenXe'
+                      ? 'is-selected'
+                      : ''
+                  }
+                >
+                  <input
+                    checked={serviceConfig.primaryDropoffMode === 'TraTaiBenXe'}
+                    name="primaryDropoffMode"
+                    onChange={() =>
+                      setServiceSetting('primaryDropoffMode', 'TraTaiBenXe')
+                    }
+                    type="radio"
+                  />
+                  <strong>Trả khách tại bến xe trung tâm</strong>
+                </label>
+
+                <label
+                  className={
+                    serviceConfig.primaryDropoffMode === 'TraTaiVanPhong'
+                      ? 'is-selected'
+                      : ''
+                  }
+                >
+                  <input
+                    checked={serviceConfig.primaryDropoffMode === 'TraTaiVanPhong'}
+                    name="primaryDropoffMode"
+                    onChange={() =>
+                      setServiceSetting('primaryDropoffMode', 'TraTaiVanPhong')
+                    }
+                    type="radio"
+                  />
+                  <strong>Trả khách tại văn phòng nhà xe</strong>
+                </label>
+              </div>
+            </div>
+
+            <div className="admin-trip-compact-section admin-trip-compact-toggle-section">
+              <strong className="admin-trip-compact-section__label">
+                2. Xe trung chuyển trả tận nơi
+              </strong>
+              <label className="admin-trip-compact-switch-line">
+                <input
+                  checked={serviceConfig.allowDropoffTransfer}
+                  onChange={(event) =>
+                    setServiceSetting('allowDropoffTransfer', event.target.checked)
+                  }
+                  type="checkbox"
+                />
+                <span>Cho phép xe trung chuyển trả tận nơi</span>
+              </label>
+            </div>
+
+            <div className="admin-trip-compact-section">
+              <div className="admin-trip-compact-section__head">
+                <strong className="admin-trip-compact-section__label">
+                  3. Trả khách tại điểm dừng
+                </strong>
+                {serviceConfig.allowDropoffStop && (
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    disabled={!tripForm.arrivalLocationId}
+                    onClick={addDropoffStop}
+                    type="button"
+                  >
+                    + Thêm điểm dừng
+                  </button>
+                )}
+              </div>
+
+              <label className="admin-trip-compact-switch-line">
+                <input
+                  checked={serviceConfig.allowDropoffStop}
+                  onChange={(event) =>
+                    setServiceSetting('allowDropoffStop', event.target.checked)
+                  }
+                  type="checkbox"
+                />
+                <span>Cho phép trả khách tại điểm dừng</span>
+              </label>
+
+              {serviceConfig.allowDropoffStop &&
+                serviceConfig.dropoffStops.length > 0 && (
+                  <div className="admin-trip-compact-point-list">
+                    {serviceConfig.dropoffStops.map((point, index) => (
+                      <div
+                        className="admin-trip-compact-point-row"
+                        key={point.clientId}
+                      >
+                        <label>
+                          <span>Điểm dừng</span>
+                          <select
+                            className="form-select"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'dropoffStops',
+                                index,
+                                'locationId',
+                                event.target.value,
+                              )
+                            }
+                            value={point.locationId}
+                          >
+                            <option value="">Chọn địa điểm</option>
+                            {availableLocationsForRow(
+                              dropoffStopCatalog,
+                              serviceConfig.dropoffStops,
+                              index,
+                            ).map((location) => (
+                              <option key={location.id} value={location.id}>
+                                {location.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>Giờ trả</span>
+                          <input
+                            className="form-control"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'dropoffStops',
+                                index,
+                                'estimatedTime',
+                                event.target.value,
+                              )
+                            }
+                            type="time"
+                            value={point.estimatedTime}
+                          />
+                        </label>
+
+                        <label>
+                          <span>Thứ tự</span>
+                          <input
+                            className="form-control"
+                            min="0"
+                            onChange={(event) =>
+                              updateServiceRow(
+                                'dropoffStops',
+                                index,
+                                'sortOrder',
+                                event.target.value,
+                              )
+                            }
+                            type="number"
+                            value={point.sortOrder}
+                          />
+                        </label>
+
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() =>
+                            removeServiceRow('dropoffStops', index)
+                          }
+                          type="button"
+                        >
+                          Bỏ
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </section>
+        </div>
+
+        <div className="admin-trip-compact-actions">
+          <button
+            className="btn btn-primary"
+            disabled={submittingTrip}
+            type="submit"
+          >
+            {submittingTrip
+              ? 'Đang lưu...'
+              : pageMode === 'edit'
+                ? 'Lưu thay đổi'
+                : 'Lưu chuyến xe'}
+          </button>
+
           <button
             className="btn btn-outline-secondary"
-            onClick={clearTripFilters}
+            disabled={submittingTrip}
+            onClick={resetTripForm}
             type="button"
           >
-            Xóa lọc
+            Hủy
           </button>
         </div>
       </form>
+    </>
+  )
 
-      <section className="admin-panel">
-        <div className="admin-panel-heading">
-          <div><span>KHU VỰC 1</span><h2>Danh sách chuyến xe</h2></div>
-          <small>{tripPagination?.total ?? trips.length} chuyến</small>
+  if (error && !trips.length) {
+    return <ErrorState message={error} onRetry={() => load(tripPage, appliedTripFilters)} />
+  }
+  if (loading && !trips.length) return <LoadingState />
+  if (isFormPage && pageMode === 'edit' && formRecordLoading) return <LoadingState />
+  if (isFormPage && pageMode === 'edit' && error && !editingTrip) {
+    return <ErrorState message={error} onRetry={() => { editLoadRef.current = ''; window.location.reload() }} />
+  }
+  if (isFormPage) return renderTripFormPage()
+
+  return (
+    <>
+      <AdminPageHeader
+        title="Quản lý chuyến xe và tuyến đường"
+        description=""
+      />
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+
+      <section className="admin-panel admin-trip-mvc-panel">
+        <div className="admin-trip-mvc-heading">
+          <div>
+            <h2>Danh sách chuyến xe</h2>
+            <p>Tổng cộng {tripPagination?.total ?? trips.length} chuyến xe</p>
+          </div>
+          <div className="admin-trip-mvc-heading__actions">
+            <button
+              className={`btn btn-sm ${showTripFilters ? 'btn-secondary' : 'btn-outline-secondary'}`}
+              onClick={() => setShowTripFilters((current) => !current)}
+              type="button"
+            >
+              ⚲ Bộ lọc
+            </button>
+            {canCreateTrips && (
+              <Link className="btn btn-sm btn-primary" to="/admin/chuyen-xe/them">
+                ⊕ Thêm chuyến mới
+              </Link>
+            )}
+          </div>
         </div>
 
+        {showTripFilters && (
+          <form className="admin-trip-mvc-filter" onSubmit={submitTripFilters}>
+            <label>
+              <span>Trạng thái</span>
+              <select
+                className="form-select"
+                value={tripFilters.status}
+                onChange={(event) =>
+                  setTripFilters((current) => ({ ...current, status: event.target.value }))
+                }
+              >
+                <option value="">Tất cả trạng thái</option>
+                {Object.entries(TRIP_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Ngày đi</span>
+              <input
+                className="form-control"
+                type="date"
+                value={tripFilters.departureDate}
+                onChange={(event) =>
+                  setTripFilters((current) => ({ ...current, departureDate: event.target.value }))
+                }
+              />
+            </label>
+            <div className="admin-trip-mvc-filter__actions">
+              <button className="btn btn-sm btn-primary" type="submit">Lọc</button>
+              <button className="btn btn-sm btn-outline-secondary" onClick={clearTripFilters} type="button">
+                Xóa lọc
+              </button>
+            </div>
+          </form>
+        )}
+
         {trips.length === 0 ? (
-          <EmptyState message="Không tìm thấy chuyến xe phù hợp." />
+          <EmptyState message="Chưa có chuyến xe phù hợp." />
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="admin-table-wrap admin-trip-mvc-table-wrap">
+            <table className="admin-table admin-trip-mvc-table">
               <thead>
                 <tr>
-                  <th>STT</th>
                   <th>Mã chuyến</th>
                   <th>Xe</th>
                   <th>Tuyến đường</th>
-                  <th>Khởi hành</th>
-                  <th>Giá vé</th>
-                  <th>Ghế</th>
+                  <th>Ngày đi</th>
+                  <th>Giờ đi</th>
                   <th>Trạng thái</th>
+                  <th>Giá vé</th>
+                  <th>Ghế còn trống</th>
                   <th>Đặt vé</th>
                   <th>Sơ đồ ghế</th>
                   <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {trips.map((trip, index) => {
-                  const now = new Date()
+                {trips.map((trip) => {
+                  const effectiveStatus = getEffectiveTripStatus(trip)
+                  const hasDeparted = new Date(trip.departureTime) <= new Date()
                   const isProcessing = processingTripId === trip.id
-                  const effectiveStatus = getEffectiveTripStatus(trip, now)
-                  const hasDeparted = effectiveStatus === 'DEPARTED'
-                  const isFinal = ['COMPLETED', 'CANCELLED'].includes(effectiveStatus)
-                  const canBook = trip.status === 'OPEN' && !hasDeparted && !isFinal
                   const canManageBeforeDeparture =
-                    !hasDeparted && !isFinal && ['OPEN', 'CLOSED'].includes(trip.status)
-                  const canComplete = hasDeparted && canEditTrips
+                    !hasDeparted && !['COMPLETED', 'CANCELLED'].includes(effectiveStatus)
+                  const canBook = canManageBeforeDeparture && trip.status === 'OPEN'
+                  const canComplete = canEditTrips && hasDeparted && effectiveStatus === 'DEPARTED'
+                  const departure = trip.departureLocation || trip.route?.departureLocation
+                  const arrival = trip.arrivalLocation || trip.route?.arrivalLocation
+                  const available = Number(trip.seatStats?.available ?? 0)
+                  const booked = Number(trip.seatStats?.booked ?? 0)
+                  const held = Number(trip.seatStats?.held ?? 0)
+                  const capacity = getTripCapacity(trip)
+                  const occupied = Math.max(0, capacity - available)
+                  const occupiedPercent = capacity > 0
+                    ? Math.min(100, Math.round((occupied / capacity) * 100))
+                    : 0
+                  const dayBadge = getJourneyDayBadge(trip, effectiveStatus)
 
                   return (
                     <tr key={trip.id}>
-                      <td>{(tripPage - 1) * TRIP_PAGE_SIZE + index + 1}</td>
-                      <td><strong>{shortCode(trip.id, 'CX')}</strong></td>
-                      <td>
-                        <strong>{trip.bus?.licensePlate ? formatLicensePlate(trip.bus.licensePlate) : 'Chưa có xe'}</strong>
-                        <small>{trip.bus?.busName || 'Chưa cập nhật'}</small>
-                        <small>{getBusTypeLabel(trip.bus?.busType)}</small>
+                      <td className="admin-trip-mvc-code">
+                        <strong>#{String(trip.id || '').split('-')[0].toUpperCase()}</strong>
                       </td>
-                      <td>
-                        <strong>{trip.route?.routeName || 'Chưa cập nhật'}</strong>
-                        <small>
-                          {trip.route?.departureLocation?.name || '—'} →{' '}
-                          {trip.route?.arrivalLocation?.name || '—'}
-                        </small>
+                      <td className="admin-trip-mvc-bus">
+                        <strong>{formatLicensePlate(trip.bus?.licensePlate) || '—'}</strong>
+                        <small>{trip.bus?.busType ? getBusTypeLabel(trip.bus.busType) : 'Chưa cập nhật'}</small>
                       </td>
-                      <td>
-                        <strong>{formatDateTime(trip.departureTime)}</strong>
-                        <small>Dự kiến đến: {formatDateTime(trip.expectedArrivalTime)}</small>
+                      <td className="admin-trip-mvc-route">
+                        <span className="is-departure">● {departure?.name || 'Chưa cập nhật'}</span>
+                        <span className="is-arrival">● {arrival?.name || 'Chưa cập nhật'}</span>
                       </td>
-                      <td>
-                        {isRoomBusType(trip.bus?.busType) ? (
-                          <>
-                            <strong>Đơn: {formatCurrency(trip.singleRoomPrice ?? 0)}</strong>
-                            <small>Đôi: {formatCurrency(trip.doubleRoomPrice ?? 0)}</small>
-                          </>
-                        ) : (
-                          <strong>{formatCurrency(trip.ticketPrice ?? 0)}</strong>
+                      <td className="admin-trip-mvc-date">
+                        <strong>{formatAdminDate(trip.departureTime)}</strong>
+                        {dayBadge && (
+                          <span className={`admin-trip-day-badge ${dayBadge.className}`}>{dayBadge.label}</span>
                         )}
                       </td>
-                      <td>
-                        <strong>Còn: {trip.seatStats?.available ?? '—'}</strong>
-                        <small>Đã đặt: {trip.seatStats?.booked ?? '—'}</small>
-                        <small>Đang giữ: {trip.seatStats?.held ?? '—'}</small>
-                      </td>
+                      <td><strong>{formatAdminTime(trip.departureTime)}</strong></td>
                       <td>
                         <span className={getTripStatusClass(effectiveStatus)}>
                           {TRIP_STATUS_LABELS[effectiveStatus] || 'Không xác định'}
                         </span>
                       </td>
+                      <td className="admin-trip-mvc-price">
+                        {isRoomBusType(trip.bus?.busType) ? (
+                          <>
+                            <strong>Đơn: {formatCurrency(trip.singleRoomPrice ?? 0)}</strong>
+                            <strong>Đôi: {formatCurrency(trip.doubleRoomPrice ?? 0)}</strong>
+                          </>
+                        ) : (
+                          <strong>{formatCurrency(trip.ticketPrice ?? 0)}</strong>
+                        )}
+                      </td>
+                      <td className="admin-trip-mvc-seats">
+                        <div className="admin-trip-seat-line">
+                          <strong>{available} / {capacity || '—'}</strong>
+                          <span>còn trống</span>
+                        </div>
+                        <div className="admin-trip-seat-progress" aria-hidden="true">
+                          <span style={{ width: `${occupiedPercent}%` }} />
+                        </div>
+                        <small>Đã đặt {booked} ghế{held > 0 ? ` · Giữ ${held}` : ''}</small>
+                      </td>
                       <td>
-                        <div className="admin-row-actions admin-row-actions--booking">
+                        <div className="admin-trip-mvc-actions admin-trip-mvc-actions--booking">
                           {canBook ? (
                             <>
-                              <Link to={`/admin/dat-ve-tai-quay/${trip.id}`}>Tại quầy</Link>
-                              <Link to={`/admin/dat-ve-hotline/${trip.id}`}>Hotline</Link>
+                              <Link className="is-counter" to={`/admin/dat-ve-tai-quay/${trip.id}`}>▣ Tại quầy</Link>
+                              <Link className="is-hotline" to={`/admin/dat-ve-hotline/${trip.id}`}>☎ Hotline</Link>
                             </>
                           ) : (
-                            <span className="admin-action-locked">Không thể đặt</span>
+                            <span className="admin-trip-disabled-action">Không thể đặt</span>
                           )}
                         </div>
                       </td>
                       <td>
-                        <div className="admin-row-actions admin-row-actions--seat-map">
-                          <Link to={`/admin/chuyen-xe/${trip.id}/so-do-ghe`}>Xem ghế</Link>
-                          <Link to={`/admin/chuyen-xe/${trip.id}/hanh-khach`}>Hành khách</Link>
+                        <div className="admin-trip-mvc-actions admin-trip-mvc-actions--seat">
+                          <Link to={`/admin/chuyen-xe/${trip.id}/so-do-ghe`}>▣ Xem ghế</Link>
+                          <Link to={`/admin/chuyen-xe/${trip.id}/hanh-khach`}>♣ Hành khách</Link>
                         </div>
                       </td>
                       <td>
-                        <div className="admin-row-actions admin-row-actions--trip-management">
+                        <div className="admin-trip-mvc-actions admin-trip-mvc-actions--management">
                           {canManageBeforeDeparture && canEditTrips && (
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => openEditTrip(trip)}
-                              type="button"
-                            >
-                              Sửa
-                            </button>
+                            <Link className={isProcessing ? 'is-disabled' : ''} to={`/admin/chuyen-xe/${trip.id}/sua`}>✎ Sửa</Link>
                           )}
                           {canManageBeforeDeparture && canEditTrips && trip.status === 'OPEN' && (
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => updateStatus(trip, 'CLOSED')}
-                              type="button"
-                            >
-                              Đóng đặt vé
-                            </button>
+                            <button disabled={isProcessing} onClick={() => updateStatus(trip, 'CLOSED')} type="button">⊘ Ngừng bán</button>
                           )}
                           {canManageBeforeDeparture && canEditTrips && trip.status === 'CLOSED' && (
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => updateStatus(trip, 'OPEN')}
-                              type="button"
-                            >
-                              Mở lại
-                            </button>
+                            <button disabled={isProcessing} onClick={() => updateStatus(trip, 'OPEN')} type="button">↻ Mở bán</button>
                           )}
                           {canDeleteTrips && canManageBeforeDeparture && (
-  <button
-    className="is-danger"
-    disabled={isProcessing}
-    onClick={() => removeTrip(trip)}
-    type="button"
-  >
-    Hủy chuyến
-  </button>
-)}
+                            <Link className="is-danger" to={`/admin/chuyen-xe/${trip.id}/huy`}>× Hủy</Link>
+                          )}
                           {canComplete && (
-                            <button
-                              className="is-success"
-                              disabled={isProcessing}
-                              onClick={() => completeTrip(trip)}
-                              type="button"
-                            >
-                              {isProcessing ? 'Đang xử lý...' : 'Hoàn thành'}
+                            <button className="is-success" disabled={isProcessing} onClick={() => completeTrip(trip)} type="button">
+                              {isProcessing ? 'Đang xử lý...' : '⚑ Hoàn thành'}
                             </button>
                           )}
-                          {effectiveStatus === 'COMPLETED' && (
-                            <span className="admin-action-locked">Đã khóa xử lý</span>
-                          )}
-                          {effectiveStatus === 'CANCELLED' && (
-                            <span className="admin-action-locked">Đã hủy</span>
-                          )}
+                          {effectiveStatus === 'COMPLETED' && <span className="admin-trip-locked">Đã khóa xử lý</span>}
+                          {effectiveStatus === 'CANCELLED' && <span className="admin-trip-locked">Đã hủy</span>}
                         </div>
                       </td>
                     </tr>
@@ -1102,9 +1758,9 @@ function AdminTripsRoutesPage() {
         )}
 
         {(tripPagination?.totalPages ?? 1) > 1 && (
-          <div className="d-flex justify-content-between align-items-center mt-3">
+          <div className="admin-trip-mvc-pagination">
             <button
-              className="btn btn-outline-secondary"
+              className="btn btn-sm btn-outline-secondary"
               disabled={tripPage <= 1 || loading}
               onClick={() => setTripPage((current) => Math.max(1, current - 1))}
               type="button"
@@ -1113,7 +1769,7 @@ function AdminTripsRoutesPage() {
             </button>
             <strong>Trang {tripPagination?.page ?? tripPage}/{tripPagination?.totalPages ?? 1}</strong>
             <button
-              className="btn btn-outline-secondary"
+              className="btn btn-sm btn-outline-secondary"
               disabled={tripPage >= (tripPagination?.totalPages ?? 1) || loading}
               onClick={() => setTripPage((current) => current + 1)}
               type="button"
@@ -1124,106 +1780,15 @@ function AdminTripsRoutesPage() {
         )}
       </section>
 
-      <section className="admin-panel">
-        <div className="admin-panel-heading">
-          <div><span>KHU VỰC 2</span><h2>Danh sách tuyến đường</h2></div>
-          <small>{routes.length} tuyến</small>
-        </div>
+      {canViewRoutes && (
+        <AdminRoutesSummaryPage
+          embedded
+          refreshKey={`${tripPagination?.total ?? 0}:${trips
+            .map((trip) => `${trip.id}:${trip.status}:${trip.departureLocation?.id || ''}:${trip.arrivalLocation?.id || ''}`)
+            .join('|')}`}
+        />
+      )}
 
-        {routes.length === 0 ? (
-          <EmptyState message="Chưa có tuyến đường." />
-        ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Mã tuyến</th>
-                  <th>Tên tuyến</th>
-                  <th>Điểm đi</th>
-                  <th>Điểm đến</th>
-                  <th>Khoảng cách/Thời gian</th>
-                  <th>Giá mặc định</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {routes.map((route, index) => {
-                  const isProcessing = processingRouteId === route.id
-                  return (
-                    <tr key={route.id}>
-                      <td>{index + 1}</td>
-                      <td><strong>{shortCode(route.id, 'TX')}</strong></td>
-                      <td><strong>{route.routeName}</strong></td>
-                      <td>{route.departureLocation?.name || 'Chưa cập nhật'}</td>
-                      <td>{route.arrivalLocation?.name || 'Chưa cập nhật'}</td>
-                      <td>
-                        <strong>{Number(route.distanceKm || 0)} km</strong>
-                        <small>{Number(route.estimatedDurationMinutes || 0)} phút</small>
-                      </td>
-                      <td>
-                        <strong>
-                          34 giường: {route.defaultTicketPrice == null
-                            ? 'Chưa đặt'
-                            : formatCurrency(route.defaultTicketPrice)}
-                        </strong>
-                        <small>
-                          Phòng đơn: {route.defaultSingleRoomPrice == null
-                            ? 'Chưa đặt'
-                            : formatCurrency(route.defaultSingleRoomPrice)}
-                        </small>
-                        <small>
-                          Phòng đôi: {route.defaultDoubleRoomPrice == null
-                            ? 'Chưa đặt'
-                            : formatCurrency(route.defaultDoubleRoomPrice)}
-                        </small>
-                      </td>
-                      <td>
-                        <span className={getRouteStatusClass(route.status)}>
-                          {ROUTE_STATUS_LABELS[route.status] || 'Không xác định'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="admin-row-actions">
-                          {canEditRoutes && (
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => openEditRoute(route)}
-                              type="button"
-                            >
-                              Sửa
-                            </button>
-                          )}
-                          {canDeleteRoutes && route.status === 'ACTIVE' && (
-                            <button
-                              className="is-danger"
-                              disabled={isProcessing}
-                              onClick={() => removeRoute(route)}
-                              type="button"
-                            >
-                              Ngừng hoạt động
-                            </button>
-                          )}
-                          {canCreateRoutes && route.status === 'INACTIVE' && (
-                            <button
-                              disabled={isProcessing}
-                              onClick={() => restoreRoute(route)}
-                              type="button"
-                            >
-                              Khôi phục
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </>
   )
 }

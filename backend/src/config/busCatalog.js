@@ -3,6 +3,14 @@ const MANAGED_BUS_TYPES = Object.freeze({
   LIMOUSINE_22: 'LIMOUSINE_22',
 })
 
+const BUS_TYPE_LABELS = Object.freeze({
+  SLEEPER_34: 'Giường nằm 34 giường',
+  LIMOUSINE_22: 'Limousine 22 phòng',
+  SLEEPER: 'Giường nằm legacy',
+  LIMOUSINE: 'Limousine legacy',
+  SEATED: 'Ghế ngồi legacy',
+})
+
 const LEGACY_BUS_TYPES = Object.freeze(['SEATED', 'SLEEPER', 'LIMOUSINE'])
 const SUPPORTED_BUS_TYPES = Object.freeze([
   ...Object.values(MANAGED_BUS_TYPES),
@@ -78,6 +86,7 @@ const isSupportedBusType = (busType) => SUPPORTED_BUS_TYPES.includes(busType)
 const isRoomBusType = (busType) =>
   busType === MANAGED_BUS_TYPES.LIMOUSINE_22
 
+const getBusTypeLabel = (busType) => BUS_TYPE_LABELS[busType] || busType
 const getBusCapacity = (busType) => BUS_CONFIG[busType]?.capacity ?? null
 
 const getBusSeatTemplate = (busType) => {
@@ -86,11 +95,13 @@ const getBusSeatTemplate = (busType) => {
 }
 
 export {
+  BUS_TYPE_LABELS,
   LEGACY_BUS_TYPES,
   MANAGED_BUS_TYPES,
   SUPPORTED_BUS_TYPES,
   getBusCapacity,
   getBusSeatTemplate,
+  getBusTypeLabel,
   isManagedBusType,
   isRoomBusType,
   isSupportedBusType,

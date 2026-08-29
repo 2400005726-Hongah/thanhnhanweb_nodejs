@@ -25,4 +25,4 @@ Mở `http://localhost:5173`, tìm chuyến, chọn tối đa 6 ghế và nhấn
 
 Đăng ký tại `/dang-ky`, đăng nhập tại `/dang-nhap`; JWT chỉ được lưu trong `sessionStorage`. Customer xem và hủy vé của mình tại route được bảo vệ `/ve-cua-toi`. Guest có thể tra cứu và hủy booking đủ điều kiện tại `/tra-cuu-ve`.
 
-Tài khoản `ADMIN` hoặc `STAFF` đăng nhập sẽ được chuyển tới `/admin`. Trang `/admin/chuyen-xe-tuyen-duong` hiển thị danh sách chuyến và tuyến trên cùng màn hình. STAFF thấy nút Sửa nhưng không thấy nút Thêm/Xóa; đồng thời không có menu Thống kê, Tài khoản và Nhật ký hệ thống. Route `/admin/tin-tuc` dành cho cả ADMIN và STAFF.
+Tài khoản `ADMIN` hoặc `STAFF` đăng nhập sẽ được chuyển tới `/admin`. Trang `/admin/chuyen-xe` quản lý chuyến trực tiếp theo địa điểm cụ thể; `/admin/tuyen-xe` chỉ tổng hợp các tuyến đang có từ dữ liệu chuyến. STAFF thấy nút Sửa nhưng không thấy nút Thêm/Xóa; đồng thời không có menu Thống kê, Tài khoản và Nhật ký hệ thống. Route `/admin/tin-tuc` dành cho cả ADMIN và STAFF.

@@ -399,11 +399,16 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Customer: 'Customer',
+  Province: 'Province',
+  PickupDropoffArea: 'PickupDropoffArea',
   Location: 'Location',
+  LocationAreaFilter: 'LocationAreaFilter',
   Route: 'Route',
+  RouteStop: 'RouteStop',
   Bus: 'Bus',
   Seat: 'Seat',
   Trip: 'Trip',
+  TripServicePoint: 'TripServicePoint',
   TripSeat: 'TripSeat',
   Booking: 'Booking',
   BookingItem: 'BookingItem',
@@ -425,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "customer" | "location" | "route" | "bus" | "seat" | "trip" | "tripSeat" | "booking" | "bookingItem" | "payment" | "news" | "auditLog"
+    modelProps: "user" | "customer" | "province" | "pickupDropoffArea" | "location" | "locationAreaFilter" | "route" | "routeStop" | "bus" | "seat" | "trip" | "tripServicePoint" | "tripSeat" | "booking" | "bookingItem" | "payment" | "news" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -577,6 +582,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Province: {
+      payload: Prisma.$ProvincePayload<ExtArgs>
+      fields: Prisma.ProvinceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProvinceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProvinceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        findFirst: {
+          args: Prisma.ProvinceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProvinceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        findMany: {
+          args: Prisma.ProvinceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>[]
+        }
+        create: {
+          args: Prisma.ProvinceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        createMany: {
+          args: Prisma.ProvinceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProvinceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>[]
+        }
+        delete: {
+          args: Prisma.ProvinceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        update: {
+          args: Prisma.ProvinceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProvinceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProvinceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProvinceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProvinceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProvincePayload>
+        }
+        aggregate: {
+          args: Prisma.ProvinceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProvince>
+        }
+        groupBy: {
+          args: Prisma.ProvinceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProvinceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProvinceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProvinceCountAggregateOutputType> | number
+        }
+      }
+    }
+    PickupDropoffArea: {
+      payload: Prisma.$PickupDropoffAreaPayload<ExtArgs>
+      fields: Prisma.PickupDropoffAreaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PickupDropoffAreaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PickupDropoffAreaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        findFirst: {
+          args: Prisma.PickupDropoffAreaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PickupDropoffAreaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        findMany: {
+          args: Prisma.PickupDropoffAreaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>[]
+        }
+        create: {
+          args: Prisma.PickupDropoffAreaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        createMany: {
+          args: Prisma.PickupDropoffAreaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PickupDropoffAreaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>[]
+        }
+        delete: {
+          args: Prisma.PickupDropoffAreaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        update: {
+          args: Prisma.PickupDropoffAreaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        deleteMany: {
+          args: Prisma.PickupDropoffAreaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PickupDropoffAreaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PickupDropoffAreaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>[]
+        }
+        upsert: {
+          args: Prisma.PickupDropoffAreaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PickupDropoffAreaPayload>
+        }
+        aggregate: {
+          args: Prisma.PickupDropoffAreaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePickupDropoffArea>
+        }
+        groupBy: {
+          args: Prisma.PickupDropoffAreaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PickupDropoffAreaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PickupDropoffAreaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PickupDropoffAreaCountAggregateOutputType> | number
+        }
+      }
+    }
     Location: {
       payload: Prisma.$LocationPayload<ExtArgs>
       fields: Prisma.LocationFieldRefs
@@ -651,6 +804,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LocationAreaFilter: {
+      payload: Prisma.$LocationAreaFilterPayload<ExtArgs>
+      fields: Prisma.LocationAreaFilterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LocationAreaFilterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LocationAreaFilterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        findFirst: {
+          args: Prisma.LocationAreaFilterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LocationAreaFilterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        findMany: {
+          args: Prisma.LocationAreaFilterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>[]
+        }
+        create: {
+          args: Prisma.LocationAreaFilterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        createMany: {
+          args: Prisma.LocationAreaFilterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LocationAreaFilterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>[]
+        }
+        delete: {
+          args: Prisma.LocationAreaFilterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        update: {
+          args: Prisma.LocationAreaFilterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        deleteMany: {
+          args: Prisma.LocationAreaFilterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LocationAreaFilterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LocationAreaFilterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>[]
+        }
+        upsert: {
+          args: Prisma.LocationAreaFilterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LocationAreaFilterPayload>
+        }
+        aggregate: {
+          args: Prisma.LocationAreaFilterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLocationAreaFilter>
+        }
+        groupBy: {
+          args: Prisma.LocationAreaFilterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LocationAreaFilterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LocationAreaFilterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LocationAreaFilterCountAggregateOutputType> | number
+        }
+      }
+    }
     Route: {
       payload: Prisma.$RoutePayload<ExtArgs>
       fields: Prisma.RouteFieldRefs
@@ -722,6 +949,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RouteCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RouteCountAggregateOutputType> | number
+        }
+      }
+    }
+    RouteStop: {
+      payload: Prisma.$RouteStopPayload<ExtArgs>
+      fields: Prisma.RouteStopFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RouteStopFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RouteStopFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        findFirst: {
+          args: Prisma.RouteStopFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RouteStopFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        findMany: {
+          args: Prisma.RouteStopFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>[]
+        }
+        create: {
+          args: Prisma.RouteStopCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        createMany: {
+          args: Prisma.RouteStopCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RouteStopCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>[]
+        }
+        delete: {
+          args: Prisma.RouteStopDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        update: {
+          args: Prisma.RouteStopUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        deleteMany: {
+          args: Prisma.RouteStopDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RouteStopUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RouteStopUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>[]
+        }
+        upsert: {
+          args: Prisma.RouteStopUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RouteStopPayload>
+        }
+        aggregate: {
+          args: Prisma.RouteStopAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRouteStop>
+        }
+        groupBy: {
+          args: Prisma.RouteStopGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RouteStopGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RouteStopCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RouteStopCountAggregateOutputType> | number
         }
       }
     }
@@ -944,6 +1245,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TripCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TripCountAggregateOutputType> | number
+        }
+      }
+    }
+    TripServicePoint: {
+      payload: Prisma.$TripServicePointPayload<ExtArgs>
+      fields: Prisma.TripServicePointFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TripServicePointFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TripServicePointFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        findFirst: {
+          args: Prisma.TripServicePointFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TripServicePointFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        findMany: {
+          args: Prisma.TripServicePointFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>[]
+        }
+        create: {
+          args: Prisma.TripServicePointCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        createMany: {
+          args: Prisma.TripServicePointCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TripServicePointCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>[]
+        }
+        delete: {
+          args: Prisma.TripServicePointDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        update: {
+          args: Prisma.TripServicePointUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        deleteMany: {
+          args: Prisma.TripServicePointDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TripServicePointUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TripServicePointUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>[]
+        }
+        upsert: {
+          args: Prisma.TripServicePointUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TripServicePointPayload>
+        }
+        aggregate: {
+          args: Prisma.TripServicePointAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTripServicePoint>
+        }
+        groupBy: {
+          args: Prisma.TripServicePointGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TripServicePointGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TripServicePointCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TripServicePointCountAggregateOutputType> | number
         }
       }
     }
@@ -1433,6 +1808,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   fullName: 'fullName',
+  username: 'username',
   email: 'email',
   phone: 'phone',
   passwordHash: 'passwordHash',
@@ -1455,6 +1831,7 @@ export const CustomerScalarFieldEnum = {
   blockedReason: 'blockedReason',
   blockedAt: 'blockedAt',
   blockedById: 'blockedById',
+  note: 'note',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1462,12 +1839,45 @@ export const CustomerScalarFieldEnum = {
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
 
 
+export const ProvinceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProvinceScalarFieldEnum = (typeof ProvinceScalarFieldEnum)[keyof typeof ProvinceScalarFieldEnum]
+
+
+export const PickupDropoffAreaScalarFieldEnum = {
+  id: 'id',
+  provinceId: 'provinceId',
+  legacyRegion: 'legacyRegion',
+  name: 'name',
+  detailedAddress: 'detailedAddress',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  isDeleted: 'isDeleted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PickupDropoffAreaScalarFieldEnum = (typeof PickupDropoffAreaScalarFieldEnum)[keyof typeof PickupDropoffAreaScalarFieldEnum]
+
+
 export const LocationScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  normalizedName: 'normalizedName',
   province: 'province',
+  provinceId: 'provinceId',
+  defaultAreaId: 'defaultAreaId',
   address: 'address',
+  locationType: 'locationType',
+  sortOrder: 'sortOrder',
   status: 'status',
+  isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1475,9 +1885,18 @@ export const LocationScalarFieldEnum = {
 export type LocationScalarFieldEnum = (typeof LocationScalarFieldEnum)[keyof typeof LocationScalarFieldEnum]
 
 
+export const LocationAreaFilterScalarFieldEnum = {
+  locationId: 'locationId',
+  areaId: 'areaId'
+} as const
+
+export type LocationAreaFilterScalarFieldEnum = (typeof LocationAreaFilterScalarFieldEnum)[keyof typeof LocationAreaFilterScalarFieldEnum]
+
+
 export const RouteScalarFieldEnum = {
   id: 'id',
   routeName: 'routeName',
+  description: 'description',
   departureLocationId: 'departureLocationId',
   arrivalLocationId: 'arrivalLocationId',
   distanceKm: 'distanceKm',
@@ -1491,6 +1910,20 @@ export const RouteScalarFieldEnum = {
 } as const
 
 export type RouteScalarFieldEnum = (typeof RouteScalarFieldEnum)[keyof typeof RouteScalarFieldEnum]
+
+
+export const RouteStopScalarFieldEnum = {
+  id: 'id',
+  routeId: 'routeId',
+  areaId: 'areaId',
+  pointType: 'pointType',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RouteStopScalarFieldEnum = (typeof RouteStopScalarFieldEnum)[keyof typeof RouteStopScalarFieldEnum]
 
 
 export const BusScalarFieldEnum = {
@@ -1527,6 +1960,17 @@ export const TripScalarFieldEnum = {
   busId: 'busId',
   departureTime: 'departureTime',
   expectedArrivalTime: 'expectedArrivalTime',
+  departureLocationId: 'departureLocationId',
+  arrivalLocationId: 'arrivalLocationId',
+  primaryPickupMode: 'primaryPickupMode',
+  primaryDropoffMode: 'primaryDropoffMode',
+  allowPickupTransfer: 'allowPickupTransfer',
+  allowPickupMeetingPoint: 'allowPickupMeetingPoint',
+  allowDropoffTransfer: 'allowDropoffTransfer',
+  allowDropoffStop: 'allowDropoffStop',
+  salesStatus: 'salesStatus',
+  operationStatus: 'operationStatus',
+  completedAt: 'completedAt',
   ticketPrice: 'ticketPrice',
   singleRoomPrice: 'singleRoomPrice',
   doubleRoomPrice: 'doubleRoomPrice',
@@ -1537,6 +1981,24 @@ export const TripScalarFieldEnum = {
 } as const
 
 export type TripScalarFieldEnum = (typeof TripScalarFieldEnum)[keyof typeof TripScalarFieldEnum]
+
+
+export const TripServicePointScalarFieldEnum = {
+  id: 'id',
+  tripId: 'tripId',
+  locationId: 'locationId',
+  pointType: 'pointType',
+  serviceMode: 'serviceMode',
+  estimatedMinutes: 'estimatedMinutes',
+  estimatedTime: 'estimatedTime',
+  isDefault: 'isDefault',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TripServicePointScalarFieldEnum = (typeof TripServicePointScalarFieldEnum)[keyof typeof TripServicePointScalarFieldEnum]
 
 
 export const TripSeatScalarFieldEnum = {
@@ -1571,6 +2033,18 @@ export const BookingScalarFieldEnum = {
   staffNote: 'staffNote',
   pickupPoint: 'pickupPoint',
   dropoffPoint: 'dropoffPoint',
+  pickupLocationId: 'pickupLocationId',
+  dropoffLocationId: 'dropoffLocationId',
+  pickupServicePointId: 'pickupServicePointId',
+  dropoffServicePointId: 'dropoffServicePointId',
+  pickupServiceMode: 'pickupServiceMode',
+  dropoffServiceMode: 'dropoffServiceMode',
+  pickupKind: 'pickupKind',
+  dropoffKind: 'dropoffKind',
+  pickupRequestedAddress: 'pickupRequestedAddress',
+  dropoffRequestedAddress: 'dropoffRequestedAddress',
+  smsSent: 'smsSent',
+  smsSentAt: 'smsSentAt',
   totalAmount: 'totalAmount',
   status: 'status',
   paymentStatus: 'paymentStatus',
@@ -1632,7 +2106,9 @@ export const NewsScalarFieldEnum = {
   createdById: 'createdById',
   updatedById: 'updatedById',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  viewCount: 'viewCount',
+  deletedAt: 'deletedAt'
 } as const
 
 export type NewsScalarFieldEnum = (typeof NewsScalarFieldEnum)[keyof typeof NewsScalarFieldEnum]
@@ -1787,20 +2263,6 @@ export type ListEnumRecordStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
- * Reference to a field of type 'Decimal'
- */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
-
-
-/**
- * Reference to a field of type 'Decimal[]'
- */
-export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1811,6 +2273,27 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -2120,11 +2603,16 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   customer?: Prisma.CustomerOmit
+  province?: Prisma.ProvinceOmit
+  pickupDropoffArea?: Prisma.PickupDropoffAreaOmit
   location?: Prisma.LocationOmit
+  locationAreaFilter?: Prisma.LocationAreaFilterOmit
   route?: Prisma.RouteOmit
+  routeStop?: Prisma.RouteStopOmit
   bus?: Prisma.BusOmit
   seat?: Prisma.SeatOmit
   trip?: Prisma.TripOmit
+  tripServicePoint?: Prisma.TripServicePointOmit
   tripSeat?: Prisma.TripSeatOmit
   booking?: Prisma.BookingOmit
   bookingItem?: Prisma.BookingItemOmit

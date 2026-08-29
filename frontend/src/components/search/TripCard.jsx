@@ -9,20 +9,28 @@ import {
 } from '../../utils/busTypes.js'
 
 function TripCard({ trip }) {
+  const route = trip.route || {}
+  const departure = route.departureLocation || {}
+  const arrival = route.arrivalLocation || {}
+  const provinceLine = departure.province && arrival.province
+    ? `${departure.province} → ${arrival.province}`
+    : ''
+
   return (
     <article className="trip-card">
       <div className="trip-card__route">
         <span className="trip-badge">{getBusTypeLabel(trip.bus.busType)}</span>
-        <h2>{trip.route.routeName}</h2>
+        <h2>{route.routeName || 'Chưa xác định hành trình'}</h2>
         <p>{formatDateTime(trip.departureTime)}</p>
+        {provinceLine && <small>{provinceLine}</small>}
       </div>
       <div className="trip-card__timeline">
-        <div><strong>{formatTime(trip.departureTime)}</strong><span>{trip.route.departureLocation.name}</span></div>
-        <div className="timeline-line"><span>{trip.route.distanceKm} km</span></div>
-        <div><strong>{formatTime(trip.expectedArrivalTime)}</strong><span>{trip.route.arrivalLocation.name}</span></div>
+        <div><strong>{formatTime(trip.departureTime)}</strong><span>{departure.name || 'Chưa cập nhật'}</span></div>
+        <div className="timeline-line">{route.distanceKm != null ? <span>{route.distanceKm} km</span> : <span>→</span>}</div>
+        <div><strong>{formatTime(trip.expectedArrivalTime)}</strong><span>{arrival.name || 'Chưa cập nhật'}</span></div>
       </div>
       <div className="trip-card__bus">
-        <span>Xe</span><strong>{trip.bus.busName}</strong><small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
+        <span>Xe</span><strong>{getBusTypeLabel(trip.bus.busType)}</strong><small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
       </div>
       <div className="trip-card__price">
         <span>

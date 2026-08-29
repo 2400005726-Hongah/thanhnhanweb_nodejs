@@ -28,15 +28,35 @@ export type User = Prisma.UserModel
  */
 export type Customer = Prisma.CustomerModel
 /**
+ * Model Province
+ * 
+ */
+export type Province = Prisma.ProvinceModel
+/**
+ * Model PickupDropoffArea
+ * 
+ */
+export type PickupDropoffArea = Prisma.PickupDropoffAreaModel
+/**
  * Model Location
  * 
  */
 export type Location = Prisma.LocationModel
 /**
+ * Model LocationAreaFilter
+ * 
+ */
+export type LocationAreaFilter = Prisma.LocationAreaFilterModel
+/**
  * Model Route
  * 
  */
 export type Route = Prisma.RouteModel
+/**
+ * Model RouteStop
+ * 
+ */
+export type RouteStop = Prisma.RouteStopModel
 /**
  * Model Bus
  * 
@@ -52,6 +72,11 @@ export type Seat = Prisma.SeatModel
  * 
  */
 export type Trip = Prisma.TripModel
+/**
+ * Model TripServicePoint
+ * 
+ */
+export type TripServicePoint = Prisma.TripServicePointModel
 /**
  * Model TripSeat
  * 

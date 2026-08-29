@@ -14,6 +14,8 @@ import {
 import {
   getPublicLocations,
   getPublicTripDetail,
+  getPublicTripSearchCatalog,
+  getPublicTripServicePoints,
   getPublicTripSeats,
   searchPublicTrips,
 } from '../controllers/publicTrip.controller.js'
@@ -40,6 +42,7 @@ const router = Router()
 router.get('/news', listPublicNews)
 router.get('/news/:id', showPublicNews)
 router.get('/locations', publicLocationValidator, validate, getPublicLocations)
+router.get('/search/catalog', getPublicTripSearchCatalog)
 router.get('/trips/search', searchTripValidator, validate, searchPublicTrips)
 router.get('/bookings/lookup', lookupBookingValidator, validate, lookupBooking)
 router.post(
@@ -68,6 +71,7 @@ router.post(
   optionalAuthenticate,
   createBooking,
 )
+router.get('/trips/:tripId/service-points', publicTripIdValidator, validate, getPublicTripServicePoints)
 router.get('/trips/:tripId', publicTripIdValidator, validate, getPublicTripDetail)
 router.get('/trips/:tripId/seats', publicTripIdValidator, validate, getPublicTripSeats)
 

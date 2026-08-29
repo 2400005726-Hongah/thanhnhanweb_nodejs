@@ -1,0 +1,134 @@
+.booking-service-step-container {
+  padding-top: 26px;
+}
+
+.booking-service-rule-note {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 3px;
+  margin: 0 auto 16px;
+  padding: 12px 14px;
+  border: 1px solid #f2db8a;
+  border-radius: 8px;
+  background: #fff7d8;
+  color: #5b4a14;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.booking-step-hold-line {
+  width: min(100%, 1040px);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 auto 12px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.booking-step-hold-line strong {
+  color: #147c46;
+}
+
+.booking-step-hold-line strong.is-urgent {
+  color: #d62f3d;
+}
+
+.booking-service-step-layout {
+  width: min(100%, 1040px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  gap: 18px;
+  align-items: start;
+  margin: 0 auto;
+}
+
+.booking-service-step-layout .booking-service-grid {
+  margin-top: 0;
+}
+
+.booking-step-summary-card {
+  position: sticky;
+  top: 92px;
+  padding: 16px;
+  border: 1px solid #e0e5ec;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 35, 50, .05);
+}
+
+.booking-step-summary-card h2 {
+  margin: 0 0 13px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e7eaf0;
+  color: #252b36;
+  font-size: 16px;
+}
+
+.booking-step-summary-block,
+.booking-step-summary-grid > div {
+  display: grid;
+  gap: 3px;
+}
+
+.booking-step-summary-block span,
+.booking-step-summary-grid span,
+.booking-step-summary-total span {
+  color: #77808f;
+  font-size: 11px;
+}
+
+.booking-step-summary-block strong,
+.booking-step-summary-grid strong {
+  color: #252b36;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.booking-step-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf0f4;
+}
+
+.booking-step-summary-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0;
+  padding-top: 12px;
+  border-top: 1px solid #e4e8ee;
+}
+
+.booking-step-summary-total strong {
+  color: #dc2f3f;
+  font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .booking-service-step-layout {
+    grid-template-columns: 1fr;
+  }
+  .booking-step-summary-card {
+    position: static;
+  }
+}
+
+.booking-step-selected-service {
+  display: grid;
+  gap: 3px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #e4e8ee;
+  border-radius: 7px;
+  background: #fafbfc;
+}
+.booking-step-selected-service span { color: #7a8391; font-size: 10px; }
+.booking-step-selected-service strong { color: #2b313b; font-size: 11px; line-height: 1.35; }
+.booking-step-selected-service small { color: #687282; font-size: 10px; line-height: 1.35; }
+.booking-step-selected-service b { font-size: 11px; }
+.booking-step-selected-service.is-pickup b { color: #16874b; }
+.booking-step-selected-service.is-dropoff b { color: #d72d3e; }

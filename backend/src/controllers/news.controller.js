@@ -2,6 +2,7 @@ import {
   changeNewsStatus as changeNewsStatusService,
   createNews as createNewsService,
   getNewsById,
+  getPublicNewsById,
   listNews as listNewsService,
   softDeleteNews,
   updateNews as updateNewsService,
@@ -23,10 +24,7 @@ const listPublicNews = async (request, response, next) => {
 
 const showPublicNews = async (request, response, next) => {
   try {
-    const news = await getNewsById(request.params.id)
-    if (news.status !== 'PUBLISHED' || (news.publishedAt && news.publishedAt > new Date())) {
-      return response.status(404).json({ success: false, message: 'Không tìm thấy tin tức', errors: [] })
-    }
+    const news = await getPublicNewsById(request.params.id)
     response.status(200).json({
       success: true,
       message: 'Lấy tin tức thành công',

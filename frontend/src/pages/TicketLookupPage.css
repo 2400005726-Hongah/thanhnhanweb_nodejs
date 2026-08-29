@@ -1,0 +1,40 @@
+/* Chỉ áp dụng cho trang Tra cứu vé */
+.lookup-page .page-banner {
+  background: #c50416 !important;
+}
+
+.lookup-page .page-banner::before,
+.lookup-page .page-banner::after {
+  background: none !important;
+}
+
+.lookup-page .page-banner .eyebrow--light,
+.lookup-page .page-banner h1,
+.lookup-page .page-banner p {
+  color: #fff !important;
+}
+
+.lookup-page .lookup-form-card .btn-warning {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(197, 4, 22, .18);
+}
+
+.lookup-page .lookup-form-card .btn-warning:hover,
+.lookup-page .lookup-form-card .btn-warning:focus,
+.lookup-page .lookup-form-card .btn-warning:active {
+  border-color: #c50416 !important;
+  background: #c50416 !important;
+  color: #fff !important;
+}
+
+/* Khi chưa tra cứu, không chừa khoảng trống cho placeholder cũ */
+.lookup-page .lookup-content {
+  padding-bottom: 48px;
+}
+
+/* Loading chỉ xuất hiện sau khi người dùng bấm tra cứu */
+.lookup-page .lookup-placeholder[role="status"] {
+  margin-top: 1.25rem;
+}

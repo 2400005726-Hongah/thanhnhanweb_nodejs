@@ -9,6 +9,10 @@ const busId = randomUUID()
 const adminId = randomUUID()
 const departureLocationId = randomUUID()
 const arrivalLocationId = randomUUID()
+const departureProvinceId = randomUUID()
+const arrivalProvinceId = randomUUID()
+const departureAreaId = randomUUID()
+const arrivalAreaId = randomUUID()
 const tripId = randomUUID()
 
 let activeLocationCount
@@ -25,7 +29,15 @@ let createdBusSeats
 const prisma = {
   location: {
     count: jest.fn(async () => activeLocationCount),
-    findMany: jest.fn(async () => []),
+    findMany: jest.fn(async ({ where } = {}) => {
+      if (where?.id?.in) {
+        return [
+          { id: departureLocationId, name: 'Văn phòng Krông Năng', provinceId: departureProvinceId, defaultAreaId: departureAreaId, province: 'Đắk Lắk', locationType: 'BOTH', status: 'ACTIVE' },
+          { id: arrivalLocationId, name: 'Bến xe An Sương', provinceId: arrivalProvinceId, defaultAreaId: arrivalAreaId, province: 'TP.HCM', locationType: 'BOTH', status: 'ACTIVE' },
+        ]
+      }
+      return []
+    }),
   },
   route: {
     findUnique: jest.fn(async ({ where }) =>
@@ -97,7 +109,10 @@ const routePayload = {
 }
 
 const tripPayload = {
-  route: routeId,
+  departureProvinceId,
+  departureLocationId,
+  arrivalProvinceId,
+  arrivalLocationId,
   bus: busId,
   departureTime: '2099-08-01T01:00:00.000Z',
   expectedArrivalTime: '2099-08-01T09:00:00.000Z',
@@ -263,20 +278,16 @@ describe('Prisma Trip transaction rules', () => {
     expect(data.every((seat) => seat.status === 'AVAILABLE')).toBe(true)
   })
 
-  test('falls back to the route price when a trip override is omitted', async () => {
-    routeFound.defaultTicketPrice = 275000
-
-    await createTrip(
-      {
-        ...tripPayload,
-        ticketPrice: undefined,
-      },
-      adminId,
-    )
-
-    const data = prisma.tripSeat.createMany.mock.calls[0][0].data
-    expect(data.every((seat) => seat.price === 275000)).toBe(true)
-    expect(prisma.trip.create.mock.calls[0][0].data.ticketPrice).toBeNull()
+  test('new direct-location trip requires its own price instead of a route fallback', async () => {
+    await expect(
+      createTrip(
+        {
+          ...tripPayload,
+          ticketPrice: undefined,
+        },
+        adminId,
+      ),
+    ).rejects.toMatchObject({ statusCode: 400 })
   })
 
   test('snapshots physical limousine rooms with the base single-room price', async () => {

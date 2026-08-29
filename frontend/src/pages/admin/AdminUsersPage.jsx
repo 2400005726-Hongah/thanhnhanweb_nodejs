@@ -1,122 +1,45 @@
 import { useEffect, useState } from 'react'
-
+import { Link } from 'react-router-dom'
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
-import { EmptyState, LoadingState } from '../../components/common/StatusState.jsx'
-import {
-  createUser,
-  getUsers,
-  updateUserStatus,
-} from '../../services/admin.service.js'
+import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusState.jsx'
+import { useAuth } from '../../contexts/authContext.js'
+import { getUsers, updateUserStatus } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
 import { getStatusLabel } from '../../utils/uiLabels.js'
-import {
-  formatPhoneInput,
-  isValidFullName,
-  isVietnamesePhone,
-  normalizeEmail,
-  normalizeFullName,
-  normalizePhone,
-} from '../../utils/normalizers.js'
-
-const initialForm = {
-  fullName: '',
-  email: '',
-  phone: '',
-  password: '',
-  role: 'STAFF',
-}
+import { formatPhoneInput } from '../../utils/normalizers.js'
 
 function AdminUsersPage() {
+  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState([])
-  const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [processingId, setProcessingId] = useState('')
 
   const load = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const data = await getUsers({ page: 1, limit: 100 })
-      setUsers(data.users)
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError))
-    } finally {
-      setLoading(false)
-    }
+    setLoading(true); setError('')
+    try { const data = await getUsers({ page: 1, limit: 100 }); setUsers(data.users ?? []) }
+    catch (requestError) { setError(getApiErrorMessage(requestError)) }
+    finally { setLoading(false) }
   }
-
   useEffect(() => { load() }, [])
-
-  const submit = async (event) => {
-    event.preventDefault()
-    const normalizedForm = {
-      ...form,
-      fullName: normalizeFullName(form.fullName),
-      email: normalizeEmail(form.email),
-      phone: normalizePhone(form.phone),
-    }
-
-    if (!isValidFullName(normalizedForm.fullName)) {
-      setError('Họ tên không hợp lệ.')
-      return
-    }
-    if (!isVietnamesePhone(normalizedForm.phone)) {
-      setError('Số điện thoại phải có 10 số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.')
-      return
-    }
-
-    setSaving(true)
-    setError('')
-    try {
-      await createUser(normalizedForm)
-      setForm(initialForm)
-      await load()
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError))
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const toggleStatus = async (user) => {
     const status = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
-    const statusLabel = status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'
-    if (!window.confirm(`Chuyển tài khoản ${user.email} sang trạng thái "${statusLabel}"?`)) return
-    try {
-      await updateUserStatus(user.id, status)
-      await load()
-    } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
-    }
+    if (!window.confirm(`${status === 'ACTIVE' ? 'Mở khóa' : 'Khóa'} tài khoản ${user.email}?`)) return
+    setProcessingId(user.id)
+    try { await updateUserStatus(user.id, status); await load() }
+    catch (requestError) { window.alert(getApiErrorMessage(requestError)) }
+    finally { setProcessingId('') }
   }
 
-  return (
-    <>
-      <AdminPageHeader title="Tài khoản quản trị" description="Chỉ Chủ xe được tạo, khóa hoặc mở tài khoản ADMIN/STAFF." />
-      <section className="admin-panel">
-        <div className="admin-panel-heading"><div><span>TÀI KHOẢN</span><h2>Tạo tài khoản quản trị</h2></div></div>
-        {error && <div className="alert alert-danger">{error}</div>}
-        <form className="admin-form-grid" onSubmit={submit}>
-          <label className="admin-field"><span>Họ tên</span><input className="form-control" name="fullName" onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} onBlur={(event) => setForm((current) => ({ ...current, fullName: normalizeFullName(event.target.value) }))} required value={form.fullName} /></label>
-          <label className="admin-field"><span>Quyền</span><select className="form-select" onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))} value={form.role}><option value="STAFF">Nhân viên quản trị</option><option value="ADMIN">Chủ xe</option></select></label>
-          <label className="admin-field"><span>Email</span><input className="form-control" onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} onBlur={(event) => setForm((current) => ({ ...current, email: normalizeEmail(event.target.value) }))} required type="email" value={form.email} /></label>
-          <label className="admin-field"><span>Số điện thoại</span><input className="form-control" onChange={(event) => setForm((current) => ({ ...current, phone: formatPhoneInput(event.target.value) }))} required inputMode="tel" maxLength="12" placeholder="0912 345 678" value={form.phone} /></label>
-          <label className="admin-field admin-field--wide"><span>Mật khẩu ban đầu</span><input className="form-control" minLength="8" onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} required type="password" value={form.password} /></label>
-          <div className="admin-field admin-field--wide"><button className="btn btn-primary" disabled={saving} type="submit">{saving ? 'Đang tạo...' : 'Tạo tài khoản'}</button></div>
-        </form>
-      </section>
-      {loading ? <LoadingState /> : users.length === 0 ? <EmptyState /> : (
-        <section className="admin-panel"><div className="admin-table-wrap"><table className="admin-table">
-          <thead><tr><th>Người dùng</th><th>Liên hệ</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập cuối</th><th>Thao tác</th></tr></thead>
-          <tbody>{users.map((user) => (
-            <tr key={user.id}><td><strong>{user.fullName}</strong></td><td>{user.email}<small>{formatPhoneInput(user.phone)}</small></td><td>{user.role === 'ADMIN' ? 'Chủ xe' : user.role === 'STAFF' ? 'Nhân viên quản trị' : 'Khách hàng'}</td><td><span className={`status-badge status-badge--${user.status.toLowerCase()}`}>{getStatusLabel(user.status)}</span></td><td>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Chưa đăng nhập'}</td><td><div className="admin-row-actions"><button className={user.status === 'ACTIVE' ? 'is-danger' : ''} onClick={() => toggleStatus(user)} type="button">{user.status === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}</button></div></td></tr>
-          ))}</tbody>
-        </table></div></section>
-      )}
-    </>
-  )
+  return <>
+    <AdminPageHeader title="Tài khoản quản trị" description="Danh sách tài khoản. Thêm, sửa và xóa mở ở trang riêng." actions={<Link className="btn btn-primary" to="/admin/tai-khoan/them">+ Thêm tài khoản</Link>} />
+    {error && <ErrorState message={error} onRetry={load} />}
+    {loading ? <LoadingState /> : users.length === 0 ? <EmptyState message="Chưa có tài khoản quản trị." /> : <section className="admin-panel"><div className="admin-table-wrap"><table className="admin-table">
+      <thead><tr><th>Người dùng</th><th>Liên hệ</th><th>Quyền</th><th>Trạng thái</th><th>Đăng nhập cuối</th><th>Thao tác</th></tr></thead>
+      <tbody>{users.map((user) => <tr key={user.id}><td><strong>{user.fullName}</strong>{user.id === currentUser?.id && <small>Tài khoản đang đăng nhập</small>}</td><td>{user.email}<small>{formatPhoneInput(user.phone)}</small></td><td>{user.role === 'ADMIN' ? 'Chủ xe' : 'Nhân viên quản trị'}</td><td><span className={`status-badge status-badge--${String(user.status || '').toLowerCase()}`}>{getStatusLabel(user.status)}</span></td><td>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Chưa đăng nhập'}</td><td><div className="admin-row-actions"><Link to={`/admin/tai-khoan/${user.id}/sua`}>Sửa</Link><button className={user.status === 'ACTIVE' ? 'is-danger' : ''} disabled={processingId === user.id || (user.id === currentUser?.id && user.status === 'ACTIVE')} onClick={() => toggleStatus(user)} type="button">{user.status === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}</button><Link className="is-danger" aria-disabled={user.id === currentUser?.id} onClick={(event) => { if (user.id === currentUser?.id) event.preventDefault() }} to={`/admin/tai-khoan/${user.id}/xoa`}>Xóa</Link></div></td></tr>)}</tbody>
+    </table></div></section>}
+  </>
 }
-
 export default AdminUsersPage

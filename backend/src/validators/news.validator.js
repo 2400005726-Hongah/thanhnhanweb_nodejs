@@ -44,8 +44,15 @@ const newsBodyRules = (optional = false) => {
       .withMessage('Nội dung tin tức là bắt buộc'),
     body('thumbnailUrl')
       .optional({ nullable: true })
-      .isURL({ protocols: ['http', 'https'], require_protocol: true })
-      .withMessage('URL ảnh đại diện không hợp lệ'),
+      .custom((value) => {
+        if (!value) return true
+        if (/^https?:\/\//i.test(value)) return true
+        if (/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(value)) {
+          return value.length <= 7_000_000
+        }
+        return false
+      })
+      .withMessage('Ảnh đại diện phải là URL HTTP/HTTPS hoặc ảnh JPG, PNG, WEBP không quá 5 MB'),
     body('status')
       .optional()
       .isIn(NEWS_STATUSES)

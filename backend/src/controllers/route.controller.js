@@ -2,6 +2,7 @@ import {
   createRoute as createRouteService,
   deactivateRoute,
   getRouteById,
+  getRouteSummary,
   getRoutes,
   updateRoute as updateRouteService,
 } from '../services/route.service.js'
@@ -14,6 +15,20 @@ const listRoutes = async (request, response, next) => {
   try {
     const data = await getRoutes({ query: request.query, isAdmin: canManageRoutes(request) })
     response.status(200).json({ success: true, message: 'Lấy danh sách tuyến xe thành công', data })
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+const listRouteSummary = async (request, response, next) => {
+  try {
+    const data = await getRouteSummary()
+    response.status(200).json({
+      success: true,
+      message: 'Tổng hợp tuyến xe từ dữ liệu chuyến thành công',
+      data,
+    })
   } catch (error) {
     next(error)
   }
@@ -59,4 +74,4 @@ const deleteRoute = async (request, response, next) => {
   }
 }
 
-export { createRoute, deleteRoute, listRoutes, showRoute, updateRoute }
+export { createRoute, deleteRoute, listRouteSummary, listRoutes, showRoute, updateRoute }

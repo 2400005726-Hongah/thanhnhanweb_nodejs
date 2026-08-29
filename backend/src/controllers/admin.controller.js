@@ -1,24 +1,38 @@
 import {
   changeUserRole as changeUserRoleService,
   changeUserStatus as changeUserStatusService,
+  archiveCustomer,
   createManagedUser,
+  updateManagedUser,
+  deleteManagedUser,
   getDashboardSummary,
   getManagedBooking,
+  lookupManagedBookingByIdentifier,
   getRevenueSummary,
   listAuditLogs,
   listCustomers as listCustomersService,
+  listCustomersForExport,
   listManagedBookings,
+  listManagedBookingsForExport,
   listUsers,
   markBookingNoShow,
   updateBookingContact,
   updateCustomer,
 } from '../services/admin.service.js'
 
+import { createBookingExcelWorkbook } from '../services/bookingExcel.service.js'
+import { createCustomerExcelWorkbook } from '../services/customerExcel.service.js'
+
 import {
   softDeleteManagedBooking,
 } from '../services/bookingDeletion.service.js'
 
 import * as cancellationService from '../services/cancellation.service.js'
+
+import {
+  confirmCollectedPayment,
+  undoCollectedPayment,
+} from '../services/paymentCollection.service.js'
 
 const dashboardSummary = async (request, response, next) => {
   try {
@@ -55,6 +69,41 @@ const listBookings = async (request, response, next) => {
       success: true,
       message: 'Lấy danh sách vé thành công',
       data,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const exportBookingsExcel = async (request, response, next) => {
+  try {
+    const bookings = await listManagedBookingsForExport(request.query)
+    const workbook = createBookingExcelWorkbook(bookings)
+    const timestamp = new Date().toISOString().slice(0, 16).replaceAll(/[-:T]/g, '')
+    const fileName = `DanhSachVe_${timestamp}.xlsx`
+
+    response.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName}"`,
+    )
+    response.status(200).send(workbook)
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+const lookupBooking = async (request, response, next) => {
+  try {
+    const booking = await lookupManagedBookingByIdentifier(request.query.identifier)
+    response.status(200).json({
+      success: true,
+      message: 'Tra cứu vé thành công',
+      data: { booking },
     })
   } catch (error) {
     next(error)
@@ -140,6 +189,43 @@ const deleteBooking = async (
   }
 }
 
+
+const collectBookingPayment = async (request, response, next) => {
+  try {
+    const payment = await confirmCollectedPayment({
+      bookingCode: request.params.bookingCode,
+      actor: request.user,
+      confirmed: request.body.confirmed,
+    })
+
+    response.status(200).json({
+      success: true,
+      message: 'Đã xác nhận thu tiền của vé',
+      data: { payment },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const undoBookingPayment = async (request, response, next) => {
+  try {
+    const payment = await undoCollectedPayment({
+      bookingCode: request.params.bookingCode,
+      actor: request.user,
+      reason: request.body.reason,
+    })
+
+    response.status(200).json({
+      success: true,
+      message: 'Đã hoàn tác xác nhận thu tiền của vé',
+      data: { payment },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const markNoShow = async (request, response, next) => {
   try {
     const booking = await markBookingNoShow(
@@ -175,6 +261,37 @@ const resendTicketEmail = async (request, response, next) => {
         ? 'Đã gửi lại email vé điện tử'
         : delivery.emailWarning || 'Chưa thể gửi email vé điện tử',
       data: { delivery },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const exportCustomersExcel = async (request, response, next) => {
+  try {
+    const customers = await listCustomersForExport()
+    const workbook = createCustomerExcelWorkbook(customers)
+    const fileName = `DanhSachKhachHang_${new Date().toISOString().slice(0, 10).replaceAll('-', '')}.xlsx`
+    response.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    response.status(200).send(workbook)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const archiveCustomerProfile = async (request, response, next) => {
+  try {
+    const result = await archiveCustomer(request.params.id, request.user)
+    response.status(200).json({
+      success: true,
+      message: result.deleted
+        ? 'Đã xóa khách hàng chưa có lịch sử vé'
+        : 'Đã lưu trữ khách hàng; lịch sử vé vẫn được giữ',
+      data: result,
     })
   } catch (error) {
     next(error)
@@ -299,6 +416,38 @@ const createAccount = async (request, response, next) => {
   }
 }
 
+const editAccount = async (request, response, next) => {
+  try {
+    const user = await updateManagedUser(
+      request.params.id,
+      request.body,
+      request.user,
+    )
+    response.status(200).json({
+      success: true,
+      message: 'Cập nhật tài khoản thành công',
+      data: { user },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deleteAccount = async (request, response, next) => {
+  try {
+    const result = await deleteManagedUser(request.params.id, request.user)
+    response.status(200).json({
+      success: true,
+      message: result.deleted
+        ? 'Đã xóa tài khoản quản trị'
+        : 'Đã lưu trữ tài khoản quản trị để bảo toàn lịch sử',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const changeAccountStatus = async (request, response, next) => {
   try {
     const user = await changeUserStatusService(
@@ -348,16 +497,23 @@ const showAuditLogs = async (request, response, next) => {
 
 export {
   cancelBooking,
+  collectBookingPayment,
   changeAccountRole,
   changeAccountStatus,
+  editAccount,
   changeCustomerStatus,
   createAccount,
   dashboardSummary,
+  deleteAccount,
   deleteBooking,
   editBookingContact,
   editCustomer,
+  exportCustomersExcel,
+  archiveCustomerProfile,
+  exportBookingsExcel,
   listAccounts,
   listBookings,
+  lookupBooking,
   listCustomers,
   markNoShow,
   revenueSummary,
@@ -365,4 +521,5 @@ export {
   showAuditLogs,
   showBooking,
   showCustomer,
+  undoBookingPayment,
 }

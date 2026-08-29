@@ -1,0 +1,858 @@
+/* ==========================================================
+   NHÀ XE THÀNH NHÂN - ADMIN UI SYSTEM
+   Phong cách: phần mềm quản trị nội bộ / ERP compact
+   Chỉ tác động bên trong .admin-shell
+   ========================================================== */
+
+.admin-shell {
+  --adm-red: #c50416;
+  --adm-sidebar: #171a22;
+  --adm-sidebar-hover: #222630;
+  --adm-sidebar-line: #2a2f39;
+  --adm-bg: #f4f5f7;
+  --adm-panel: #fff;
+  --adm-text: #20242a;
+  --adm-muted: #69717d;
+  --adm-border: #dfe3e8;
+  --adm-soft: #f7f8fa;
+  --adm-radius: 5px;
+  min-height: 100vh !important;
+  background: var(--adm-bg) !important;
+  color: var(--adm-text) !important;
+  font-size: 13px;
+}
+
+/* ===== KHUNG CHUNG ===== */
+.admin-shell .admin-sidebar {
+  width: 205px !important;
+  background: var(--adm-sidebar) !important;
+  border-right: 1px solid #11141a;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-main {
+  margin-left: 205px !important;
+  background: var(--adm-bg) !important;
+}
+
+.admin-shell .admin-brand {
+  position: relative;
+  min-height: 76px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  padding: 9px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--adm-sidebar-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-brand::after {
+  content: "QUẢN TRỊ";
+  color: #f3f4f6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.admin-shell .admin-brand .brand-logo,
+.admin-shell .admin-brand .brand-logo--header {
+  width: 54px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  flex: 0 0 54px !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-brand .brand-logo img {
+  object-fit: contain !important;
+}
+
+.admin-shell .admin-sidebar nav {
+  gap: 1px !important;
+  padding: 9px 8px 4px !important;
+}
+
+.admin-shell .admin-nav-link {
+  position: relative;
+  min-height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 7px 10px 7px 13px !important;
+  border-radius: 3px !important;
+  color: #b8c0cd !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.25;
+}
+
+.admin-shell .admin-nav-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: transparent;
+}
+
+.admin-shell .admin-nav-link:hover {
+  color: #fff !important;
+  background: #1f232c !important;
+}
+
+.admin-shell .admin-nav-link.active {
+  color: #fff !important;
+  background: var(--adm-sidebar-hover) !important;
+}
+
+.admin-shell .admin-nav-link.active::before {
+  background: var(--adm-red);
+}
+
+.admin-shell .admin-nav-link.active .admin-nav-icon {
+  color: #ff5361 !important;
+}
+
+.admin-shell .admin-nav-icon {
+  width: 15px !important;
+  min-width: 15px !important;
+  height: 15px !important;
+}
+
+.admin-shell .admin-signout {
+  min-height: 38px !important;
+  margin: auto 8px 10px !important;
+  padding: 7px 11px !important;
+  border: 0 !important;
+  border-top: 1px solid var(--adm-sidebar-line) !important;
+  border-radius: 0 !important;
+  color: #aeb7c4 !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.admin-shell .admin-signout:hover {
+  color: #fff !important;
+  background: #1f232c !important;
+}
+
+/* ===== TOPBAR ===== */
+.admin-shell .admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  min-height: 54px !important;
+  margin: 0 !important;
+  padding: 7px 16px !important;
+  border-bottom: 1px solid var(--adm-border) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-topbar::before {
+  display: none !important;
+}
+
+.admin-shell .admin-topbar-title {
+  gap: 8px !important;
+}
+
+.admin-shell .admin-topbar-title h1 {
+  color: #25292f !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell .admin-topbar-user {
+  gap: 8px !important;
+}
+
+.admin-shell .admin-user-avatar {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--adm-red) !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-user-meta {
+  gap: 0 !important;
+}
+
+.admin-shell .admin-user-meta strong {
+  color: #25292f !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell .admin-user-meta small {
+  color: var(--adm-muted) !important;
+  font-size: 9px !important;
+}
+
+.admin-shell .admin-menu-toggle {
+  width: 31px !important;
+  height: 31px !important;
+  border-radius: 3px !important;
+}
+
+/* ===== KHOẢNG CÁCH / TIÊU ĐỀ ===== */
+.admin-shell .admin-content {
+  padding: 14px 16px 28px !important;
+}
+
+.admin-shell .admin-page-heading {
+  align-items: center !important;
+  margin: 0 0 10px !important;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #e7e9ec;
+}
+
+.admin-shell .admin-page-heading > div:first-child > span,
+.admin-shell .admin-panel-heading span {
+  margin-bottom: 2px !important;
+  color: var(--adm-red) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+
+.admin-shell .admin-page-heading h1,
+.admin-shell .admin-page-heading h2 {
+  margin: 0 !important;
+  color: #22262c !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+}
+
+.admin-shell .admin-page-heading p {
+  margin-top: 3px !important;
+  color: var(--adm-muted) !important;
+  font-size: 11px !important;
+}
+
+.admin-shell .admin-heading-actions {
+  gap: 5px !important;
+}
+
+/* ===== NÚT / INPUT ===== */
+.admin-shell .btn {
+  min-height: 32px !important;
+  padding: 5px 10px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .btn-primary,
+.admin-shell .btn-danger {
+  border-color: var(--adm-red) !important;
+  background: var(--adm-red) !important;
+  color: #fff !important;
+}
+
+.admin-shell .btn-primary:hover,
+.admin-shell .btn-primary:focus,
+.admin-shell .btn-danger:hover,
+.admin-shell .btn-danger:focus {
+  border-color: #a50312 !important;
+  background: #a50312 !important;
+}
+
+.admin-shell .btn-outline-primary,
+.admin-shell .btn-outline-danger {
+  border-color: #d5a2a8 !important;
+  background: #fff !important;
+  color: var(--adm-red) !important;
+}
+
+.admin-shell .btn-outline-primary:hover,
+.admin-shell .btn-outline-danger:hover {
+  border-color: var(--adm-red) !important;
+  background: var(--adm-red) !important;
+  color: #fff !important;
+}
+
+.admin-shell .form-control,
+.admin-shell .form-select {
+  min-height: 34px !important;
+  padding: 5px 8px !important;
+  border-color: #cfd5dc !important;
+  border-radius: 4px !important;
+  background-color: #fff;
+  color: #252a31;
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+
+.admin-shell textarea.form-control {
+  min-height: 82px !important;
+  line-height: 1.5;
+}
+
+.admin-shell .form-control:focus,
+.admin-shell .form-select:focus {
+  border-color: #b76f77 !important;
+  box-shadow: 0 0 0 2px rgba(197,4,22,.08) !important;
+}
+
+.admin-shell .form-label,
+.admin-shell .admin-field > span,
+.admin-shell .admin-field > label {
+  color: #353b43 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* ===== PANEL / CARD ===== */
+.admin-shell .admin-panel,
+.admin-shell .admin-bookings-filter-card,
+.admin-shell .admin-bookings-list-card,
+.admin-shell .admin-trip-mvc-panel,
+.admin-shell .admin-route-mvc-panel,
+.admin-shell .admin-trip-v2-accordion,
+.admin-shell .admin-trip-v2-subsection,
+.admin-shell .admin-bus-trips-panel,
+.admin-shell .admin-location-card,
+.admin-shell .stats-filter-panel,
+.admin-shell .status-state {
+  border: 1px solid var(--adm-border) !important;
+  border-radius: var(--adm-radius) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-panel {
+  margin-bottom: 10px !important;
+  padding: 12px !important;
+}
+
+.admin-shell .admin-panel-heading,
+.admin-shell .admin-panel__heading {
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 9px !important;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #eceef1;
+}
+
+.admin-shell .admin-panel-heading h2,
+.admin-shell .admin-panel__heading h2 {
+  margin: 0 !important;
+  color: #25292f !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+
+.admin-shell .admin-panel-heading p,
+.admin-shell .admin-panel__heading p,
+.admin-shell .admin-panel-heading small,
+.admin-shell .admin-panel__heading small {
+  color: var(--adm-muted) !important;
+  font-size: 10px !important;
+}
+
+/* ===== THỐNG KÊ ===== */
+.admin-shell .admin-stat-grid {
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.admin-shell .admin-stat-card {
+  min-height: 68px !important;
+  padding: 10px 11px !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-stat-card span,
+.admin-shell .dashboard-stat-card > div > span {
+  color: #737c88 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+
+.admin-shell .admin-stat-card strong,
+.admin-shell .dashboard-stat-card > div > strong {
+  margin-top: 2px !important;
+  color: #20242a !important;
+  font-size: 17px !important;
+  font-weight: 750 !important;
+}
+
+.admin-shell .admin-stat-card small,
+.admin-shell .dashboard-stat-card > div > small {
+  color: #7f8792 !important;
+  font-size: 9px !important;
+}
+
+.admin-shell .admin-stat-card--money strong,
+.admin-shell .dashboard-stat-card--money strong,
+.admin-shell .dashboard-current-month strong {
+  color: #12854f !important;
+}
+
+/* ===== BỘ LỌC ===== */
+.admin-shell .admin-filter-bar,
+.admin-shell .filter-bar,
+.admin-shell .booking-history-filters,
+.admin-shell .admin-bookings-filter-card,
+.admin-shell .admin-trip-mvc-filter,
+.admin-shell .stats-filter-panel {
+  gap: 7px !important;
+  margin-bottom: 10px !important;
+  padding: 9px !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-filter-bar .btn,
+.admin-shell .filter-bar .btn {
+  min-height: 34px !important;
+}
+
+/* ===== FORM ===== */
+.admin-shell .admin-form-grid {
+  gap: 10px !important;
+}
+
+.admin-shell .admin-field {
+  gap: 4px !important;
+}
+
+.admin-shell .admin-crud-page {
+  max-width: 1120px;
+}
+
+.admin-shell .admin-crud-actions {
+  gap: 6px !important;
+  padding-top: 10px;
+  border-top: 1px solid #eceef1;
+}
+
+.admin-shell .admin-crud-summary {
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 4px !important;
+  background: #fafbfc !important;
+}
+
+.admin-shell .admin-crud-summary__row {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid #e8ebef !important;
+}
+
+/* ===== TABLE ===== */
+.admin-shell .admin-table-wrap,
+.admin-shell .admin-bookings-table-scroll {
+  border: 1px solid #e5e8ec;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.admin-shell .admin-table {
+  font-size: 11px !important;
+}
+
+.admin-shell .admin-table th {
+  padding: 7px 8px !important;
+  border-bottom: 1px solid #cfd5dc !important;
+  background: #f3f4f6 !important;
+  color: #4e5661 !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+  letter-spacing: .02em !important;
+}
+
+.admin-shell .admin-table td {
+  padding: 7px 8px !important;
+  border-bottom: 1px solid #e6e9ed !important;
+  color: #2a2f36;
+  vertical-align: middle !important;
+}
+
+.admin-shell .admin-table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+
+.admin-shell .admin-table td > strong {
+  color: #24292f !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell .admin-table td > small {
+  margin-top: 2px !important;
+  color: #747d89 !important;
+  font-size: 9px !important;
+}
+
+/* Vé xe có CSS riêng: vẫn giữ dữ liệu dày, chỉ làm bớt template */
+.admin-shell .admin-bookings-filter-card,
+.admin-shell .admin-bookings-list-card {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-bookings-table thead th {
+  background: #f3f4f6 !important;
+}
+
+.admin-shell .admin-bookings-table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+
+.admin-shell .admin-bookings-btn--filter {
+  border-color: var(--adm-red) !important;
+  background: var(--adm-red) !important;
+}
+
+/* ===== THAO TÁC DÒNG ===== */
+.admin-shell .admin-row-actions {
+  gap: 4px !important;
+}
+
+.admin-shell .admin-row-actions button,
+.admin-shell .admin-row-actions a,
+.admin-shell .admin-location-row-actions button,
+.admin-shell .admin-location-row-actions a {
+  min-height: 26px !important;
+  padding: 3px 6px !important;
+  border: 1px solid #cfd5dc !important;
+  border-radius: 3px !important;
+  background: #fff !important;
+  color: #4a5562 !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-row-actions button:hover,
+.admin-shell .admin-row-actions a:hover,
+.admin-shell .admin-location-row-actions button:hover,
+.admin-shell .admin-location-row-actions a:hover {
+  border-color: #aeb6c0 !important;
+  background: #f2f4f6 !important;
+  color: #20242a !important;
+}
+
+.admin-shell .admin-row-actions .is-danger,
+.admin-shell .admin-location-row-actions .is-danger {
+  border-color: #e1a8ae !important;
+  color: var(--adm-red) !important;
+}
+
+.admin-shell .admin-row-actions .is-danger:hover,
+.admin-shell .admin-location-row-actions .is-danger:hover {
+  border-color: var(--adm-red) !important;
+  background: var(--adm-red) !important;
+  color: #fff !important;
+}
+
+/* ===== BADGE / TRẠNG THÁI ===== */
+.admin-shell .status-badge,
+.admin-shell .status-chip {
+  min-height: 19px !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell .alert {
+  padding: 8px 10px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+}
+
+/* ===== DASHBOARD ===== */
+.admin-shell .dashboard-welcome {
+  margin: 0 0 9px !important;
+  padding: 0 1px;
+}
+
+.admin-shell .dashboard-welcome h2 {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+}
+
+.admin-shell .dashboard-welcome p,
+.admin-shell .dashboard-welcome time {
+  font-size: 10px !important;
+}
+
+.admin-shell .dashboard-stat-grid--8 {
+  grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+}
+
+.admin-shell .dashboard-stat-card {
+  min-height: 66px !important;
+  padding: 9px 10px !important;
+}
+
+.admin-shell .dashboard-grid,
+.admin-shell .dashboard-grid--mvc {
+  gap: 9px !important;
+}
+
+.admin-shell .dashboard-grid--bottom {
+  margin-top: 9px !important;
+}
+
+.admin-shell .dashboard-chart-panel,
+.admin-shell .dashboard-quick-panel,
+.admin-shell .dashboard-recent-panel,
+.admin-shell .dashboard-upcoming-panel {
+  min-height: 0 !important;
+}
+
+.admin-shell .monthly-revenue-chart {
+  min-height: 220px !important;
+  gap: 5px !important;
+  padding-top: 8px !important;
+}
+
+.admin-shell .monthly-revenue-track {
+  height: 155px !important;
+}
+
+.admin-shell .monthly-revenue-track i {
+  width: 66% !important;
+  border-radius: 2px 2px 0 0 !important;
+  background: var(--adm-red) !important;
+}
+
+.admin-shell .monthly-revenue-column > strong {
+  font-size: 9px !important;
+}
+
+.admin-shell .monthly-revenue-column > small {
+  font-size: 8px !important;
+}
+
+.admin-shell .dashboard-current-month span {
+  font-size: 9px !important;
+}
+
+.admin-shell .dashboard-current-month strong {
+  font-size: 12px !important;
+}
+
+.admin-shell .dashboard-quick-actions {
+  gap: 4px !important;
+}
+
+.admin-shell .dashboard-quick-actions a {
+  min-height: 44px !important;
+  gap: 8px !important;
+  padding: 7px 8px !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .dashboard-quick-actions a:hover {
+  border-color: #c6ccd4 !important;
+  background: #f7f8fa !important;
+  color: var(--adm-red) !important;
+}
+
+.admin-shell .dashboard-quick-actions a > span {
+  width: 25px !important;
+  height: 25px !important;
+  border-radius: 3px !important;
+  background: #f3f4f6 !important;
+  color: var(--adm-red) !important;
+  font-size: 10px !important;
+}
+
+.admin-shell .dashboard-quick-actions strong {
+  font-size: 10px !important;
+}
+
+.admin-shell .dashboard-quick-actions small {
+  font-size: 8px !important;
+}
+
+.admin-shell .dashboard-upcoming-list {
+  gap: 5px !important;
+}
+
+.admin-shell .dashboard-upcoming-list article {
+  gap: 2px !important;
+  padding: 8px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+/* ===== CHUYẾN XE / TUYẾN ===== */
+.admin-shell .admin-trip-mvc-panel,
+.admin-shell .admin-route-mvc-panel {
+  margin-top: 8px !important;
+  border-radius: 5px !important;
+}
+
+.admin-shell .admin-trip-mvc-heading,
+.admin-shell .admin-route-mvc-heading {
+  padding: 9px 10px 7px !important;
+}
+
+.admin-shell .admin-trip-mvc-heading h2,
+.admin-shell .admin-route-mvc-heading h2 {
+  font-size: 13px !important;
+}
+
+.admin-shell .admin-trip-mvc-heading p,
+.admin-shell .admin-route-mvc-heading p {
+  font-size: 9px !important;
+}
+
+.admin-shell .admin-trip-v2-accordion,
+.admin-shell .admin-trip-v2-subsection {
+  border-radius: 4px !important;
+}
+
+.admin-shell .admin-trip-inline-service,
+.admin-shell .admin-trip-inline-service__section,
+.admin-shell .admin-trip-inline-choice-grid > label,
+.admin-shell .admin-trip-inline-point-row {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+/* ===== XE ===== */
+.admin-shell .admin-bus-trip-count-button,
+.admin-shell .admin-bus-trip-card,
+.admin-shell .admin-bus-trips-panel {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-bus-trip-card {
+  background: #fafbfc !important;
+}
+
+/* ===== ĐỊA ĐIỂM ===== */
+.admin-shell .admin-location-specific-create-step1,
+.admin-shell .admin-location-multiselect,
+.admin-shell .admin-location-multiselect__menu {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-location-multiselect__option {
+  border-radius: 2px !important;
+}
+
+/* ===== MODAL ===== */
+.admin-shell .modal-content,
+.admin-shell .admin-bookings-modal {
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.16) !important;
+}
+
+/* ===== PAGINATION ===== */
+.admin-shell .admin-pagination,
+.admin-shell .admin-bookings-pagination,
+.admin-shell .pagination-wrap {
+  gap: 5px !important;
+  padding-top: 8px !important;
+  font-size: 10px !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1199.98px) {
+  .admin-shell .admin-sidebar {
+    width: 190px !important;
+  }
+
+  .admin-shell .admin-main {
+    margin-left: 190px !important;
+  }
+
+  .admin-shell .dashboard-stat-grid--8 {
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .admin-shell .admin-sidebar {
+    width: 205px !important;
+    transform: translateX(-100%);
+  }
+
+  .admin-shell.menu-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-shell .admin-main {
+    margin-left: 0 !important;
+  }
+
+  .admin-shell .admin-menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-shell .dashboard-stat-grid--8,
+  .admin-shell .admin-stat-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+
+  .admin-shell .dashboard-grid,
+  .admin-shell .dashboard-grid--mvc {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .admin-shell .admin-content {
+    padding: 10px !important;
+  }
+
+  .admin-shell .admin-topbar {
+    padding: 6px 10px !important;
+  }
+
+  .admin-shell .admin-user-meta small {
+    display: none;
+  }
+
+  .admin-shell .admin-page-heading {
+    align-items: flex-start !important;
+  }
+
+  .admin-shell .admin-heading-actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+
+  .admin-shell .admin-stat-grid,
+  .admin-shell .dashboard-stat-grid--8,
+  .admin-shell .admin-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

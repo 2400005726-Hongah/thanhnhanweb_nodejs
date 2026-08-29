@@ -1,6 +1,12 @@
 import prisma from '../config/prisma.js'
 import { isRoomBusType } from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
+import {
+  DROPOFF_KINDS,
+  DROPOFF_SERVICE_MODES,
+  PICKUP_KINDS,
+  PICKUP_SERVICE_MODES,
+} from '../config/servicePointCatalog.js'
 import { normalizeWhitespace } from '../utils/normalize.js'
 import { buildPagination, parsePagination } from '../utils/query.js'
 import { getVietnamDateRange, getVietnamDateTime } from '../utils/dateTime.js'
@@ -18,7 +24,12 @@ const publicLocationSelect = {
   id: true,
   name: true,
   province: true,
+  provinceId: true,
+  defaultAreaId: true,
+  locationType: true,
   address: true,
+  provinceRef: { select: { id: true, name: true } },
+  defaultArea: { select: { id: true, name: true, sortOrder: true } },
 }
 
 const publicTripInclude = {
@@ -28,6 +39,8 @@ const publicTripInclude = {
       arrivalLocation: { select: publicLocationSelect },
     },
   },
+  departureLocation: { select: publicLocationSelect },
+  arrivalLocation: { select: publicLocationSelect },
   bus: {
     select: {
       id: true,
@@ -39,10 +52,60 @@ const publicTripInclude = {
   },
 }
 
+
+const serializeServicePointLocation = (location) => ({
+  id: location.id,
+  name: location.name,
+  province: location.provinceRef?.name || location.province,
+  provinceId: location.provinceId || location.provinceRef?.id || null,
+  defaultAreaId: location.defaultAreaId || location.defaultArea?.id || null,
+  address: location.address,
+})
+
+const mapServicePointKind = (point) => {
+  if (point.isDefault) {
+    return point.pointType === 'PICKUP'
+      ? PICKUP_KINDS.PRIMARY
+      : DROPOFF_KINDS.PRIMARY
+  }
+  if (point.pointType === 'PICKUP') {
+    return point.serviceMode === PICKUP_SERVICE_MODES.TRANSFER
+      ? PICKUP_KINDS.TRANSFER
+      : PICKUP_KINDS.MEETING_POINT
+  }
+  return point.serviceMode === DROPOFF_SERVICE_MODES.TRANSFER
+    ? DROPOFF_KINDS.TRANSFER
+    : DROPOFF_KINDS.STOP
+}
+
+const serializePublicServicePoint = (point, departureTime) => {
+  const estimatedMinutes = Number(point.estimatedMinutes || 0)
+  const departureMillis = new Date(departureTime).getTime()
+  const estimatedDateTime = Number.isFinite(departureMillis)
+    ? new Date(departureMillis + estimatedMinutes * 60000).toISOString()
+    : null
+
+  return {
+    id: point.id,
+    pointType: point.pointType,
+    serviceMode: point.serviceMode,
+    kind: mapServicePointKind(point),
+    isDefault: point.isDefault,
+    sortOrder: point.sortOrder,
+    estimatedMinutes,
+    estimatedTime: point.estimatedTime || null,
+    estimatedDateTime,
+    location: serializeServicePointLocation(point.location),
+  }
+}
+
 const serializeLocation = (location) => ({
   id: location.id,
   name: location.name,
-  province: location.province,
+  province: location.provinceRef?.name || location.province,
+  provinceId: location.provinceId || location.provinceRef?.id || null,
+  defaultAreaId: location.defaultAreaId || location.defaultArea?.id || null,
+  locationType: location.locationType || 'BOTH',
   address: location.address,
 })
 
@@ -50,12 +113,18 @@ const serializeTrip = (trip, availableSeatCount) => {
   const pricing = serializeTripPricing(
     resolveTripPricing({
       busType: trip.bus.busType,
-      route: trip.route,
+      route: trip.route || {},
       ticketPrice: trip.ticketPrice,
       singleRoomPrice: trip.singleRoomPrice,
       doubleRoomPrice: trip.doubleRoomPrice,
     }),
   )
+
+  const departureLocation = trip.departureLocation || trip.route?.departureLocation
+  const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation
+  const routeName = departureLocation && arrivalLocation
+    ? `${departureLocation.name} → ${arrivalLocation.name}`
+    : trip.route?.routeName || 'Chưa xác định hành trình'
 
   return {
     id: trip.id,
@@ -69,15 +138,93 @@ const serializeTrip = (trip, availableSeatCount) => {
     busType: trip.bus.busType,
     capacity: trip.bus.capacity,
     availableSeatCount,
+    departureProvince: departureLocation?.provinceRef || null,
+    arrivalProvince: arrivalLocation?.provinceRef || null,
     route: {
-      id: trip.route.id,
-      routeName: trip.route.routeName,
-      departureLocation: serializeLocation(trip.route.departureLocation),
-      arrivalLocation: serializeLocation(trip.route.arrivalLocation),
-      distanceKm: toSafeMoneyNumber(trip.route.distanceKm, 'khoảng cách'),
-      estimatedDurationMinutes: trip.route.estimatedDurationMinutes,
+      id: trip.route?.id || null,
+      routeName,
+      departureLocation: departureLocation ? serializeLocation(departureLocation) : null,
+      arrivalLocation: arrivalLocation ? serializeLocation(arrivalLocation) : null,
+      distanceKm: trip.route?.distanceKm == null
+        ? null
+        : toSafeMoneyNumber(trip.route.distanceKm, 'khoảng cách'),
+      estimatedDurationMinutes: trip.route?.estimatedDurationMinutes ?? null,
+      legacy: Boolean(trip.route?.id),
     },
     bus: trip.bus,
+  }
+}
+
+const getPublicTripSearchCatalog = async () => {
+  const provinces = await prisma.province.findMany({
+    where: { status: 'ACTIVE' },
+    select: {
+      id: true,
+      name: true,
+      areas: {
+        where: { status: 'ACTIVE' },
+        select: {
+          id: true,
+          name: true,
+          sortOrder: true,
+        },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      },
+    },
+    orderBy: { name: 'asc' },
+  })
+
+  return { provinces }
+}
+
+const normalizeIdList = (value) => {
+  if (!value) return []
+  const values = Array.isArray(value) ? value : String(value).split(',')
+  return [...new Set(values.map((item) => String(item).trim()).filter(Boolean))]
+}
+
+const buildAreaLocationWhere = (provinceId, areaIds = [], usageType) => ({
+  status: 'ACTIVE',
+  provinceId,
+  ...(usageType === 'PICKUP' && { locationType: { in: ['PICKUP', 'BOTH'] } }),
+  ...(usageType === 'DROPOFF' && { locationType: { in: ['DROPOFF', 'BOTH'] } }),
+  ...(areaIds.length > 0 && { defaultAreaId: { in: areaIds } }),
+})
+
+const ensureActiveProvinces = async (departureProvinceId, arrivalProvinceId) => {
+  if (departureProvinceId === arrivalProvinceId) {
+    throw new HttpError('Tỉnh/Thành đi phải khác Tỉnh/Thành đến', 400)
+  }
+
+  const provinces = await prisma.province.findMany({
+    where: {
+      id: { in: [departureProvinceId, arrivalProvinceId] },
+      status: 'ACTIVE',
+    },
+    select: { id: true },
+  })
+
+  if (provinces.length !== 2) {
+    throw new HttpError(
+      'Tỉnh/Thành đi hoặc Tỉnh/Thành đến không tồn tại hoặc đã ngừng hoạt động',
+      400,
+    )
+  }
+}
+
+const ensureAreasBelongToProvince = async (provinceId, areaIds, label) => {
+  if (areaIds.length === 0) return
+
+  const count = await prisma.pickupDropoffArea.count({
+    where: {
+      id: { in: areaIds },
+      provinceId,
+      status: 'ACTIVE',
+    },
+  })
+
+  if (count !== areaIds.length) {
+    throw new HttpError(`Bộ lọc ${label} không hợp lệ hoặc không thuộc tỉnh/thành đã chọn`, 400)
   }
 }
 
@@ -145,36 +292,116 @@ const compareTrips = (left, right, sort) => {
 const searchPublicTrips = async (query) => {
   const { page, limit, skip } = parsePagination(query)
   const now = new Date()
-
-  await ensureActiveLocations(
-    query.departureLocationId,
-    query.arrivalLocationId,
+  const departureAreaIds = normalizeIdList(query.departureAreaIds)
+  const arrivalAreaIds = normalizeIdList(query.arrivalAreaIds)
+  const usesProvinceSearch = Boolean(
+    query.departureProvinceId && query.arrivalProvinceId,
   )
 
-  const route = await prisma.route.findFirst({
-    where: {
-      departureLocationId: query.departureLocationId,
-      arrivalLocationId: query.arrivalLocationId,
-      status: 'ACTIVE',
-    },
-    select: { id: true },
-  })
+  let where
 
-  if (!route) {
-    return {
-      trips: [],
-      pagination: buildPagination(0, page, limit),
+  if (usesProvinceSearch) {
+    await ensureActiveProvinces(
+      query.departureProvinceId,
+      query.arrivalProvinceId,
+    )
+    await Promise.all([
+      ensureAreasBelongToProvince(
+        query.departureProvinceId,
+        departureAreaIds,
+        'điểm đi',
+      ),
+      ensureAreasBelongToProvince(
+        query.arrivalProvinceId,
+        arrivalAreaIds,
+        'điểm đến',
+      ),
+    ])
+
+    const departureLocationWhere = buildAreaLocationWhere(
+      query.departureProvinceId,
+      departureAreaIds,
+      'PICKUP',
+    )
+    const arrivalLocationWhere = buildAreaLocationWhere(
+      query.arrivalProvinceId,
+      arrivalAreaIds,
+      'DROPOFF',
+    )
+
+    where = {
+      status: 'OPEN',
+      salesStatus: 'OPEN',
+      operationStatus: 'NOT_DEPARTED',
+      departureTime: buildDepartureRange(query, now),
+      bus: {
+        status: 'ACTIVE',
+        ...(query.busType && { busType: query.busType }),
+      },
+      AND: [
+        {
+          OR: [
+            { departureLocation: departureLocationWhere },
+            {
+              departureLocationId: null,
+              route: {
+                is: {
+                  status: 'ACTIVE',
+                  departureLocation: departureLocationWhere,
+                },
+              },
+            },
+          ],
+        },
+        {
+          OR: [
+            { arrivalLocation: arrivalLocationWhere },
+            {
+              arrivalLocationId: null,
+              route: {
+                is: {
+                  status: 'ACTIVE',
+                  arrivalLocation: arrivalLocationWhere,
+                },
+              },
+            },
+          ],
+        },
+      ],
     }
-  }
+  } else {
+    await ensureActiveLocations(
+      query.departureLocationId,
+      query.arrivalLocationId,
+    )
 
-  const where = {
-    routeId: route.id,
-    status: 'OPEN',
-    departureTime: buildDepartureRange(query, now),
-    bus: {
-      status: 'ACTIVE',
-      ...(query.busType && { busType: query.busType }),
-    },
+    where = {
+      status: 'OPEN',
+      salesStatus: 'OPEN',
+      operationStatus: 'NOT_DEPARTED',
+      departureTime: buildDepartureRange(query, now),
+      bus: {
+        status: 'ACTIVE',
+        ...(query.busType && { busType: query.busType }),
+      },
+      OR: [
+        {
+          departureLocationId: query.departureLocationId,
+          arrivalLocationId: query.arrivalLocationId,
+        },
+        {
+          departureLocationId: null,
+          arrivalLocationId: null,
+          route: {
+            is: {
+              status: 'ACTIVE',
+              departureLocationId: query.departureLocationId,
+              arrivalLocationId: query.arrivalLocationId,
+            },
+          },
+        },
+      ],
+    }
   }
 
   const allTrips = await prisma.trip.findMany({
@@ -310,9 +537,134 @@ const getPublicTripSeats = async (tripId) => {
   }
 }
 
+
+const getPublicTripServicePoints = async (tripId) => {
+  const now = new Date()
+  const trip = await prisma.trip.findFirst({
+    where: {
+      id: tripId,
+      status: { in: ['OPEN', 'CLOSED'] },
+      departureTime: { gt: now },
+    },
+    select: {
+      id: true,
+      departureTime: true,
+      expectedArrivalTime: true,
+      primaryPickupMode: true,
+      primaryDropoffMode: true,
+      allowPickupTransfer: true,
+      allowPickupMeetingPoint: true,
+      allowDropoffTransfer: true,
+      allowDropoffStop: true,
+      departureLocation: { select: publicLocationSelect },
+      arrivalLocation: { select: publicLocationSelect },
+      route: {
+        select: {
+          departureLocation: { select: publicLocationSelect },
+          arrivalLocation: { select: publicLocationSelect },
+        },
+      },
+      servicePoints: {
+        where: {
+          status: 'ACTIVE',
+          location: { status: 'ACTIVE' },
+        },
+        select: {
+          id: true,
+          pointType: true,
+          serviceMode: true,
+          isDefault: true,
+          sortOrder: true,
+          estimatedMinutes: true,
+          estimatedTime: true,
+          location: { select: publicLocationSelect },
+        },
+        orderBy: [
+          { pointType: 'asc' },
+          { isDefault: 'desc' },
+          { sortOrder: 'asc' },
+          { createdAt: 'asc' },
+        ],
+      },
+    },
+  })
+
+  if (!trip) throw new HttpError('Không tìm thấy chuyến xe phù hợp', 404)
+
+  const departureLocation = trip.departureLocation || trip.route?.departureLocation
+  const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation
+  const servicePoints = trip.servicePoints
+    .map((point) => serializePublicServicePoint(point, trip.departureTime))
+    .filter((point) => {
+      const primaryLocation = point.pointType === 'PICKUP' ? departureLocation : arrivalLocation
+      if (point.isDefault) {
+        return point.location?.id === primaryLocation?.id
+      }
+      if (!primaryLocation?.provinceId || !point.location?.provinceId) return true
+      return point.location.provinceId === primaryLocation.provinceId
+    })
+  const pickupPoints = servicePoints.filter((point) => point.pointType === 'PICKUP')
+  const dropoffPoints = servicePoints.filter((point) => point.pointType === 'DROPOFF')
+
+  if (!pickupPoints.some((point) => point.isDefault)) {
+    const location = departureLocation
+    if (location) {
+      pickupPoints.unshift({
+        id: null,
+        pointType: 'PICKUP',
+        serviceMode: trip.primaryPickupMode,
+        kind: PICKUP_KINDS.PRIMARY,
+        isDefault: true,
+        sortOrder: 1,
+        estimatedMinutes: 0,
+        estimatedTime: trip.departureTime,
+        estimatedDateTime: trip.departureTime,
+        location: serializeServicePointLocation(location),
+      })
+    }
+  }
+
+  if (!dropoffPoints.some((point) => point.isDefault)) {
+    const location = arrivalLocation
+    if (location) {
+      dropoffPoints.unshift({
+        id: null,
+        pointType: 'DROPOFF',
+        serviceMode: trip.primaryDropoffMode,
+        kind: DROPOFF_KINDS.PRIMARY,
+        isDefault: true,
+        sortOrder: 1,
+        estimatedMinutes: Math.max(
+          0,
+          Math.round((new Date(trip.expectedArrivalTime).getTime() - new Date(trip.departureTime).getTime()) / 60000),
+        ),
+        estimatedTime: trip.expectedArrivalTime,
+        estimatedDateTime: trip.expectedArrivalTime,
+        location: serializeServicePointLocation(location),
+      })
+    }
+  }
+
+  return {
+    trip: {
+      id: trip.id,
+      primaryPickupMode: trip.primaryPickupMode,
+      primaryDropoffMode: trip.primaryDropoffMode,
+      allowPickupTransfer: trip.allowPickupTransfer,
+      allowPickupMeetingPoint: trip.allowPickupMeetingPoint,
+      allowDropoffTransfer: trip.allowDropoffTransfer,
+      allowDropoffStop: trip.allowDropoffStop,
+    },
+    pickupPoints,
+    dropoffPoints,
+  }
+}
+
 export {
   getPublicLocations,
+  getPublicTripSearchCatalog,
   getPublicTripDetail,
+  getPublicTripServicePoints,
   getPublicTripSeats,
   searchPublicTrips,
 }

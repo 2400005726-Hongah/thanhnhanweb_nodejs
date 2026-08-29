@@ -38,19 +38,23 @@ describe('Phase 3 frontend bus and pricing views', () => {
     expect(tripCard).toContain('trip.availableSeatCount')
   })
 
-  test('admin creates only server-managed 34/22 bus types', () => {
+  test('admin identifies vehicles by license plate and standard vehicle type, without a separate vehicle name', () => {
     expect(adminBuses).toContain('value="SLEEPER_34"')
     expect(adminBuses).toContain('value="LIMOUSINE_22"')
+    expect(adminBuses).toContain('Số ghế/phòng')
+    expect(adminBuses).toContain('Tìm theo biển số xe...')
+    expect(adminBuses).not.toContain('<span>Tên xe</span>')
+    expect(adminBuses).not.toContain('name="busName"')
     expect(adminBuses).not.toContain('Array.from({ length: capacity }')
   })
 
-  test('admin trip and route forms support sleeper and room prices', () => {
+  test('admin trip form owns sleeper/room prices without route default prices', () => {
     expect(adminTrips).toContain('singleRoomPrice')
     expect(adminTrips).toContain('doubleRoomPrice')
-    expect(adminTrips).toContain('defaultSingleRoomPrice')
-    expect(adminTrips).toContain('defaultDoubleRoomPrice')
-    expect(adminTrips).toContain("'Giá phòng đơn mặc định (để trống nếu chưa cấu hình):'")
-    expect(adminTrips).toContain("'Giá phòng đôi mặc định (để trống nếu chưa cấu hình):'")
+    expect(adminTrips).toContain('Giá phòng đơn')
+    expect(adminTrips).toContain('Giá phòng đôi')
+    expect(adminTrips).not.toContain('defaultSingleRoomPrice')
+    expect(adminTrips).not.toContain('defaultDoubleRoomPrice')
     expect(adminTrips).toContain('trip.seatStats?.held')
   })
 })

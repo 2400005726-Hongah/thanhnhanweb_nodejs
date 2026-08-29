@@ -10,6 +10,7 @@ import {
   normalizeWhitespace,
 } from '../utils/normalize.js'
 import { hashPassword } from '../utils/password.js'
+import { buildTripRouteSnapshot, getTripJourneyEndpoints, getTripJourneyName } from '../utils/tripJourney.js'
 import {
   buildPagination,
   parsePagination,
@@ -81,7 +82,7 @@ const getDashboardSummary = async (role, now = new Date()) => {
 
   const [
     totalBuses,
-    totalRoutes,
+    routeTrips,
     totalTrips,
     totalBookings,
     totalCustomers,
@@ -93,10 +94,13 @@ const getDashboardSummary = async (role, now = new Date()) => {
     upcomingTripList,
   ] = await Promise.all([
     prisma.bus.count(),
-    prisma.route.count(),
+    prisma.trip.findMany({
+      where: { status: { not: 'CANCELLED' } },
+      select: { departureLocationId: true, arrivalLocationId: true },
+    }),
     prisma.trip.count(),
     prisma.booking.count({ where: { status: { not: 'DELETED' } } }),
-    prisma.customer.count(),
+    prisma.customer.count({ where: { status: { not: 'ARCHIVED' } } }),
     prisma.booking.count({
       where: {
         status: { in: ['PENDING', 'CONFIRMED'] },
@@ -123,7 +127,20 @@ const getDashboardSummary = async (role, now = new Date()) => {
         totalAmount: true,
         status: true,
         createdAt: true,
-        trip: { select: { route: { select: { routeName: true } } } },
+        trip: {
+          select: {
+            departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+            arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+            route: {
+              select: {
+                id: true,
+                routeName: true,
+                departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+                arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       take: 6,
@@ -137,13 +154,28 @@ const getDashboardSummary = async (role, now = new Date()) => {
         id: true,
         departureTime: true,
         status: true,
-        route: { select: { routeName: true } },
+        departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+        arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+        route: {
+          select: {
+            id: true,
+            routeName: true,
+            departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+            arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+          },
+        },
         bus: { select: { busName: true, licensePlate: true } },
       },
       orderBy: { departureTime: 'asc' },
       take: 6,
     }),
   ])
+
+  const totalRoutes = new Set(
+    routeTrips
+      .filter((trip) => trip.departureLocationId && trip.arrivalLocationId)
+      .map((trip) => `${trip.departureLocationId}:${trip.arrivalLocationId}`),
+  ).size
 
   const summary = {
     totalBuses,
@@ -157,9 +189,13 @@ const getDashboardSummary = async (role, now = new Date()) => {
     recentBookings: recentBookings.map((booking) => ({
       ...booking,
       totalAmount: safeMoney(booking.totalAmount),
-      routeName: booking.trip?.route?.routeName || 'Chưa xác định',
+      routeName: getTripJourneyName(booking.trip),
     })),
-    upcomingTripList,
+    upcomingTripList: upcomingTripList.map((trip) => ({
+      ...trip,
+      route: buildTripRouteSnapshot(trip),
+      routeName: getTripJourneyName(trip),
+    })),
     // Giữ các khóa cũ để các màn hình/khách API cũ không bị gãy.
     activeBuses: totalBuses,
     activeCustomers: totalCustomers,
@@ -308,7 +344,16 @@ const getRevenueSummary = async ({ from, to }) => {
       id: true,
       departureTime: true,
       status: true,
-      route: { select: { id: true, routeName: true } },
+      departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+      arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+      route: {
+        select: {
+          id: true,
+          routeName: true,
+          departureLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+          arrivalLocation: { select: { id: true, name: true, province: true, provinceId: true } },
+        },
+      },
       bus: {
         select: {
           busName: true,
@@ -446,10 +491,14 @@ const getRevenueSummary = async ({ from, to }) => {
 
   const routeMap = new Map()
   for (const trip of trips) {
-    const routeKey = trip.route.id
+    const { departureLocation, arrivalLocation } = getTripJourneyEndpoints(trip)
+    if (!departureLocation || !arrivalLocation) continue
+    const routeKey = `${departureLocation.id}:${arrivalLocation.id}`
     const current = routeMap.get(routeKey) || {
       routeId: routeKey,
-      routeName: trip.route.routeName,
+      routeName: getTripJourneyName(trip),
+      departureLocation,
+      arrivalLocation,
       trips: 0,
       bookings: 0,
       cancelledOrNoShow: 0,
@@ -486,6 +535,46 @@ const getRevenueSummary = async ({ from, to }) => {
       : 0,
   }))
 
+  const provinceMap = new Map()
+  for (const trip of trips) {
+    const { departureLocation, arrivalLocation } = getTripJourneyEndpoints(trip)
+    if (!departureLocation || !arrivalLocation) continue
+
+    const departureProvinceId = departureLocation.provinceId || departureLocation.province || 'UNKNOWN'
+    const arrivalProvinceId = arrivalLocation.provinceId || arrivalLocation.province || 'UNKNOWN'
+    const departureProvinceName = departureLocation.province || 'Chưa xác định'
+    const arrivalProvinceName = arrivalLocation.province || 'Chưa xác định'
+    const key = `${departureProvinceId}:${arrivalProvinceId}`
+    const current = provinceMap.get(key) || {
+      key,
+      departureProvinceId,
+      departureProvinceName,
+      arrivalProvinceId,
+      arrivalProvinceName,
+      trips: 0,
+      bookings: 0,
+      actualPassengerSeats: 0,
+      revenue: 0,
+    }
+
+    current.trips += 1
+    for (const booking of trip.bookings) {
+      if (booking.status !== 'DELETED') current.bookings += 1
+      if (actualPassengerStatuses.has(booking.status)) {
+        current.actualPassengerSeats += booking.items.length
+      }
+      const payment = latestPayment(booking)
+      if (booking.status !== 'DELETED' && payment?.status === 'SUCCESS') {
+        current.revenue += safeMoney(payment.amount)
+      }
+    }
+    provinceMap.set(key, current)
+  }
+
+  const provincePerformance = [...provinceMap.values()].sort(
+    (left, right) => right.trips - left.trips || right.revenue - left.revenue,
+  )
+
   const topTrips = trips
     .map((trip) => {
       const valid = trip.bookings.filter((booking) => booking.status !== 'DELETED')
@@ -499,7 +588,7 @@ const getRevenueSummary = async ({ from, to }) => {
       const capacity = Number(trip.bus.capacity || 0)
       return {
         id: trip.id,
-        routeName: trip.route.routeName,
+        routeName: getTripJourneyName(trip),
         busName: trip.bus.busName,
         licensePlate: trip.bus.licensePlate,
         departureTime: trip.departureTime,
@@ -551,6 +640,7 @@ const getRevenueSummary = async ({ from, to }) => {
     sourceDistribution,
     paymentMethodDistribution,
     routePerformance,
+    provincePerformance,
     topTrips,
   }
 }
@@ -566,8 +656,15 @@ const managedBookingInclude = {
       expectedArrivalTime: true,
       status: true,
 
+      departureLocation: {
+        select: { id: true, name: true, province: true, provinceId: true },
+      },
+      arrivalLocation: {
+        select: { id: true, name: true, province: true, provinceId: true },
+      },
       route: {
         select: {
+          id: true,
           routeName: true,
 
           departureLocation: {
@@ -624,84 +721,61 @@ const managedBookingInclude = {
   },
 }
 
-const serializeManagedBooking = (
-  booking,
-) => ({
+const serializeManagedBooking = (booking) => ({
   ...booking,
-
-  totalAmount: safeMoney(
-    booking.totalAmount,
-  ),
-
-  items: booking.items.map(
-    (item) => ({
-      ...item,
-      price: safeMoney(item.price),
-    }),
-  ),
-
-  payments: booking.payments.map(
-    (payment) => ({
-      ...payment,
-      amount: safeMoney(
-        payment.amount,
-      ),
-    }),
-  ),
+  trip: booking.trip
+    ? {
+        ...booking.trip,
+        route: buildTripRouteSnapshot(booking.trip),
+      }
+    : booking.trip,
+  totalAmount: safeMoney(booking.totalAmount),
+  items: booking.items.map((item) => ({
+    ...item,
+    price: safeMoney(item.price),
+  })),
+  payments: booking.payments.map((payment) => ({
+    ...payment,
+    amount: safeMoney(payment.amount),
+  })),
 })
 
 /*
  * Danh sách Booking
  */
-const listManagedBookings = async (
-  query,
-) => {
-  const {
-    page,
-    limit,
-    skip,
-  } = parsePagination(query)
-
+const buildManagedBookingWhere = (query = {}) => {
   const where = {
-    ...(query.status && {
-      status: query.status,
-    }),
-
-    ...(query.source && {
-      source: query.source,
-    }),
-
-    ...(query.paymentStatus && {
-      paymentStatus:
-        query.paymentStatus,
-    }),
-
-    ...(query.trip && {
-      tripId: query.trip,
-    }),
-
+    ...(query.status && { status: query.status }),
+    ...(query.source && { source: query.source }),
+    ...(query.paymentStatus && { paymentStatus: query.paymentStatus }),
+    ...(query.trip && { tripId: query.trip }),
     ...(query.keyword && {
       OR: [
         {
           bookingCode: {
-            contains:
-              normalizeWhitespace(query.keyword),
+            contains: normalizeWhitespace(query.keyword),
             mode: 'insensitive',
           },
         },
-
         {
           passengerFullName: {
-            contains:
-              normalizeWhitespace(query.keyword),
+            contains: normalizeWhitespace(query.keyword),
             mode: 'insensitive',
           },
         },
-
         {
           passengerPhone: {
-            contains:
-              normalizeWhitespace(query.keyword),
+            contains: normalizeWhitespace(query.keyword),
+          },
+        },
+        {
+          payments: {
+            some: {
+              transactionCode: {
+                contains: normalizeWhitespace(query.keyword).replace(/^#/, ''),
+                mode: 'insensitive',
+              },
+            },
           },
         },
       ],
@@ -712,60 +786,97 @@ const listManagedBookings = async (
     where.createdAt = {}
 
     if (query.from) {
-      where.createdAt.gte =
-        new Date(query.from)
+      where.createdAt.gte = new Date(query.from)
     }
 
     if (query.to) {
       const end = new Date(query.to)
-      end.setDate(
-        end.getDate() + 1,
-      )
+      end.setDate(end.getDate() + 1)
       where.createdAt.lt = end
     }
   }
 
-  const [
-    bookings,
-    total,
-  ] = await Promise.all([
+  if (query.departureDate) {
+    const start = new Date(`${query.departureDate}T00:00:00+07:00`)
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000)
+    where.trip = {
+      departureTime: {
+        gte: start,
+        lt: end,
+      },
+    }
+  }
+
+  return where
+}
+
+const listManagedBookings = async (query) => {
+  const { page, limit, skip } = parsePagination(query)
+  const where = buildManagedBookingWhere(query)
+
+  const [bookings, total] = await Promise.all([
     prisma.booking.findMany({
       where,
-      include:
-        managedBookingInclude,
-
+      include: managedBookingInclude,
       orderBy: {
-        createdAt:
-          query.sort === 'asc'
-            ? 'asc'
-            : 'desc',
+        createdAt: query.sort === 'asc' ? 'asc' : 'desc',
       },
-
       skip,
       take: limit,
     }),
-
-    prisma.booking.count({
-      where,
-    }),
+    prisma.booking.count({ where }),
   ])
 
   return {
-    bookings: bookings.map(
-      serializeManagedBooking,
-    ),
-
-    pagination: buildPagination(
-      total,
-      page,
-      limit,
-    ),
+    bookings: bookings.map(serializeManagedBooking),
+    pagination: buildPagination(total, page, limit),
   }
+}
+
+const listManagedBookingsForExport = async (query = {}) => {
+  const where = buildManagedBookingWhere(query)
+  const bookings = await prisma.booking.findMany({
+    where,
+    include: managedBookingInclude,
+    orderBy: {
+      createdAt: query.sort === 'asc' ? 'asc' : 'desc',
+    },
+  })
+
+  return bookings.map(serializeManagedBooking)
 }
 
 /*
  * Chi tiết Booking
  */
+
+const lookupManagedBookingByIdentifier = async (identifier) => {
+  const normalizedIdentifier = normalizeBookingCode(identifier)
+  if (!normalizedIdentifier) {
+    throw new HttpError('Vui lòng nhập mã vé hoặc mã giao dịch', 400)
+  }
+
+  const booking = await prisma.booking.findFirst({
+    where: {
+      OR: [
+        { bookingCode: normalizedIdentifier },
+        {
+          payments: {
+            some: { transactionCode: normalizedIdentifier },
+          },
+        },
+      ],
+    },
+    include: managedBookingInclude,
+  })
+
+  if (!booking) {
+    throw new HttpError('Không tìm thấy vé theo mã đã nhập', 404)
+  }
+
+  return serializeManagedBooking(booking)
+}
+
 const getManagedBooking = async (
   bookingCode,
 ) => {
@@ -781,7 +892,7 @@ const getManagedBooking = async (
 
   if (!booking) {
     throw new HttpError(
-      'Không tìm thấy booking',
+      'Không tìm thấy vé',
       404,
     )
   }
@@ -798,81 +909,97 @@ const updateBookingContact = async (
   bookingCode,
   payload,
   actor,
+  now = new Date(),
 ) => {
-  const booking =
-    await prisma.booking.findUnique({
-      where: {
-        bookingCode: normalizeBookingCode(bookingCode),
+  const booking = await prisma.booking.findUnique({
+    where: {
+      bookingCode: normalizeBookingCode(bookingCode),
+    },
+    select: {
+      id: true,
+      bookingCode: true,
+      status: true,
+      passengerFullName: true,
+      passengerPhone: true,
+      staffNote: true,
+      trip: {
+        select: {
+          departureTime: true,
+          status: true,
+        },
       },
-
-      select: {
-        id: true,
-        bookingCode: true,
-      },
-    })
+    },
+  })
 
   if (!booking) {
+    throw new HttpError('Không tìm thấy vé', 404)
+  }
+
+  if (
+    booking.status !== 'CONFIRMED' ||
+    new Date(booking.trip.departureTime) <= now ||
+    ['DEPARTED', 'COMPLETED', 'CANCELLED'].includes(booking.trip.status)
+  ) {
     throw new HttpError(
-      'Không tìm thấy booking',
-      404,
+      'Chỉ vé Đã đặt và chuyến chưa khởi hành mới được sửa thông tin.',
+      409,
     )
   }
 
-  const updated =
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
+  const nextFullName =
+    payload.passengerFullName !== undefined
+      ? normalizeFullName(payload.passengerFullName)
+      : booking.passengerFullName
+  const nextPhone =
+    payload.passengerPhone !== undefined
+      ? normalizePhone(payload.passengerPhone)
+      : booking.passengerPhone
+  const nextStaffNote =
+    payload.staffNote !== undefined
+      ? normalizeMultilineText(payload.staffNote) || null
+      : booking.staffNote
 
-      data: {
-        ...(payload.passengerFullName && {
-          passengerFullName:
-            normalizeFullName(payload.passengerFullName),
-        }),
-
-        ...(payload.passengerPhone && {
-          passengerPhone:
-            normalizePhone(
-              payload.passengerPhone,
-            ),
-        }),
-
-        ...(payload.pickupPoint !== undefined && {
-          pickupPoint: payload.pickupPoint ? normalizeWhitespace(payload.pickupPoint) : null,
-        }),
-
-        ...(payload.dropoffPoint !== undefined && {
-          dropoffPoint: payload.dropoffPoint ? normalizeWhitespace(payload.dropoffPoint) : null,
-        }),
-
-        ...(payload.passengerEmail !==
-          undefined && {
-          passengerEmail:
-            payload.passengerEmail
-              ? normalizeEmail(
-                  payload.passengerEmail,
-                )
-              : null,
-        }),
-      },
-
-      include:
-        managedBookingInclude,
-    })
+  const updated = await prisma.booking.update({
+    where: { id: booking.id },
+    data: {
+      ...(payload.passengerFullName !== undefined && {
+        passengerFullName: nextFullName,
+      }),
+      ...(payload.passengerPhone !== undefined && {
+        passengerPhone: nextPhone,
+      }),
+      ...(payload.staffNote !== undefined && {
+        staffNote: nextStaffNote,
+      }),
+    },
+    include: managedBookingInclude,
+  })
 
   await writeAuditLog({
     userId: actor.id,
     role: actor.role,
+    actorName: actor.fullName,
     action: 'UPDATE_BOOKING',
     entityType: 'BOOKING',
     entityId: booking.id,
-    description:
-      `Cập nhật thông tin hành khách của booking ${booking.bookingCode}`,
+    description: `Cập nhật thông tin hành khách của booking ${booking.bookingCode}`,
+    metadata: {
+      passengerFullName: {
+        before: booking.passengerFullName,
+        after: nextFullName,
+      },
+      passengerPhone: {
+        before: booking.passengerPhone,
+        after: nextPhone,
+      },
+      staffNote: {
+        before: booking.staffNote,
+        after: nextStaffNote,
+      },
+    },
   })
 
-  return serializeManagedBooking(
-    updated,
-  )
+  return serializeManagedBooking(updated)
 }
 
 /*
@@ -883,8 +1010,13 @@ const markBookingNoShow = async (
   reason,
   actor,
   now = new Date(),
-) =>
-  prisma.$transaction(
+) => {
+  const normalizedReason = normalizeMultilineText(reason)
+  if (normalizedReason.length < 5 || normalizedReason.length > 500) {
+    throw new HttpError('Lý do khách không đi phải có từ 5 đến 500 ký tự', 400)
+  }
+
+  return prisma.$transaction(
     async (transaction) => {
       const booking =
         await transaction.booking.findUnique({
@@ -907,7 +1039,7 @@ const markBookingNoShow = async (
 
       if (!booking) {
         throw new HttpError(
-          'Không tìm thấy booking',
+          'Không tìm thấy vé',
           404,
         )
       }
@@ -942,7 +1074,7 @@ const markBookingNoShow = async (
           data: {
             status: 'NO_SHOW',
             noShowReason:
-              normalizeMultilineText(reason),
+              normalizedReason,
             noShowAt: now,
             noShowById: actor.id,
           },
@@ -970,6 +1102,7 @@ const markBookingNoShow = async (
       )
     },
   )
+}
 
 /*
  * Tài khoản
@@ -1006,9 +1139,7 @@ const listUsers = async (
         : roles,
     },
 
-    ...(query.status && {
-      status: query.status,
-    }),
+    status: query.status || { not: 'ARCHIVED' },
 
     ...(query.keyword && {
       OR: [
@@ -1068,149 +1199,298 @@ const publicCustomerSelect = {
   status: true,
   blockedReason: true,
   blockedAt: true,
+  note: true,
   createdAt: true,
   updatedAt: true,
 }
 
-/*
- * Danh sách khách hàng
- */
-const listCustomers = async (
-  query,
-) => {
-  const {
-    page,
-    limit,
-    skip,
-  } = parsePagination(query)
+const CUSTOMER_CLASSIFICATION = Object.freeze({
+  VIP_BOOKINGS: 10,
+  VIP_SPENDING: 5_000_000,
+  REGULAR_BOOKINGS: 3,
+  REGULAR_SPENDING: 1_500_000,
+  ARCHIVE_AFTER_DAYS: 90,
+})
 
-  const where = {
-    ...(query.status && {
-      status: query.status,
-    }),
+const customerClassification = (successfulBookings, totalSpent) => {
+  if (
+    successfulBookings >= CUSTOMER_CLASSIFICATION.VIP_BOOKINGS ||
+    totalSpent >= CUSTOMER_CLASSIFICATION.VIP_SPENDING
+  ) return 'VIP'
 
-    ...(query.keyword && {
-      OR: [
-        'fullName',
-        'email',
-        'phone',
-      ].map((field) => ({
-        [field]: {
-          contains:
-            normalizeWhitespace(query.keyword),
-          mode: 'insensitive',
+  if (
+    successfulBookings >= CUSTOMER_CLASSIFICATION.REGULAR_BOOKINGS ||
+    totalSpent >= CUSTOMER_CLASSIFICATION.REGULAR_SPENDING
+  ) return 'REGULAR'
+
+  return 'NEW'
+}
+
+const customerRisk = (count) => {
+  if (count >= 3) return { level: 'BLOCKED', label: 'Rủi ro cao' }
+  if (count === 2) return { level: 'WARNING', label: 'Cảnh báo' }
+  return { level: 'NORMAL', label: 'Bình thường' }
+}
+
+const serializeCustomerManagement = (customer) => {
+  const bookings = customer.bookings || []
+  const violationCount = bookings.filter((booking) =>
+    VIOLATION_STATUSES.includes(booking.status),
+  ).length
+
+  const paidBookings = bookings.filter((booking) =>
+    booking.status !== 'DELETED' &&
+    (booking.payments?.[0]?.status === 'SUCCESS' || booking.paymentStatus === 'SUCCESS'),
+  )
+
+  const successfulBookings = paidBookings.filter((booking) =>
+    ['CONFIRMED', 'COMPLETED'].includes(booking.status),
+  ).length
+
+  const totalSpent = paidBookings.reduce((sum, booking) => {
+    const payment = booking.payments?.[0]
+    return sum + safeMoney(payment?.amount ?? booking.totalAmount)
+  }, 0)
+
+  const routeCounter = new Map()
+  for (const booking of bookings) {
+    if (!['CONFIRMED', 'COMPLETED'].includes(booking.status)) continue
+    const routeName = booking.trip ? getTripJourneyName(booking.trip) : null
+    if (!routeName || routeName === 'Chưa xác định') continue
+    routeCounter.set(routeName, (routeCounter.get(routeName) || 0) + 1)
+  }
+  const favoriteRoute = [...routeCounter.entries()]
+    .sort((left, right) => right[1] - left[1])[0]?.[0] || '-'
+
+  const lastBookingAt = bookings
+    .map((booking) => booking.createdAt)
+    .filter(Boolean)
+    .sort((left, right) => new Date(right) - new Date(left))[0] || null
+
+  const { bookings: _bookings, ...base } = customer
+  return {
+    ...base,
+    totalBookings: bookings.length,
+    successfulBookings,
+    totalSpent,
+    classification: customerClassification(successfulBookings, totalSpent),
+    violations: {
+      ...buildViolationSummary(violationCount),
+      ...customerRisk(violationCount),
+      count: violationCount,
+    },
+    favoriteRoute,
+    lastBookingAt,
+  }
+}
+
+const customerManagementInclude = {
+  bookings: {
+    select: {
+      id: true,
+      status: true,
+      paymentStatus: true,
+      totalAmount: true,
+      createdAt: true,
+      trip: {
+        select: {
+          departureTime: true,
+          departureLocation: { select: { id: true, name: true } },
+          arrivalLocation: { select: { id: true, name: true } },
+          route: {
+            select: {
+              routeName: true,
+              departureLocation: { select: { id: true, name: true } },
+              arrivalLocation: { select: { id: true, name: true } },
+            },
+          },
         },
-      })),
-    }),
+      },
+      payments: {
+        select: { status: true, amount: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+  },
+}
+
+/*
+ * Danh sách khách hàng theo logic quản trị của MVC:
+ * - phân loại VIP / Thường xuyên / Mới;
+ * - rủi ro dựa trên Đã hủy + Không đi;
+ * - tổng chi tiêu chỉ tính thanh toán thành công;
+ * - mặc định không hiện hồ sơ đã lưu trữ.
+ */
+const listCustomers = async (query = {}) => {
+  // Giữ tương thích các unit test/mock cũ chưa mô phỏng quan hệ bookings.
+  if (!prisma.customer?.findMany || !prisma.booking?.findMany) {
+    const { page, limit, skip } = parsePagination(query)
+    const where = {
+      ...(query.status && { status: query.status }),
+      ...(query.keyword && {
+        OR: ['fullName', 'email', 'phone'].map((field) => ({
+          [field]: { contains: normalizeWhitespace(query.keyword), mode: 'insensitive' },
+        })),
+      }),
+    }
+    const [customers, total] = await Promise.all([
+      prisma.customer.findMany({ where, select: publicCustomerSelect, orderBy: { createdAt: 'desc' }, skip, take: limit }),
+      prisma.customer.count({ where }),
+    ])
+    return { customers, pagination: buildPagination(total, page, limit) }
   }
 
-  const [
-    customers,
-    total,
-  ] = await Promise.all([
-    prisma.customer.findMany({
-      where,
+  const { page, limit } = parsePagination(query)
+  const keyword = normalizeWhitespace(query.keyword || '').toLowerCase()
+  const includeArchived = query.status === 'ARCHIVED'
 
-      select: {
-        ...publicCustomerSelect,
+  const customers = await prisma.customer.findMany({
+    where: {
+      ...(query.status
+        ? { status: query.status }
+        : { status: { not: 'ARCHIVED' } }),
+    },
+    select: {
+      ...publicCustomerSelect,
+      note: true,
+      ...customerManagementInclude,
+    },
+  })
 
-        _count: {
-          select: {
-            bookings: true,
-          },
-        },
-      },
+  const allRows = customers.map(serializeCustomerManagement)
+  let rows = [...allRows]
 
-      orderBy: {
-        createdAt: 'desc',
-      },
-
-      skip,
-      take: limit,
-    }),
-
-    prisma.customer.count({
-      where,
-    }),
-  ])
-
-  const customerIds =
-    customers.map(
-      (customer) => customer.id,
+  if (keyword) {
+    rows = rows.filter((customer) =>
+      [customer.id, customer.fullName, customer.email, customer.phone]
+        .some((value) => String(value || '').toLowerCase().includes(keyword)),
     )
+  }
 
-  const violationRows =
-    customerIds.length
-      ? await prisma.booking.groupBy({
-          by: [
-            'customerId',
-            'status',
-          ],
+  if (query.classification) {
+    rows = rows.filter((customer) => customer.classification === query.classification)
+  }
 
-          where: {
-            customerId: {
-              in: customerIds,
-            },
+  const sorters = {
+    bookings: (a, b) => b.successfulBookings - a.successfulBookings,
+    spending: (a, b) => b.totalSpent - a.totalSpent,
+    recent: (a, b) => new Date(b.lastBookingAt || 0) - new Date(a.lastBookingAt || 0),
+    name: (a, b) => a.fullName.localeCompare(b.fullName, 'vi'),
+    newest: (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+  }
+  rows.sort(sorters[query.sortBy] || sorters.newest)
 
-            status: {
-              in: VIOLATION_STATUSES,
-            },
-          },
+  const total = rows.length
+  const start = (page - 1) * limit
+  const paged = rows.slice(start, start + limit)
 
-          _count: {
-            _all: true,
-          },
-        })
-      : []
-
-  const countsByCustomer =
-    new Map()
-
-  for (
-    const row of violationRows
-  ) {
-    if (!row.customerId) {
-      continue
-    }
-
-    countsByCustomer.set(
-      row.customerId,
-
-      (
-        countsByCustomer.get(
-          row.customerId,
-        ) || 0
-      ) + row._count._all,
-    )
+  const monthStart = monthStartInVietnam(new Date())
+  const summary = {
+    total: allRows.length,
+    active: allRows.filter((customer) => customer.status === 'ACTIVE').length,
+    blocked: allRows.filter((customer) => customer.status === 'BLOCKED').length,
+    archived: includeArchived ? allRows.length : 0,
+    vip: allRows.filter((customer) => customer.classification === 'VIP').length,
+    warning: allRows.filter((customer) => customer.violations?.level !== 'NORMAL').length,
+    newThisMonth: allRows.filter((customer) => new Date(customer.createdAt) >= monthStart).length,
+    totalSpent: allRows.reduce((sum, customer) => sum + customer.totalSpent, 0),
   }
 
   return {
-    customers: customers.map(
-      ({
-        _count,
-        ...customer
-      }) => ({
-        ...customer,
-
-        totalBookings:
-          _count.bookings,
-
-        violations:
-          buildViolationSummary(
-            countsByCustomer.get(
-              customer.id,
-            ) || 0,
-          ),
-      }),
-    ),
-
-    pagination: buildPagination(
-      total,
-      page,
-      limit,
-    ),
+    customers: paged,
+    summary,
+    pagination: buildPagination(total, page, limit),
   }
 }
+
+const listCustomersForExport = async () => {
+  const result = await listCustomers({ page: 1, limit: 100 })
+  if (result.pagination.total <= result.customers.length) return result.customers
+
+  // Export không phụ thuộc giới hạn API 100 dòng.
+  const customers = await prisma.customer.findMany({
+    where: { status: { not: 'ARCHIVED' } },
+    select: {
+      ...publicCustomerSelect,
+      note: true,
+      ...customerManagementInclude,
+    },
+  })
+  return customers.map(serializeCustomerManagement)
+}
+
+const archiveCustomer = async (customerId, actor, now = new Date()) => {
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: {
+      ...publicCustomerSelect,
+      bookings: {
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          trip: { select: { departureTime: true } },
+        },
+      },
+    },
+  })
+
+  if (!customer) throw new HttpError('Không tìm thấy khách hàng', 404)
+
+  if (customer.bookings.length === 0) {
+    await prisma.customer.delete({ where: { id: customerId } })
+    await writeAuditLog({
+      userId: actor.id,
+      role: actor.role,
+      action: 'DELETE_CUSTOMER',
+      entityType: 'CUSTOMER',
+      entityId: customerId,
+      description: `Xóa khách hàng chưa có lịch sử vé: ${customer.fullName}`,
+    })
+    return { deleted: true, archived: false }
+  }
+
+  const activeStatuses = new Set(['PENDING', 'CONFIRMED'])
+  const hasActiveBooking = customer.bookings.some((booking) =>
+    activeStatuses.has(booking.status) ||
+    (new Date(booking.trip?.departureTime || 0) >= now &&
+      !['CANCELLED', 'NO_SHOW', 'DELETED', 'EXPIRED'].includes(booking.status)),
+  )
+  if (hasActiveBooking) {
+    throw new HttpError('Khách đang có vé tương lai hoặc vé đang xử lý nên không thể lưu trữ', 409)
+  }
+
+  const lastBookingAt = customer.bookings
+    .map((booking) => new Date(booking.createdAt))
+    .sort((a, b) => b - a)[0]
+  const archiveThreshold = new Date(now)
+  archiveThreshold.setDate(archiveThreshold.getDate() - CUSTOMER_CLASSIFICATION.ARCHIVE_AFTER_DAYS)
+
+  if (lastBookingAt > archiveThreshold) {
+    const elapsed = Math.floor((now - lastBookingAt) / 86_400_000)
+    const remaining = Math.max(1, CUSTOMER_CLASSIFICATION.ARCHIVE_AFTER_DAYS - elapsed)
+    throw new HttpError(`Khách mới đặt vé gần đây. Cần chờ thêm ${remaining} ngày mới được lưu trữ`, 409)
+  }
+
+  const updated = await prisma.customer.update({
+    where: { id: customerId },
+    data: { status: 'ARCHIVED' },
+    select: publicCustomerSelect,
+  })
+
+  await writeAuditLog({
+    userId: actor.id,
+    role: actor.role,
+    action: 'ARCHIVE_CUSTOMER',
+    entityType: 'CUSTOMER',
+    entityId: customerId,
+    description: `Lưu trữ khách hàng ${customer.fullName}; giữ nguyên lịch sử vé`,
+  })
+
+  return { deleted: false, archived: true, customer: updated }
+}
+
 
 /*
  * Chi tiết khách hàng
@@ -1266,30 +1546,14 @@ const getCustomerDetail = async (
     )
   }
 
-  const financePromise =
-    isAdmin
-      ? prisma.payment.aggregate({
-          where: {
-            status: 'SUCCESS',
-
-            booking: {
-              customerId,
-            },
-          },
-
-          _sum: {
-            amount: true,
-          },
-
-          _count: true,
-        })
-      : Promise.resolve({
-          _sum: {
-            amount: null,
-          },
-
-          _count: 0,
-        })
+  const financePromise = prisma.payment.aggregate({
+    where: {
+      status: 'SUCCESS',
+      booking: { customerId },
+    },
+    _sum: { amount: true },
+    _count: true,
+  })
 
   const [
     bookings,
@@ -1345,10 +1609,14 @@ const getCustomerDetail = async (
 
         trip: {
           select: {
+            departureLocation: { select: { id: true, name: true } },
+            arrivalLocation: { select: { id: true, name: true } },
             route: {
               select: {
                 id: true,
                 routeName: true,
+                departureLocation: { select: { id: true, name: true } },
+                arrivalLocation: { select: { id: true, name: true } },
               },
             },
           },
@@ -1408,27 +1676,17 @@ const getCustomerDetail = async (
     new Map()
 
   for (const row of routeRows) {
-    const route =
-      row.trip?.route
-
-    if (!route) {
-      continue
+    if (!row.trip) continue
+    const { departureLocation, arrivalLocation } = getTripJourneyEndpoints(row.trip)
+    if (!departureLocation || !arrivalLocation) continue
+    const routeKey = `${departureLocation.id}:${arrivalLocation.id}`
+    const current = routeCounter.get(routeKey) || {
+      id: routeKey,
+      routeName: getTripJourneyName(row.trip),
+      count: 0,
     }
-
-    const current =
-      routeCounter.get(route.id) || {
-        id: route.id,
-        routeName:
-          route.routeName,
-        count: 0,
-      }
-
     current.count += 1
-
-    routeCounter.set(
-      route.id,
-      current,
-    )
+    routeCounter.set(routeKey, current)
   }
 
   const favoriteRoute =
@@ -1505,18 +1763,16 @@ const getCustomerDetail = async (
           violationCount,
         ),
 
+      classification: customerClassification(
+        successfulPayments._count,
+        safeMoney(successfulPayments._sum.amount),
+      ),
+
       finance:
         isAdmin
           ? {
-              totalSpent:
-                safeMoney(
-                  successfulPayments
-                    ._sum.amount,
-                ),
-
-              successfulPayments:
-                successfulPayments
-                  ._count,
+              totalSpent: safeMoney(successfulPayments._sum.amount),
+              successfulPayments: successfulPayments._count,
             }
           : null,
 
@@ -1781,6 +2037,63 @@ const createManagedUser = async (
 }
 
 /*
+ * Sửa tài khoản quản trị: giữ bcrypt của Node, cho phép đổi họ tên,
+ * email, số điện thoại và đặt mật khẩu mới khi Chủ xe yêu cầu.
+ */
+const updateManagedUser = async (userId, payload, actor) => {
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: publicUserSelect,
+  })
+  if (!existing) throw new HttpError('Không tìm thấy tài khoản', 404)
+
+  const email = payload.email !== undefined
+    ? normalizeEmail(payload.email)
+    : existing.email
+  const phone = payload.phone !== undefined
+    ? normalizePhone(payload.phone)
+    : existing.phone
+
+  if (!isVietnamesePhone(phone)) {
+    throw new HttpError('Số điện thoại không hợp lệ', 400)
+  }
+
+  if (email !== existing.email || phone !== existing.phone) {
+    await ensureUniqueAccount(email, phone, userId)
+  }
+
+  const data = {
+    ...(payload.fullName !== undefined && {
+      fullName: normalizeFullName(payload.fullName),
+    }),
+    ...(payload.email !== undefined && { email }),
+    ...(payload.phone !== undefined && { phone }),
+  }
+
+  if (payload.password) {
+    data.passwordHash = await hashPassword(payload.password)
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data,
+    select: publicUserSelect,
+  })
+
+  await writeAuditLog({
+    userId: actor.id,
+    role: actor.role,
+    action: 'UPDATE_USER',
+    entityType: 'USER',
+    entityId: userId,
+    description: `Cập nhật tài khoản quản trị ${updated.fullName}`,
+    metadata: { passwordChanged: Boolean(payload.password) },
+  })
+
+  return updated
+}
+
+/*
  * Khóa hoặc mở tài khoản
  */
 const changeUserStatus = async (
@@ -1905,6 +2218,94 @@ const changeUserRole = async (
   return user
 }
 
+
+/*
+ * Xóa tài khoản quản trị theo tinh thần MVC nhưng vẫn bảo toàn lịch sử.
+ * - tài khoản chưa phát sinh dữ liệu: xóa thật;
+ * - đã gắn với chuyến/vé/tin tức/nhật ký: lưu trữ để không làm mất dấu vết;
+ * - không cho tự xóa và không cho xóa Chủ xe hoạt động cuối cùng.
+ */
+const deleteManagedUser = async (userId, actor) => {
+  if (userId === actor.id) {
+    throw new HttpError('Không thể tự xóa tài khoản đang đăng nhập', 409)
+  }
+
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: publicUserSelect,
+  })
+  if (!existing || existing.status === 'ARCHIVED') {
+    throw new HttpError('Không tìm thấy tài khoản', 404)
+  }
+  if (!['ADMIN', 'STAFF'].includes(existing.role)) {
+    throw new HttpError('Chỉ được xóa tài khoản quản trị', 409)
+  }
+
+  if (existing.role === 'ADMIN' && existing.status === 'ACTIVE') {
+    const activeAdmins = await prisma.user.count({
+      where: { role: 'ADMIN', status: 'ACTIVE' },
+    })
+    if (activeAdmins <= 1) {
+      throw new HttpError('Không thể xóa Chủ xe hoạt động cuối cùng', 409)
+    }
+  }
+
+  const [tripRefs, bookingRefs, customerRefs, newsRefs, auditRefs] = await Promise.all([
+    prisma.trip.count({ where: { createdById: userId } }),
+    prisma.booking.count({
+      where: {
+        OR: [
+          { userId },
+          { createdById: userId },
+          { cancelledById: userId },
+          { deletedById: userId },
+          { noShowById: userId },
+        ],
+      },
+    }),
+    prisma.customer.count({ where: { blockedById: userId } }),
+    prisma.news.count({
+      where: { OR: [{ createdById: userId }, { updatedById: userId }] },
+    }),
+    prisma.auditLog.count({ where: { userId } }),
+  ])
+
+  const referenceCount = tripRefs + bookingRefs + customerRefs + newsRefs + auditRefs
+
+  if (referenceCount === 0) {
+    await prisma.user.delete({ where: { id: userId } })
+    await writeAuditLog({
+      userId: actor.id,
+      role: actor.role,
+      actorName: actor.fullName,
+      action: 'DELETE_USER',
+      entityType: 'USER',
+      entityId: userId,
+      description: `Xóa tài khoản quản trị ${existing.fullName}`,
+    })
+    return { deleted: true, archived: false, user: existing }
+  }
+
+  const archived = await prisma.user.update({
+    where: { id: userId },
+    data: { status: 'ARCHIVED' },
+    select: publicUserSelect,
+  })
+
+  await writeAuditLog({
+    userId: actor.id,
+    role: actor.role,
+    actorName: actor.fullName,
+    action: 'ARCHIVE_USER',
+    entityType: 'USER',
+    entityId: userId,
+    description: `Lưu trữ tài khoản quản trị ${existing.fullName} để bảo toàn lịch sử`,
+    metadata: { referenceCount },
+  })
+
+  return { deleted: false, archived: true, user: archived }
+}
+
 /*
  * Sửa thông tin khách hàng
  */
@@ -1991,6 +2392,9 @@ const updateCustomer = async (
 
         email,
         phone,
+        ...(payload.note !== undefined && {
+          note: normalizeMultilineText(payload.note || '') || null,
+        }),
       },
 
       select:
@@ -2025,23 +2429,25 @@ const listAuditLogs = async (
     skip,
   } = parsePagination(query)
 
+  const createdAt = {}
+  if (query.from) createdAt.gte = new Date(`${query.from}T00:00:00+07:00`)
+  if (query.to) createdAt.lt = addDays(new Date(`${query.to}T00:00:00+07:00`), 1)
+
+  const keyword = normalizeWhitespace(query.keyword || '')
   const where = {
-    ...(query.role && {
-      role: query.role,
-    }),
-
-    ...(query.action && {
-      action: {
-        contains:
-          normalizeWhitespace(query.action),
-      },
-    }),
-
-    ...(query.entityType && {
-      entityType: {
-        contains:
-          normalizeWhitespace(query.entityType),
-      },
+    ...(query.role && { role: query.role }),
+    ...(query.action && { action: { contains: normalizeWhitespace(query.action), mode: 'insensitive' } }),
+    ...(query.entityType && { entityType: { contains: normalizeWhitespace(query.entityType), mode: 'insensitive' } }),
+    ...(Object.keys(createdAt).length && { createdAt }),
+    ...(keyword && {
+      OR: [
+        { action: { contains: keyword, mode: 'insensitive' } },
+        { description: { contains: keyword, mode: 'insensitive' } },
+        { reason: { contains: keyword, mode: 'insensitive' } },
+        { actorName: { contains: keyword, mode: 'insensitive' } },
+        { entityId: { contains: keyword, mode: 'insensitive' } },
+        { user: { is: { fullName: { contains: keyword, mode: 'insensitive' } } } },
+      ],
     }),
   }
 
@@ -2093,13 +2499,19 @@ export {
   changeUserRole,
   changeUserStatus,
   createManagedUser,
+  updateManagedUser,
+  deleteManagedUser,
   getCustomerDetail,
   getDashboardSummary,
   getManagedBooking,
+  lookupManagedBookingByIdentifier,
   getRevenueSummary,
   listAuditLogs,
   listCustomers,
+  listCustomersForExport,
+  archiveCustomer,
   listManagedBookings,
+  listManagedBookingsForExport,
   listUsers,
   markBookingNoShow,
   updateBookingContact,

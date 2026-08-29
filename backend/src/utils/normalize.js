@@ -91,6 +91,7 @@ const normalizeBookingCode = (bookingCode) =>
     .trim()
     .toUpperCase()
     .replace(/\s+/g, '')
+    .replace(/^#/, '')
 
 const removeVietnameseAccents = (value) =>
   String(value || '')

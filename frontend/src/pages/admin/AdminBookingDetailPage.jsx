@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
+import { useAuth } from '../../contexts/authContext.js'
 import BookingTicket from '../../components/admin/BookingTicket.jsx'
 import {
   EmptyState,
@@ -17,10 +18,12 @@ import {
 } from '../../components/common/StatusState.jsx'
 import {
   cancelBooking,
+  collectBookingPayment,
   deleteBooking,
   getBookingDetail,
   markNoShow,
   resendBookingEmail,
+  undoBookingPayment,
   updateBookingContact,
 } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
@@ -28,13 +31,12 @@ import { getBusTypeLabel, getSeatTypeLabel } from '../../utils/busTypes.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
 import {
+  formatBookingCode,
   formatLicensePlate,
   formatPhoneInput,
   isValidFullName,
   isVietnamesePhone,
-  normalizeEmail,
   normalizeFullName,
-  normalizeMultilineText,
   normalizePhone,
 } from '../../utils/normalizers.js'
 import {
@@ -87,6 +89,7 @@ const displayLocation = (
 function AdminBookingDetailPage() {
   const { bookingCode } =
     useParams()
+  const { user } = useAuth()
 
   const [booking, setBooking] =
     useState(null)
@@ -106,13 +109,14 @@ function AdminBookingDetailPage() {
   const [processing, setProcessing] =
     useState(false)
 
+  const [currentTime, setCurrentTime] =
+    useState(() => new Date())
+
   const [form, setForm] =
     useState({
       passengerFullName: '',
       passengerPhone: '',
-      passengerEmail: '',
-      pickupPoint: '',
-      dropoffPoint: '',
+      staffNote: '',
     })
 
   const load = useCallback(
@@ -143,16 +147,8 @@ function AdminBookingDetailPage() {
               data?.passengerPhone ?? '',
             ),
 
-          passengerEmail:
-            data
-              ?.passengerEmail ??
-            '',
-
-          pickupPoint:
-            data?.pickupPoint ?? '',
-
-          dropoffPoint:
-            data?.dropoffPoint ?? '',
+          staffNote:
+            data?.staffNote ?? '',
         })
       } catch (requestError) {
         setError(
@@ -170,6 +166,15 @@ function AdminBookingDetailPage() {
   useEffect(() => {
     load()
   }, [load])
+
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => window.clearInterval(timerId)
+  }, [])
 
   const changeField = (event) => {
     const {
@@ -203,20 +208,28 @@ function AdminBookingDetailPage() {
   ) => {
     event.preventDefault()
 
+    const departureAt = booking?.trip?.departureTime
+      ? new Date(booking.trip.departureTime)
+      : null
+    const tripStatus = booking?.trip?.status
+    const tripHasDeparted = ['DEPARTED', 'COMPLETED', 'CANCELLED'].includes(tripStatus)
+
+    if (
+      booking?.status !== 'CONFIRMED' ||
+      !departureAt ||
+      departureAt.getTime() <= Date.now() ||
+      tripHasDeparted
+    ) {
+      setEditing(false)
+      window.alert('Chuyến đã khởi hành. Vé không còn được phép sửa.')
+      return
+    }
+
     const passengerFullName =
       normalizeFullName(form.passengerFullName)
 
     const passengerPhone =
       normalizePhone(form.passengerPhone)
-
-    const passengerEmail =
-      normalizeEmail(form.passengerEmail)
-
-    const pickupPoint =
-      normalizeMultilineText(form.pickupPoint)
-
-    const dropoffPoint =
-      normalizeMultilineText(form.dropoffPoint)
 
     if (!isValidFullName(passengerFullName)) {
       window.alert(
@@ -240,9 +253,7 @@ function AdminBookingDetailPage() {
         {
           passengerFullName,
           passengerPhone,
-          passengerEmail,
-          pickupPoint,
-          dropoffPoint,
+          staffNote: form.staffNote.trim(),
         },
       )
 
@@ -296,7 +307,7 @@ function AdminBookingDetailPage() {
 
       const confirmed =
         window.confirm(
-          'Bạn có chắc muốn hủy vé này?',
+          'Bạn có chắc muốn hủy vé này? Nếu vé đã thanh toán, hệ thống sẽ hoàn 100%.',
         )
 
       if (!confirmed) {
@@ -418,6 +429,46 @@ function AdminBookingDetailPage() {
       }
     }
 
+  const collectCurrentPayment = async () => {
+    if (!window.confirm(`Xác nhận đã nhận đủ ${formatCurrency(booking.totalAmount ?? 0)} từ khách?`)) {
+      return
+    }
+
+    setProcessing(true)
+    try {
+      await collectBookingPayment(booking.bookingCode)
+      window.alert('Đã xác nhận thu tiền của vé.')
+      await load()
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const undoCurrentPayment = async () => {
+    const reason = window.prompt('Nhập lý do hoàn tác xác nhận thu tiền:')
+    const normalizedReason = reason?.trim() ?? ''
+
+    if (normalizedReason.length < 5 || normalizedReason.length > 500) {
+      window.alert('Lý do hoàn tác phải có từ 5 đến 500 ký tự.')
+      return
+    }
+
+    if (!window.confirm('Xác nhận đưa thanh toán về Chưa thanh toán?')) return
+
+    setProcessing(true)
+    try {
+      await undoBookingPayment(booking.bookingCode, normalizedReason)
+      window.alert('Đã hoàn tác xác nhận thu tiền.')
+      await load()
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   if (error) {
     return (
       <ErrorState
@@ -451,22 +502,27 @@ function AdminBookingDetailPage() {
     booking.trip?.departureTime
 
   const canCancel =
-    [
-      'PENDING',
-      'CONFIRMED',
-    ].includes(booking.status)
+    booking.status === 'CONFIRMED' &&
+    departureTime &&
+    new Date(departureTime) > new Date()
+
+  const effectivePaymentStatus = payment?.status || booking.paymentStatus
 
   const canDelete =
-    [
-      'PENDING',
-      'CONFIRMED',
-    ].includes(booking.status) &&
+    booking.status === 'CONFIRMED' &&
+    !['SUCCESS', 'REFUNDED'].includes(effectivePaymentStatus) &&
     departureTime &&
-    new Date(departureTime) >
-      new Date()
+    new Date(departureTime) > new Date()
+
+  const tripHasDeparted = ['DEPARTED', 'COMPLETED', 'CANCELLED'].includes(
+    booking.trip?.status,
+  )
 
   const canEdit =
-    booking.status !== 'DELETED'
+    booking.status === 'CONFIRMED' &&
+    departureTime &&
+    new Date(departureTime).getTime() > currentTime.getTime() &&
+    !tripHasDeparted
 
   const canMarkNoShow =
     booking.status ===
@@ -474,6 +530,18 @@ function AdminBookingDetailPage() {
     departureTime &&
     new Date(departureTime) <=
       new Date()
+
+
+  const canCollectPayment =
+    booking.status === 'CONFIRMED' &&
+    payment?.paymentMethod === 'PAY_AT_BUS' &&
+    payment?.status === 'PENDING'
+
+  const canUndoPayment =
+    user?.role === 'ADMIN' &&
+    booking.status === 'CONFIRMED' &&
+    payment?.paymentMethod === 'PAY_AT_BUS' &&
+    payment?.status === 'SUCCESS'
 
   const pickupPoint =
     booking.pickupPoint ??
@@ -493,7 +561,7 @@ function AdminBookingDetailPage() {
     <>
       <AdminPageHeader
         title="Chi tiết vé"
-        description={`Mã vé: ${booking.bookingCode}`}
+        description={`Mã vé: ${formatBookingCode(booking.bookingCode)}`}
       />
 
       <div className="d-flex flex-wrap gap-2 mb-3">
@@ -523,15 +591,33 @@ function AdminBookingDetailPage() {
         </button>
 
         {canEdit && (
-          <button
+          <Link
             className="btn btn-outline-primary"
-            disabled={processing}
-            onClick={() =>
-              setEditing(true)
-            }
-            type="button"
+            to={`/admin/ve-xe/${booking.bookingCode}/sua`}
           >
             Sửa thông tin
+          </Link>
+        )}
+
+        {canCollectPayment && (
+          <button
+            className="btn btn-success"
+            disabled={processing}
+            onClick={collectCurrentPayment}
+            type="button"
+          >
+            Đã thu tiền
+          </button>
+        )}
+
+        {canUndoPayment && (
+          <button
+            className="btn btn-outline-warning"
+            disabled={processing}
+            onClick={undoCurrentPayment}
+            type="button"
+          >
+            Hoàn tác thu tiền
           </button>
         )}
 
@@ -549,16 +635,12 @@ function AdminBookingDetailPage() {
         )}
 
         {canDelete && (
-          <button
+          <Link
             className="btn btn-outline-danger"
-            disabled={processing}
-            onClick={
-              deleteCurrentBooking
-            }
-            type="button"
+            to={`/admin/ve-xe/${booking.bookingCode}/xoa`}
           >
             Xóa vé
-          </button>
+          </Link>
         )}
 
         {canMarkNoShow && (
@@ -632,49 +714,17 @@ function AdminBookingDetailPage() {
               />
             </label>
 
-            <label>
-              Email
+            <label className="admin-field--wide">
+              Ghi chú nhân viên
 
-              <input
+              <textarea
                 className="form-control"
-                name="passengerEmail"
-                onBlur={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    passengerEmail: normalizeEmail(event.target.value),
-                  }))
-                }
+                maxLength={500}
+                name="staffNote"
                 onChange={changeField}
-                type="email"
-                value={
-                  form.passengerEmail
-                }
-              />
-            </label>
-
-            <label>
-              Điểm đón chi tiết
-
-              <input
-                className="form-control"
-                maxLength="300"
-                name="pickupPoint"
-                onChange={changeField}
-                placeholder="Địa chỉ hoặc điểm hẹn đón khách"
-                value={form.pickupPoint}
-              />
-            </label>
-
-            <label>
-              Điểm trả chi tiết
-
-              <input
-                className="form-control"
-                maxLength="300"
-                name="dropoffPoint"
-                onChange={changeField}
-                placeholder="Địa chỉ hoặc điểm trả khách"
-                value={form.dropoffPoint}
+                placeholder="Ghi chú riêng của nhân viên về vé"
+                rows={3}
+                value={form.staffNote}
               />
             </label>
 
@@ -717,7 +767,7 @@ function AdminBookingDetailPage() {
           </div>
 
           <strong>
-            {booking.bookingCode}
+            {formatBookingCode(booking.bookingCode)}
           </strong>
         </div>
 

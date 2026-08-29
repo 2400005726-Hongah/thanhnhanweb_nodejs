@@ -3,15 +3,22 @@ import { Router } from 'express'
 import { PERMISSIONS } from '../config/permissions.js'
 import {
   cancelBooking,
+  collectBookingPayment,
   changeAccountRole,
   changeAccountStatus,
+  editAccount,
   changeCustomerStatus,
   createAccount,
   dashboardSummary,
+  deleteAccount,
   editBookingContact,
   editCustomer,
+  exportCustomersExcel,
+  archiveCustomerProfile,
+  exportBookingsExcel,
   listAccounts,
   listBookings,
+  lookupBooking,
   listCustomers,
   markNoShow,
   revenueSummary,
@@ -19,6 +26,7 @@ import {
   showAuditLogs,
   showBooking,
   showCustomer,
+  undoBookingPayment,
   deleteBooking,
 } from '../controllers/admin.controller.js'
 import { createManagedBooking } from '../controllers/booking.controller.js'
@@ -30,6 +38,7 @@ import validate from '../middlewares/validate.middleware.js'
 import {
   auditLogValidator,
   bookingCodeValidator,
+  collectManagedPaymentValidator,
   cancelManagedBookingValidator,
   changeCustomerStatusValidator,
   changeUserRoleValidator,
@@ -41,8 +50,11 @@ import {
   listUsersValidator,
   markNoShowValidator,
   revenueValidator,
+  undoManagedPaymentValidator,
   updateBookingContactValidator,
   updateCustomerValidator,
+  updateManagedUserValidator,
+  userIdValidator,
   deleteManagedBookingValidator,
 } from '../validators/admin.validator.js'
 import { createManagedBookingValidator } from '../validators/booking.validator.js'
@@ -81,12 +93,27 @@ router.get(
   listBookings,
 )
 
+router.get(
+  '/bookings/export.xlsx',
+  authorizePermissions(PERMISSIONS.VIEW_BOOKINGS),
+  listManagedBookingsValidator,
+  validate,
+  exportBookingsExcel,
+)
+
 router.post(
   '/bookings',
   authorizePermissions(PERMISSIONS.MANAGE_BOOKINGS),
   createManagedBookingValidator,
   validate,
   createManagedBooking,
+)
+
+
+router.get(
+  '/bookings/lookup',
+  authorizePermissions(PERMISSIONS.VIEW_BOOKINGS),
+  lookupBooking,
 )
 
 router.get(
@@ -140,6 +167,23 @@ router.post(
   markNoShow,
 )
 
+
+router.post(
+  '/bookings/:bookingCode/collect-payment',
+  authorizePermissions(PERMISSIONS.MANAGE_BOOKINGS),
+  collectManagedPaymentValidator,
+  validate,
+  collectBookingPayment,
+)
+
+router.post(
+  '/bookings/:bookingCode/undo-payment',
+  authorizePermissions(PERMISSIONS.MANAGE_BOOKINGS),
+  undoManagedPaymentValidator,
+  validate,
+  undoBookingPayment,
+)
+
 /*
  * Quản lý khách hàng
  */
@@ -149,6 +193,12 @@ router.get(
   listCustomersValidator,
   validate,
   listCustomers,
+)
+
+router.get(
+  '/customers/export.xlsx',
+  authorizePermissions(PERMISSIONS.EXPORT_DATA),
+  exportCustomersExcel,
 )
 
 router.get(
@@ -177,6 +227,14 @@ router.patch(
   changeCustomerStatus,
 )
 
+router.delete(
+  '/customers/:id',
+  authorizePermissions(PERMISSIONS.ARCHIVE_CUSTOMERS),
+  customerIdValidator,
+  validate,
+  archiveCustomerProfile,
+)
+
 /*
  * Quản lý tài khoản ADMIN và STAFF
  */
@@ -194,6 +252,22 @@ router.post(
   createManagedUserValidator,
   validate,
   createAccount,
+)
+
+router.patch(
+  '/users/:id',
+  authorizePermissions(PERMISSIONS.MANAGE_USERS),
+  updateManagedUserValidator,
+  validate,
+  editAccount,
+)
+
+router.delete(
+  '/users/:id',
+  authorizePermissions(PERMISSIONS.MANAGE_USERS),
+  userIdValidator,
+  validate,
+  deleteAccount,
 )
 
 router.patch(

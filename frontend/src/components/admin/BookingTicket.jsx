@@ -1,7 +1,7 @@
 import { getBusTypeLabel } from '../../utils/busTypes.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
-import { formatLicensePlate, formatPhoneInput } from '../../utils/normalizers.js'
+import { formatBookingCode, formatLicensePlate, formatPhoneInput } from '../../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
@@ -23,43 +23,47 @@ const SOURCE_LABELS = {
   COUNTER: 'Tại quầy',
 }
 
+const SERVICE_MODE_LABELS = {
+  TaiVanPhong: 'Tại văn phòng nhà xe',
+  DonTaiBenXe: 'Đón trực tiếp tại bến xe trung tâm',
+  DonTaiDiemHen: 'Đón tại điểm hẹn',
+  TrungChuyenDonKhach: 'Xe trung chuyển đón khách',
+  TraTaiBenXe: 'Trả khách tại bến xe trung tâm đích đến',
+  TraTaiVanPhong: 'Trả khách tại văn phòng nhà xe',
+  TraTaiDiemDung: 'Trả khách tại điểm dừng',
+  TrungChuyenTraKhach: 'Xe trung chuyển trả tận nơi khu vực nội thành',
+}
+
 const displayLocation = (location) => {
-  if (!location) {
-    return 'Chưa cập nhật'
-  }
+  if (!location) return 'Chưa cập nhật'
+  if (typeof location === 'string') return location
 
-  if (typeof location === 'string') {
-    return location
-  }
-
-  return [
-    location.name,
-    location.province,
-  ]
+  return [location.name, location.address, location.province]
     .filter(Boolean)
     .join(', ') || 'Chưa cập nhật'
 }
 
-function BookingTicket({ booking }) {
-  if (!booking) {
-    return null
-  }
-
-  const route = booking.trip?.route
-  const bus = booking.trip?.bus
-
-  const payments =
-    booking.payments ?? []
-
-  const payment =
-    payments[0] ??
-    booking.payment ??
+const getTripEndpoints = (trip = {}) => {
+  const departure =
+    trip.departureLocation ||
+    trip.route?.departureLocation ||
+    null
+  const arrival =
+    trip.arrivalLocation ||
+    trip.route?.arrivalLocation ||
     null
 
-  const items =
-    booking.items ??
-    booking.seats ??
-    []
+  return { departure, arrival }
+}
+
+function BookingTicket({ booking }) {
+  if (!booking) return null
+
+  const trip = booking.trip || {}
+  const bus = trip.bus || {}
+  const payment = booking.payments?.[0] ?? booking.payment ?? null
+  const items = booking.items ?? booking.seats ?? []
+  const { departure, arrival } = getTripEndpoints(trip)
 
   const seatCodes =
     items
@@ -67,34 +71,38 @@ function BookingTicket({ booking }) {
       .filter(Boolean)
       .join(', ') || 'Chưa cập nhật'
 
-  /*
-   * Ưu tiên điểm đón/trả riêng của vé.
-   * Nếu database chưa có thì dùng điểm đầu/cuối của tuyến.
-   */
   const pickupPoint =
     booking.pickupPoint ??
     booking.pickupLocation ??
     booking.pickupAddress ??
-    route?.departureLocation
+    departure
 
   const dropoffPoint =
     booking.dropoffPoint ??
     booking.dropoffLocation ??
     booking.dropoffAddress ??
-    route?.arrivalLocation
+    arrival
+
+  const routeName =
+    trip.route?.routeName ||
+    `${displayLocation(departure)} → ${displayLocation(arrival)}`
 
   const busDescription = [
-    bus?.licensePlate ? formatLicensePlate(bus.licensePlate) : null,
-    bus?.busName || (bus?.busType ? getBusTypeLabel(bus.busType) : null),
+    bus.busType ? getBusTypeLabel(bus.busType) : null,
+    bus.licensePlate ? formatLicensePlate(bus.licensePlate) : null,
   ]
     .filter(Boolean)
     .join(' - ')
 
+  const pickupMode =
+    SERVICE_MODE_LABELS[booking.pickupServiceMode] ||
+    'Điểm đón chính của chuyến'
+  const dropoffMode =
+    SERVICE_MODE_LABELS[booking.dropoffServiceMode] ||
+    'Điểm trả chính của chuyến'
+
   return (
-    <section
-      className="ticket-print-sheet"
-      aria-label="Vé xe điện tử"
-    >
+    <section className="ticket-print-sheet" aria-label="Vé xe điện tử">
       <div className="ticket-print-card">
         <header className="ticket-print-header">
           <h1>VÉ ĐIỆN TỬ</h1>
@@ -103,28 +111,24 @@ function BookingTicket({ booking }) {
 
         <div className="ticket-print-code">
           <span>MÃ VÉ</span>
-
-          <strong>
-            {booking.bookingCode ||
-              booking.id ||
-              'Chưa cập nhật'}
-          </strong>
+          <strong>{booking.bookingCode ? formatBookingCode(booking.bookingCode) : booking.id || 'Chưa cập nhật'}</strong>
         </div>
 
         <div className="ticket-print-info">
           <div className="ticket-print-row">
-            <span>Khách hàng</span>
+            <span>Mã giao dịch</span>
+            <strong>{payment?.transactionCode || booking.transactionCode || '—'}</strong>
+          </div>
 
+          <div className="ticket-print-row">
+            <span>Khách hàng</span>
             <strong>
-              {booking.passengerFullName ||
-                booking.customer?.fullName ||
-                'Chưa cập nhật'}
+              {booking.passengerFullName || booking.customer?.fullName || 'Chưa cập nhật'}
             </strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Số điện thoại</span>
-
             <strong>
               {booking.passengerPhone || booking.customer?.phone
                 ? formatPhoneInput(booking.passengerPhone || booking.customer?.phone)
@@ -133,126 +137,79 @@ function BookingTicket({ booking }) {
           </div>
 
           <div className="ticket-print-row">
-            <span>Tuyến</span>
-
-            <strong>
-              {route?.routeName ||
-                'Chưa cập nhật'}
-            </strong>
+            <span>Hành trình</span>
+            <strong>{routeName}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Điểm đón</span>
+            <strong>{displayLocation(pickupPoint)}</strong>
+          </div>
 
-            <strong>
-              {displayLocation(pickupPoint)}
-            </strong>
+          <div className="ticket-print-row">
+            <span>Hình thức đón</span>
+            <strong>{pickupMode}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Điểm trả</span>
+            <strong>{displayLocation(dropoffPoint)}</strong>
+          </div>
 
-            <strong>
-              {displayLocation(dropoffPoint)}
-            </strong>
+          <div className="ticket-print-row">
+            <span>Hình thức trả</span>
+            <strong>{dropoffMode}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Ngày giờ xuất bến</span>
-
             <strong>
-              {booking.trip?.departureTime
-                ? formatDateTime(
-                    booking.trip.departureTime,
-                  )
-                : 'Chưa cập nhật'}
+              {trip.departureTime ? formatDateTime(trip.departureTime) : 'Chưa cập nhật'}
             </strong>
           </div>
 
           <div className="ticket-print-row">
-            <span>Số ghế</span>
-
+            <span>Ghế/Phòng</span>
             <strong>{seatCodes}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Xe</span>
-
-            <strong>
-              {busDescription ||
-                'Chưa cập nhật'}
-            </strong>
+            <strong>{busDescription || 'Chưa cập nhật'}</strong>
           </div>
 
           <div className="ticket-print-row">
-            <span>Giá vé</span>
-
-            <strong>
-              {formatCurrency(
-                booking.totalAmount ?? 0,
-              )}
-            </strong>
+            <span>Tổng tiền</span>
+            <strong>{formatCurrency(booking.totalAmount ?? 0)}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Trạng thái vé</span>
-
             <strong>
-              {BOOKING_STATUS_LABELS[
-                booking.status
-              ] ||
-                booking.status ||
-                'Chưa xác định'}
+              {BOOKING_STATUS_LABELS[booking.status] || booking.status || 'Chưa xác định'}
             </strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Thanh toán</span>
-
-            <strong>
-              {getPaymentStatusLabel(
-                payment?.status ||
-                  booking.paymentStatus,
-              )}
-            </strong>
+            <strong>{getPaymentStatusLabel(payment?.status || booking.paymentStatus)}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Phương thức</span>
-
-            <strong>
-              {getPaymentMethodLabel(
-                payment?.paymentMethod,
-              )}
-            </strong>
+            <strong>{getPaymentMethodLabel(payment?.paymentMethod)}</strong>
           </div>
 
           <div className="ticket-print-row">
             <span>Nguồn đặt</span>
-
-            <strong>
-              {SOURCE_LABELS[
-                booking.source
-              ] ||
-                booking.source ||
-                'Chưa xác định'}
-            </strong>
+            <strong>{SOURCE_LABELS[booking.source] || booking.source || 'Chưa xác định'}</strong>
           </div>
         </div>
 
         <footer className="ticket-print-footer">
-          <p>
-            Vui lòng có mặt trước giờ khởi hành
-            ít nhất 30 phút.
-          </p>
-
+          <p>Vui lòng có mặt theo hướng dẫn tại điểm đón đã chọn.</p>
           <small>
-            Ngày đặt vé:{' '}
-            {booking.createdAt
-              ? formatDateTime(
-                  booking.createdAt,
-                )
-              : 'Chưa cập nhật'}
+            Ngày đặt vé: {booking.createdAt ? formatDateTime(booking.createdAt) : 'Chưa cập nhật'}
           </small>
         </footer>
       </div>

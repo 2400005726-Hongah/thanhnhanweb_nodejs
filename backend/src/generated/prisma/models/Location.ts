@@ -20,16 +20,32 @@ export type LocationModel = runtime.Types.Result.DefaultSelection<Prisma.$Locati
 
 export type AggregateLocation = {
   _count: LocationCountAggregateOutputType | null
+  _avg: LocationAvgAggregateOutputType | null
+  _sum: LocationSumAggregateOutputType | null
   _min: LocationMinAggregateOutputType | null
   _max: LocationMaxAggregateOutputType | null
+}
+
+export type LocationAvgAggregateOutputType = {
+  sortOrder: number | null
+}
+
+export type LocationSumAggregateOutputType = {
+  sortOrder: number | null
 }
 
 export type LocationMinAggregateOutputType = {
   id: string | null
   name: string | null
+  normalizedName: string | null
   province: string | null
+  provinceId: string | null
+  defaultAreaId: string | null
   address: string | null
+  locationType: string | null
+  sortOrder: number | null
   status: $Enums.RecordStatus | null
+  isDeleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -37,9 +53,15 @@ export type LocationMinAggregateOutputType = {
 export type LocationMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  normalizedName: string | null
   province: string | null
+  provinceId: string | null
+  defaultAreaId: string | null
   address: string | null
+  locationType: string | null
+  sortOrder: number | null
   status: $Enums.RecordStatus | null
+  isDeleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,21 +69,41 @@ export type LocationMaxAggregateOutputType = {
 export type LocationCountAggregateOutputType = {
   id: number
   name: number
+  normalizedName: number
   province: number
+  provinceId: number
+  defaultAreaId: number
   address: number
+  locationType: number
+  sortOrder: number
   status: number
+  isDeleted: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
 
+export type LocationAvgAggregateInputType = {
+  sortOrder?: true
+}
+
+export type LocationSumAggregateInputType = {
+  sortOrder?: true
+}
+
 export type LocationMinAggregateInputType = {
   id?: true
   name?: true
+  normalizedName?: true
   province?: true
+  provinceId?: true
+  defaultAreaId?: true
   address?: true
+  locationType?: true
+  sortOrder?: true
   status?: true
+  isDeleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -69,9 +111,15 @@ export type LocationMinAggregateInputType = {
 export type LocationMaxAggregateInputType = {
   id?: true
   name?: true
+  normalizedName?: true
   province?: true
+  provinceId?: true
+  defaultAreaId?: true
   address?: true
+  locationType?: true
+  sortOrder?: true
   status?: true
+  isDeleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -79,9 +127,15 @@ export type LocationMaxAggregateInputType = {
 export type LocationCountAggregateInputType = {
   id?: true
   name?: true
+  normalizedName?: true
   province?: true
+  provinceId?: true
+  defaultAreaId?: true
   address?: true
+  locationType?: true
+  sortOrder?: true
   status?: true
+  isDeleted?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -125,6 +179,18 @@ export type LocationAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: LocationAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: LocationSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: LocationMinAggregateInputType
@@ -155,6 +221,8 @@ export type LocationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: LocationCountAggregateInputType | true
+  _avg?: LocationAvgAggregateInputType
+  _sum?: LocationSumAggregateInputType
   _min?: LocationMinAggregateInputType
   _max?: LocationMaxAggregateInputType
 }
@@ -162,12 +230,20 @@ export type LocationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type LocationGroupByOutputType = {
   id: string
   name: string
+  normalizedName: string | null
   province: string
+  provinceId: string | null
+  defaultAreaId: string | null
   address: string | null
+  locationType: string
+  sortOrder: number
   status: $Enums.RecordStatus
+  isDeleted: boolean
   createdAt: Date
   updatedAt: Date
   _count: LocationCountAggregateOutputType | null
+  _avg: LocationAvgAggregateOutputType | null
+  _sum: LocationSumAggregateOutputType | null
   _min: LocationMinAggregateOutputType | null
   _max: LocationMaxAggregateOutputType | null
 }
@@ -193,54 +269,105 @@ export type LocationWhereInput = {
   NOT?: Prisma.LocationWhereInput | Prisma.LocationWhereInput[]
   id?: Prisma.UuidFilter<"Location"> | string
   name?: Prisma.StringFilter<"Location"> | string
+  normalizedName?: Prisma.StringNullableFilter<"Location"> | string | null
   province?: Prisma.StringFilter<"Location"> | string
+  provinceId?: Prisma.UuidNullableFilter<"Location"> | string | null
+  defaultAreaId?: Prisma.UuidNullableFilter<"Location"> | string | null
   address?: Prisma.StringNullableFilter<"Location"> | string | null
+  locationType?: Prisma.StringFilter<"Location"> | string
+  sortOrder?: Prisma.IntFilter<"Location"> | number
   status?: Prisma.EnumRecordStatusFilter<"Location"> | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFilter<"Location"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Location"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Location"> | Date | string
+  provinceRef?: Prisma.XOR<Prisma.ProvinceNullableScalarRelationFilter, Prisma.ProvinceWhereInput> | null
+  defaultArea?: Prisma.XOR<Prisma.PickupDropoffAreaNullableScalarRelationFilter, Prisma.PickupDropoffAreaWhereInput> | null
+  areaFilters?: Prisma.LocationAreaFilterListRelationFilter
   departureRoutes?: Prisma.RouteListRelationFilter
   arrivalRoutes?: Prisma.RouteListRelationFilter
+  tripDepartureLocations?: Prisma.TripListRelationFilter
+  tripArrivalLocations?: Prisma.TripListRelationFilter
+  tripServicePoints?: Prisma.TripServicePointListRelationFilter
+  pickupBookings?: Prisma.BookingListRelationFilter
+  dropoffBookings?: Prisma.BookingListRelationFilter
 }
 
 export type LocationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  normalizedName?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrder
+  provinceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultAreaId?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationType?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isDeleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  provinceRef?: Prisma.ProvinceOrderByWithRelationInput
+  defaultArea?: Prisma.PickupDropoffAreaOrderByWithRelationInput
+  areaFilters?: Prisma.LocationAreaFilterOrderByRelationAggregateInput
   departureRoutes?: Prisma.RouteOrderByRelationAggregateInput
   arrivalRoutes?: Prisma.RouteOrderByRelationAggregateInput
+  tripDepartureLocations?: Prisma.TripOrderByRelationAggregateInput
+  tripArrivalLocations?: Prisma.TripOrderByRelationAggregateInput
+  tripServicePoints?: Prisma.TripServicePointOrderByRelationAggregateInput
+  pickupBookings?: Prisma.BookingOrderByRelationAggregateInput
+  dropoffBookings?: Prisma.BookingOrderByRelationAggregateInput
 }
 
 export type LocationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   name_province?: Prisma.LocationNameProvinceCompoundUniqueInput
+  provinceId_normalizedName?: Prisma.LocationProvinceIdNormalizedNameCompoundUniqueInput
   AND?: Prisma.LocationWhereInput | Prisma.LocationWhereInput[]
   OR?: Prisma.LocationWhereInput[]
   NOT?: Prisma.LocationWhereInput | Prisma.LocationWhereInput[]
   name?: Prisma.StringFilter<"Location"> | string
+  normalizedName?: Prisma.StringNullableFilter<"Location"> | string | null
   province?: Prisma.StringFilter<"Location"> | string
+  provinceId?: Prisma.UuidNullableFilter<"Location"> | string | null
+  defaultAreaId?: Prisma.UuidNullableFilter<"Location"> | string | null
   address?: Prisma.StringNullableFilter<"Location"> | string | null
+  locationType?: Prisma.StringFilter<"Location"> | string
+  sortOrder?: Prisma.IntFilter<"Location"> | number
   status?: Prisma.EnumRecordStatusFilter<"Location"> | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFilter<"Location"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Location"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Location"> | Date | string
+  provinceRef?: Prisma.XOR<Prisma.ProvinceNullableScalarRelationFilter, Prisma.ProvinceWhereInput> | null
+  defaultArea?: Prisma.XOR<Prisma.PickupDropoffAreaNullableScalarRelationFilter, Prisma.PickupDropoffAreaWhereInput> | null
+  areaFilters?: Prisma.LocationAreaFilterListRelationFilter
   departureRoutes?: Prisma.RouteListRelationFilter
   arrivalRoutes?: Prisma.RouteListRelationFilter
-}, "id" | "name_province">
+  tripDepartureLocations?: Prisma.TripListRelationFilter
+  tripArrivalLocations?: Prisma.TripListRelationFilter
+  tripServicePoints?: Prisma.TripServicePointListRelationFilter
+  pickupBookings?: Prisma.BookingListRelationFilter
+  dropoffBookings?: Prisma.BookingListRelationFilter
+}, "id" | "name_province" | "provinceId_normalizedName">
 
 export type LocationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  normalizedName?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrder
+  provinceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultAreaId?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationType?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isDeleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.LocationCountOrderByAggregateInput
+  _avg?: Prisma.LocationAvgOrderByAggregateInput
   _max?: Prisma.LocationMaxOrderByAggregateInput
   _min?: Prisma.LocationMinOrderByAggregateInput
+  _sum?: Prisma.LocationSumOrderByAggregateInput
 }
 
 export type LocationScalarWhereWithAggregatesInput = {
@@ -249,9 +376,15 @@ export type LocationScalarWhereWithAggregatesInput = {
   NOT?: Prisma.LocationScalarWhereWithAggregatesInput | Prisma.LocationScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Location"> | string
   name?: Prisma.StringWithAggregatesFilter<"Location"> | string
+  normalizedName?: Prisma.StringNullableWithAggregatesFilter<"Location"> | string | null
   province?: Prisma.StringWithAggregatesFilter<"Location"> | string
+  provinceId?: Prisma.UuidNullableWithAggregatesFilter<"Location"> | string | null
+  defaultAreaId?: Prisma.UuidNullableWithAggregatesFilter<"Location"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Location"> | string | null
+  locationType?: Prisma.StringWithAggregatesFilter<"Location"> | string
+  sortOrder?: Prisma.IntWithAggregatesFilter<"Location"> | number
   status?: Prisma.EnumRecordStatusWithAggregatesFilter<"Location"> | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolWithAggregatesFilter<"Location"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Location"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Location"> | Date | string
 }
@@ -259,57 +392,111 @@ export type LocationScalarWhereWithAggregatesInput = {
 export type LocationCreateInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
   departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
   arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationUncheckedCreateInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
   departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
   arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
   departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
   arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
 }
 
 export type LocationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
   departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
   arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
 }
 
 export type LocationCreateManyInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -317,9 +504,13 @@ export type LocationCreateManyInput = {
 export type LocationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -327,11 +518,27 @@ export type LocationUpdateManyMutationInput = {
 export type LocationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type LocationListRelationFilter = {
+  every?: Prisma.LocationWhereInput
+  some?: Prisma.LocationWhereInput
+  none?: Prisma.LocationWhereInput
+}
+
+export type LocationOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type LocationNameProvinceCompoundUniqueInput = {
@@ -339,22 +546,43 @@ export type LocationNameProvinceCompoundUniqueInput = {
   province: string
 }
 
+export type LocationProvinceIdNormalizedNameCompoundUniqueInput = {
+  provinceId: string
+  normalizedName: string
+}
+
 export type LocationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  normalizedName?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  provinceId?: Prisma.SortOrder
+  defaultAreaId?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  locationType?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isDeleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type LocationAvgOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type LocationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  normalizedName?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  provinceId?: Prisma.SortOrder
+  defaultAreaId?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  locationType?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isDeleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -362,11 +590,21 @@ export type LocationMaxOrderByAggregateInput = {
 export type LocationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  normalizedName?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  provinceId?: Prisma.SortOrder
+  defaultAreaId?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  locationType?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isDeleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type LocationSumOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type LocationScalarRelationFilter = {
@@ -374,8 +612,107 @@ export type LocationScalarRelationFilter = {
   isNot?: Prisma.LocationWhereInput
 }
 
-export type EnumRecordStatusFieldUpdateOperationsInput = {
-  set?: $Enums.RecordStatus
+export type LocationNullableScalarRelationFilter = {
+  is?: Prisma.LocationWhereInput | null
+  isNot?: Prisma.LocationWhereInput | null
+}
+
+export type LocationCreateNestedManyWithoutProvinceRefInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput> | Prisma.LocationCreateWithoutProvinceRefInput[] | Prisma.LocationUncheckedCreateWithoutProvinceRefInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutProvinceRefInput | Prisma.LocationCreateOrConnectWithoutProvinceRefInput[]
+  createMany?: Prisma.LocationCreateManyProvinceRefInputEnvelope
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+}
+
+export type LocationUncheckedCreateNestedManyWithoutProvinceRefInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput> | Prisma.LocationCreateWithoutProvinceRefInput[] | Prisma.LocationUncheckedCreateWithoutProvinceRefInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutProvinceRefInput | Prisma.LocationCreateOrConnectWithoutProvinceRefInput[]
+  createMany?: Prisma.LocationCreateManyProvinceRefInputEnvelope
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+}
+
+export type LocationUpdateManyWithoutProvinceRefNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput> | Prisma.LocationCreateWithoutProvinceRefInput[] | Prisma.LocationUncheckedCreateWithoutProvinceRefInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutProvinceRefInput | Prisma.LocationCreateOrConnectWithoutProvinceRefInput[]
+  upsert?: Prisma.LocationUpsertWithWhereUniqueWithoutProvinceRefInput | Prisma.LocationUpsertWithWhereUniqueWithoutProvinceRefInput[]
+  createMany?: Prisma.LocationCreateManyProvinceRefInputEnvelope
+  set?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  disconnect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  delete?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  update?: Prisma.LocationUpdateWithWhereUniqueWithoutProvinceRefInput | Prisma.LocationUpdateWithWhereUniqueWithoutProvinceRefInput[]
+  updateMany?: Prisma.LocationUpdateManyWithWhereWithoutProvinceRefInput | Prisma.LocationUpdateManyWithWhereWithoutProvinceRefInput[]
+  deleteMany?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+}
+
+export type LocationUncheckedUpdateManyWithoutProvinceRefNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput> | Prisma.LocationCreateWithoutProvinceRefInput[] | Prisma.LocationUncheckedCreateWithoutProvinceRefInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutProvinceRefInput | Prisma.LocationCreateOrConnectWithoutProvinceRefInput[]
+  upsert?: Prisma.LocationUpsertWithWhereUniqueWithoutProvinceRefInput | Prisma.LocationUpsertWithWhereUniqueWithoutProvinceRefInput[]
+  createMany?: Prisma.LocationCreateManyProvinceRefInputEnvelope
+  set?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  disconnect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  delete?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  update?: Prisma.LocationUpdateWithWhereUniqueWithoutProvinceRefInput | Prisma.LocationUpdateWithWhereUniqueWithoutProvinceRefInput[]
+  updateMany?: Prisma.LocationUpdateManyWithWhereWithoutProvinceRefInput | Prisma.LocationUpdateManyWithWhereWithoutProvinceRefInput[]
+  deleteMany?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+}
+
+export type LocationCreateNestedManyWithoutDefaultAreaInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput> | Prisma.LocationCreateWithoutDefaultAreaInput[] | Prisma.LocationUncheckedCreateWithoutDefaultAreaInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDefaultAreaInput | Prisma.LocationCreateOrConnectWithoutDefaultAreaInput[]
+  createMany?: Prisma.LocationCreateManyDefaultAreaInputEnvelope
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+}
+
+export type LocationUncheckedCreateNestedManyWithoutDefaultAreaInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput> | Prisma.LocationCreateWithoutDefaultAreaInput[] | Prisma.LocationUncheckedCreateWithoutDefaultAreaInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDefaultAreaInput | Prisma.LocationCreateOrConnectWithoutDefaultAreaInput[]
+  createMany?: Prisma.LocationCreateManyDefaultAreaInputEnvelope
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+}
+
+export type LocationUpdateManyWithoutDefaultAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput> | Prisma.LocationCreateWithoutDefaultAreaInput[] | Prisma.LocationUncheckedCreateWithoutDefaultAreaInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDefaultAreaInput | Prisma.LocationCreateOrConnectWithoutDefaultAreaInput[]
+  upsert?: Prisma.LocationUpsertWithWhereUniqueWithoutDefaultAreaInput | Prisma.LocationUpsertWithWhereUniqueWithoutDefaultAreaInput[]
+  createMany?: Prisma.LocationCreateManyDefaultAreaInputEnvelope
+  set?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  disconnect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  delete?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  update?: Prisma.LocationUpdateWithWhereUniqueWithoutDefaultAreaInput | Prisma.LocationUpdateWithWhereUniqueWithoutDefaultAreaInput[]
+  updateMany?: Prisma.LocationUpdateManyWithWhereWithoutDefaultAreaInput | Prisma.LocationUpdateManyWithWhereWithoutDefaultAreaInput[]
+  deleteMany?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+}
+
+export type LocationUncheckedUpdateManyWithoutDefaultAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput> | Prisma.LocationCreateWithoutDefaultAreaInput[] | Prisma.LocationUncheckedCreateWithoutDefaultAreaInput[]
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDefaultAreaInput | Prisma.LocationCreateOrConnectWithoutDefaultAreaInput[]
+  upsert?: Prisma.LocationUpsertWithWhereUniqueWithoutDefaultAreaInput | Prisma.LocationUpsertWithWhereUniqueWithoutDefaultAreaInput[]
+  createMany?: Prisma.LocationCreateManyDefaultAreaInputEnvelope
+  set?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  disconnect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  delete?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  connect?: Prisma.LocationWhereUniqueInput | Prisma.LocationWhereUniqueInput[]
+  update?: Prisma.LocationUpdateWithWhereUniqueWithoutDefaultAreaInput | Prisma.LocationUpdateWithWhereUniqueWithoutDefaultAreaInput[]
+  updateMany?: Prisma.LocationUpdateManyWithWhereWithoutDefaultAreaInput | Prisma.LocationUpdateManyWithWhereWithoutDefaultAreaInput[]
+  deleteMany?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+}
+
+export type LocationCreateNestedOneWithoutAreaFiltersInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutAreaFiltersInput, Prisma.LocationUncheckedCreateWithoutAreaFiltersInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutAreaFiltersInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationUpdateOneRequiredWithoutAreaFiltersNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutAreaFiltersInput, Prisma.LocationUncheckedCreateWithoutAreaFiltersInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutAreaFiltersInput
+  upsert?: Prisma.LocationUpsertWithoutAreaFiltersInput
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutAreaFiltersInput, Prisma.LocationUpdateWithoutAreaFiltersInput>, Prisma.LocationUncheckedUpdateWithoutAreaFiltersInput>
 }
 
 export type LocationCreateNestedOneWithoutDepartureRoutesInput = {
@@ -406,26 +743,399 @@ export type LocationUpdateOneRequiredWithoutArrivalRoutesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutArrivalRoutesInput, Prisma.LocationUpdateWithoutArrivalRoutesInput>, Prisma.LocationUncheckedUpdateWithoutArrivalRoutesInput>
 }
 
+export type LocationCreateNestedOneWithoutTripDepartureLocationsInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedCreateWithoutTripDepartureLocationsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripDepartureLocationsInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationCreateNestedOneWithoutTripArrivalLocationsInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedCreateWithoutTripArrivalLocationsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripArrivalLocationsInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationUpdateOneWithoutTripDepartureLocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedCreateWithoutTripDepartureLocationsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripDepartureLocationsInput
+  upsert?: Prisma.LocationUpsertWithoutTripDepartureLocationsInput
+  disconnect?: Prisma.LocationWhereInput | boolean
+  delete?: Prisma.LocationWhereInput | boolean
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutTripDepartureLocationsInput, Prisma.LocationUpdateWithoutTripDepartureLocationsInput>, Prisma.LocationUncheckedUpdateWithoutTripDepartureLocationsInput>
+}
+
+export type LocationUpdateOneWithoutTripArrivalLocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedCreateWithoutTripArrivalLocationsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripArrivalLocationsInput
+  upsert?: Prisma.LocationUpsertWithoutTripArrivalLocationsInput
+  disconnect?: Prisma.LocationWhereInput | boolean
+  delete?: Prisma.LocationWhereInput | boolean
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutTripArrivalLocationsInput, Prisma.LocationUpdateWithoutTripArrivalLocationsInput>, Prisma.LocationUncheckedUpdateWithoutTripArrivalLocationsInput>
+}
+
+export type LocationCreateNestedOneWithoutTripServicePointsInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripServicePointsInput, Prisma.LocationUncheckedCreateWithoutTripServicePointsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripServicePointsInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationUpdateOneRequiredWithoutTripServicePointsNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutTripServicePointsInput, Prisma.LocationUncheckedCreateWithoutTripServicePointsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutTripServicePointsInput
+  upsert?: Prisma.LocationUpsertWithoutTripServicePointsInput
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutTripServicePointsInput, Prisma.LocationUpdateWithoutTripServicePointsInput>, Prisma.LocationUncheckedUpdateWithoutTripServicePointsInput>
+}
+
+export type LocationCreateNestedOneWithoutPickupBookingsInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutPickupBookingsInput, Prisma.LocationUncheckedCreateWithoutPickupBookingsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutPickupBookingsInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationCreateNestedOneWithoutDropoffBookingsInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDropoffBookingsInput, Prisma.LocationUncheckedCreateWithoutDropoffBookingsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDropoffBookingsInput
+  connect?: Prisma.LocationWhereUniqueInput
+}
+
+export type LocationUpdateOneWithoutPickupBookingsNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutPickupBookingsInput, Prisma.LocationUncheckedCreateWithoutPickupBookingsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutPickupBookingsInput
+  upsert?: Prisma.LocationUpsertWithoutPickupBookingsInput
+  disconnect?: Prisma.LocationWhereInput | boolean
+  delete?: Prisma.LocationWhereInput | boolean
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutPickupBookingsInput, Prisma.LocationUpdateWithoutPickupBookingsInput>, Prisma.LocationUncheckedUpdateWithoutPickupBookingsInput>
+}
+
+export type LocationUpdateOneWithoutDropoffBookingsNestedInput = {
+  create?: Prisma.XOR<Prisma.LocationCreateWithoutDropoffBookingsInput, Prisma.LocationUncheckedCreateWithoutDropoffBookingsInput>
+  connectOrCreate?: Prisma.LocationCreateOrConnectWithoutDropoffBookingsInput
+  upsert?: Prisma.LocationUpsertWithoutDropoffBookingsInput
+  disconnect?: Prisma.LocationWhereInput | boolean
+  delete?: Prisma.LocationWhereInput | boolean
+  connect?: Prisma.LocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LocationUpdateToOneWithWhereWithoutDropoffBookingsInput, Prisma.LocationUpdateWithoutDropoffBookingsInput>, Prisma.LocationUncheckedUpdateWithoutDropoffBookingsInput>
+}
+
+export type LocationCreateWithoutProvinceRefInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutProvinceRefInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutProvinceRefInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput>
+}
+
+export type LocationCreateManyProvinceRefInputEnvelope = {
+  data: Prisma.LocationCreateManyProvinceRefInput | Prisma.LocationCreateManyProvinceRefInput[]
+  skipDuplicates?: boolean
+}
+
+export type LocationUpsertWithWhereUniqueWithoutProvinceRefInput = {
+  where: Prisma.LocationWhereUniqueInput
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutProvinceRefInput, Prisma.LocationUncheckedUpdateWithoutProvinceRefInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutProvinceRefInput, Prisma.LocationUncheckedCreateWithoutProvinceRefInput>
+}
+
+export type LocationUpdateWithWhereUniqueWithoutProvinceRefInput = {
+  where: Prisma.LocationWhereUniqueInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutProvinceRefInput, Prisma.LocationUncheckedUpdateWithoutProvinceRefInput>
+}
+
+export type LocationUpdateManyWithWhereWithoutProvinceRefInput = {
+  where: Prisma.LocationScalarWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateManyMutationInput, Prisma.LocationUncheckedUpdateManyWithoutProvinceRefInput>
+}
+
+export type LocationScalarWhereInput = {
+  AND?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+  OR?: Prisma.LocationScalarWhereInput[]
+  NOT?: Prisma.LocationScalarWhereInput | Prisma.LocationScalarWhereInput[]
+  id?: Prisma.UuidFilter<"Location"> | string
+  name?: Prisma.StringFilter<"Location"> | string
+  normalizedName?: Prisma.StringNullableFilter<"Location"> | string | null
+  province?: Prisma.StringFilter<"Location"> | string
+  provinceId?: Prisma.UuidNullableFilter<"Location"> | string | null
+  defaultAreaId?: Prisma.UuidNullableFilter<"Location"> | string | null
+  address?: Prisma.StringNullableFilter<"Location"> | string | null
+  locationType?: Prisma.StringFilter<"Location"> | string
+  sortOrder?: Prisma.IntFilter<"Location"> | number
+  status?: Prisma.EnumRecordStatusFilter<"Location"> | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFilter<"Location"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Location"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Location"> | Date | string
+}
+
+export type LocationCreateWithoutDefaultAreaInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutDefaultAreaInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutDefaultAreaInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput>
+}
+
+export type LocationCreateManyDefaultAreaInputEnvelope = {
+  data: Prisma.LocationCreateManyDefaultAreaInput | Prisma.LocationCreateManyDefaultAreaInput[]
+  skipDuplicates?: boolean
+}
+
+export type LocationUpsertWithWhereUniqueWithoutDefaultAreaInput = {
+  where: Prisma.LocationWhereUniqueInput
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutDefaultAreaInput, Prisma.LocationUncheckedUpdateWithoutDefaultAreaInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutDefaultAreaInput, Prisma.LocationUncheckedCreateWithoutDefaultAreaInput>
+}
+
+export type LocationUpdateWithWhereUniqueWithoutDefaultAreaInput = {
+  where: Prisma.LocationWhereUniqueInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutDefaultAreaInput, Prisma.LocationUncheckedUpdateWithoutDefaultAreaInput>
+}
+
+export type LocationUpdateManyWithWhereWithoutDefaultAreaInput = {
+  where: Prisma.LocationScalarWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateManyMutationInput, Prisma.LocationUncheckedUpdateManyWithoutDefaultAreaInput>
+}
+
+export type LocationCreateWithoutAreaFiltersInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutAreaFiltersInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutAreaFiltersInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutAreaFiltersInput, Prisma.LocationUncheckedCreateWithoutAreaFiltersInput>
+}
+
+export type LocationUpsertWithoutAreaFiltersInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutAreaFiltersInput, Prisma.LocationUncheckedUpdateWithoutAreaFiltersInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutAreaFiltersInput, Prisma.LocationUncheckedCreateWithoutAreaFiltersInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutAreaFiltersInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutAreaFiltersInput, Prisma.LocationUncheckedUpdateWithoutAreaFiltersInput>
+}
+
+export type LocationUpdateWithoutAreaFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutAreaFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
 export type LocationCreateWithoutDepartureRoutesInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
   arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationUncheckedCreateWithoutDepartureRoutesInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
   arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationCreateOrConnectWithoutDepartureRoutesInput = {
@@ -436,23 +1146,47 @@ export type LocationCreateOrConnectWithoutDepartureRoutesInput = {
 export type LocationCreateWithoutArrivalRoutesInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
   departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationUncheckedCreateWithoutArrivalRoutesInput = {
   id?: string
   name: string
+  normalizedName?: string | null
   province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
   address?: string | null
+  locationType?: string
+  sortOrder?: number
   status?: $Enums.RecordStatus
+  isDeleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
   departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
 }
 
 export type LocationCreateOrConnectWithoutArrivalRoutesInput = {
@@ -474,23 +1208,47 @@ export type LocationUpdateToOneWithWhereWithoutDepartureRoutesInput = {
 export type LocationUpdateWithoutDepartureRoutesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
   arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
 }
 
 export type LocationUncheckedUpdateWithoutDepartureRoutesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
   arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
 }
 
 export type LocationUpsertWithoutArrivalRoutesInput = {
@@ -507,23 +1265,739 @@ export type LocationUpdateToOneWithWhereWithoutArrivalRoutesInput = {
 export type LocationUpdateWithoutArrivalRoutesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
   departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
 }
 
 export type LocationUncheckedUpdateWithoutArrivalRoutesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
   departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationCreateWithoutTripDepartureLocationsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutTripDepartureLocationsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutTripDepartureLocationsInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedCreateWithoutTripDepartureLocationsInput>
+}
+
+export type LocationCreateWithoutTripArrivalLocationsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutTripArrivalLocationsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutTripArrivalLocationsInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedCreateWithoutTripArrivalLocationsInput>
+}
+
+export type LocationUpsertWithoutTripDepartureLocationsInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedUpdateWithoutTripDepartureLocationsInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedCreateWithoutTripDepartureLocationsInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutTripDepartureLocationsInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutTripDepartureLocationsInput, Prisma.LocationUncheckedUpdateWithoutTripDepartureLocationsInput>
+}
+
+export type LocationUpdateWithoutTripDepartureLocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutTripDepartureLocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUpsertWithoutTripArrivalLocationsInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedUpdateWithoutTripArrivalLocationsInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedCreateWithoutTripArrivalLocationsInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutTripArrivalLocationsInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutTripArrivalLocationsInput, Prisma.LocationUncheckedUpdateWithoutTripArrivalLocationsInput>
+}
+
+export type LocationUpdateWithoutTripArrivalLocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutTripArrivalLocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationCreateWithoutTripServicePointsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutTripServicePointsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutTripServicePointsInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripServicePointsInput, Prisma.LocationUncheckedCreateWithoutTripServicePointsInput>
+}
+
+export type LocationUpsertWithoutTripServicePointsInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutTripServicePointsInput, Prisma.LocationUncheckedUpdateWithoutTripServicePointsInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutTripServicePointsInput, Prisma.LocationUncheckedCreateWithoutTripServicePointsInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutTripServicePointsInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutTripServicePointsInput, Prisma.LocationUncheckedUpdateWithoutTripServicePointsInput>
+}
+
+export type LocationUpdateWithoutTripServicePointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutTripServicePointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationCreateWithoutPickupBookingsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  dropoffBookings?: Prisma.BookingCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationUncheckedCreateWithoutPickupBookingsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  dropoffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutDropoffLocationInput
+}
+
+export type LocationCreateOrConnectWithoutPickupBookingsInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutPickupBookingsInput, Prisma.LocationUncheckedCreateWithoutPickupBookingsInput>
+}
+
+export type LocationCreateWithoutDropoffBookingsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  provinceRef?: Prisma.ProvinceCreateNestedOneWithoutLocationsInput
+  defaultArea?: Prisma.PickupDropoffAreaCreateNestedOneWithoutDefaultLocationsInput
+  areaFilters?: Prisma.LocationAreaFilterCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingCreateNestedManyWithoutPickupLocationInput
+}
+
+export type LocationUncheckedCreateWithoutDropoffBookingsInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedCreateNestedManyWithoutLocationInput
+  departureRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutDepartureLocationInput
+  arrivalRoutes?: Prisma.RouteUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripDepartureLocations?: Prisma.TripUncheckedCreateNestedManyWithoutDepartureLocationInput
+  tripArrivalLocations?: Prisma.TripUncheckedCreateNestedManyWithoutArrivalLocationInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedCreateNestedManyWithoutLocationInput
+  pickupBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutPickupLocationInput
+}
+
+export type LocationCreateOrConnectWithoutDropoffBookingsInput = {
+  where: Prisma.LocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.LocationCreateWithoutDropoffBookingsInput, Prisma.LocationUncheckedCreateWithoutDropoffBookingsInput>
+}
+
+export type LocationUpsertWithoutPickupBookingsInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutPickupBookingsInput, Prisma.LocationUncheckedUpdateWithoutPickupBookingsInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutPickupBookingsInput, Prisma.LocationUncheckedCreateWithoutPickupBookingsInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutPickupBookingsInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutPickupBookingsInput, Prisma.LocationUncheckedUpdateWithoutPickupBookingsInput>
+}
+
+export type LocationUpdateWithoutPickupBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutPickupBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUpsertWithoutDropoffBookingsInput = {
+  update: Prisma.XOR<Prisma.LocationUpdateWithoutDropoffBookingsInput, Prisma.LocationUncheckedUpdateWithoutDropoffBookingsInput>
+  create: Prisma.XOR<Prisma.LocationCreateWithoutDropoffBookingsInput, Prisma.LocationUncheckedCreateWithoutDropoffBookingsInput>
+  where?: Prisma.LocationWhereInput
+}
+
+export type LocationUpdateToOneWithWhereWithoutDropoffBookingsInput = {
+  where?: Prisma.LocationWhereInput
+  data: Prisma.XOR<Prisma.LocationUpdateWithoutDropoffBookingsInput, Prisma.LocationUncheckedUpdateWithoutDropoffBookingsInput>
+}
+
+export type LocationUpdateWithoutDropoffBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutDropoffBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+}
+
+export type LocationCreateManyProvinceRefInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  defaultAreaId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type LocationUpdateWithoutProvinceRefInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultArea?: Prisma.PickupDropoffAreaUpdateOneWithoutDefaultLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutProvinceRefInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateManyWithoutProvinceRefInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultAreaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type LocationCreateManyDefaultAreaInput = {
+  id?: string
+  name: string
+  normalizedName?: string | null
+  province: string
+  provinceId?: string | null
+  address?: string | null
+  locationType?: string
+  sortOrder?: number
+  status?: $Enums.RecordStatus
+  isDeleted?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type LocationUpdateWithoutDefaultAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  provinceRef?: Prisma.ProvinceUpdateOneWithoutLocationsNestedInput
+  areaFilters?: Prisma.LocationAreaFilterUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateWithoutDefaultAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  areaFilters?: Prisma.LocationAreaFilterUncheckedUpdateManyWithoutLocationNestedInput
+  departureRoutes?: Prisma.RouteUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  arrivalRoutes?: Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripDepartureLocations?: Prisma.TripUncheckedUpdateManyWithoutDepartureLocationNestedInput
+  tripArrivalLocations?: Prisma.TripUncheckedUpdateManyWithoutArrivalLocationNestedInput
+  tripServicePoints?: Prisma.TripServicePointUncheckedUpdateManyWithoutLocationNestedInput
+  pickupBookings?: Prisma.BookingUncheckedUpdateManyWithoutPickupLocationNestedInput
+  dropoffBookings?: Prisma.BookingUncheckedUpdateManyWithoutDropoffLocationNestedInput
+}
+
+export type LocationUncheckedUpdateManyWithoutDefaultAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.StringFieldUpdateOperationsInput | string
+  provinceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationType?: Prisma.StringFieldUpdateOperationsInput | string
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -532,13 +2006,25 @@ export type LocationUncheckedUpdateWithoutArrivalRoutesInput = {
  */
 
 export type LocationCountOutputType = {
+  areaFilters: number
   departureRoutes: number
   arrivalRoutes: number
+  tripDepartureLocations: number
+  tripArrivalLocations: number
+  tripServicePoints: number
+  pickupBookings: number
+  dropoffBookings: number
 }
 
 export type LocationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  areaFilters?: boolean | LocationCountOutputTypeCountAreaFiltersArgs
   departureRoutes?: boolean | LocationCountOutputTypeCountDepartureRoutesArgs
   arrivalRoutes?: boolean | LocationCountOutputTypeCountArrivalRoutesArgs
+  tripDepartureLocations?: boolean | LocationCountOutputTypeCountTripDepartureLocationsArgs
+  tripArrivalLocations?: boolean | LocationCountOutputTypeCountTripArrivalLocationsArgs
+  tripServicePoints?: boolean | LocationCountOutputTypeCountTripServicePointsArgs
+  pickupBookings?: boolean | LocationCountOutputTypeCountPickupBookingsArgs
+  dropoffBookings?: boolean | LocationCountOutputTypeCountDropoffBookingsArgs
 }
 
 /**
@@ -549,6 +2035,13 @@ export type LocationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ext
    * Select specific fields to fetch from the LocationCountOutputType
    */
   select?: Prisma.LocationCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountAreaFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LocationAreaFilterWhereInput
 }
 
 /**
@@ -565,71 +2058,170 @@ export type LocationCountOutputTypeCountArrivalRoutesArgs<ExtArgs extends runtim
   where?: Prisma.RouteWhereInput
 }
 
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountTripDepartureLocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TripWhereInput
+}
+
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountTripArrivalLocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TripWhereInput
+}
+
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountTripServicePointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TripServicePointWhereInput
+}
+
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountPickupBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingWhereInput
+}
+
+/**
+ * LocationCountOutputType without action
+ */
+export type LocationCountOutputTypeCountDropoffBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingWhereInput
+}
+
 
 export type LocationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  normalizedName?: boolean
   province?: boolean
+  provinceId?: boolean
+  defaultAreaId?: boolean
   address?: boolean
+  locationType?: boolean
+  sortOrder?: boolean
   status?: boolean
+  isDeleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
+  areaFilters?: boolean | Prisma.Location$areaFiltersArgs<ExtArgs>
   departureRoutes?: boolean | Prisma.Location$departureRoutesArgs<ExtArgs>
   arrivalRoutes?: boolean | Prisma.Location$arrivalRoutesArgs<ExtArgs>
+  tripDepartureLocations?: boolean | Prisma.Location$tripDepartureLocationsArgs<ExtArgs>
+  tripArrivalLocations?: boolean | Prisma.Location$tripArrivalLocationsArgs<ExtArgs>
+  tripServicePoints?: boolean | Prisma.Location$tripServicePointsArgs<ExtArgs>
+  pickupBookings?: boolean | Prisma.Location$pickupBookingsArgs<ExtArgs>
+  dropoffBookings?: boolean | Prisma.Location$dropoffBookingsArgs<ExtArgs>
   _count?: boolean | Prisma.LocationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["location"]>
 
 export type LocationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  normalizedName?: boolean
   province?: boolean
+  provinceId?: boolean
+  defaultAreaId?: boolean
   address?: boolean
+  locationType?: boolean
+  sortOrder?: boolean
   status?: boolean
+  isDeleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
 }, ExtArgs["result"]["location"]>
 
 export type LocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  normalizedName?: boolean
   province?: boolean
+  provinceId?: boolean
+  defaultAreaId?: boolean
   address?: boolean
+  locationType?: boolean
+  sortOrder?: boolean
   status?: boolean
+  isDeleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
 }, ExtArgs["result"]["location"]>
 
 export type LocationSelectScalar = {
   id?: boolean
   name?: boolean
+  normalizedName?: boolean
   province?: boolean
+  provinceId?: boolean
+  defaultAreaId?: boolean
   address?: boolean
+  locationType?: boolean
+  sortOrder?: boolean
   status?: boolean
+  isDeleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "province" | "address" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["location"]>
+export type LocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "normalizedName" | "province" | "provinceId" | "defaultAreaId" | "address" | "locationType" | "sortOrder" | "status" | "isDeleted" | "createdAt" | "updatedAt", ExtArgs["result"]["location"]>
 export type LocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
+  areaFilters?: boolean | Prisma.Location$areaFiltersArgs<ExtArgs>
   departureRoutes?: boolean | Prisma.Location$departureRoutesArgs<ExtArgs>
   arrivalRoutes?: boolean | Prisma.Location$arrivalRoutesArgs<ExtArgs>
+  tripDepartureLocations?: boolean | Prisma.Location$tripDepartureLocationsArgs<ExtArgs>
+  tripArrivalLocations?: boolean | Prisma.Location$tripArrivalLocationsArgs<ExtArgs>
+  tripServicePoints?: boolean | Prisma.Location$tripServicePointsArgs<ExtArgs>
+  pickupBookings?: boolean | Prisma.Location$pickupBookingsArgs<ExtArgs>
+  dropoffBookings?: boolean | Prisma.Location$dropoffBookingsArgs<ExtArgs>
   _count?: boolean | Prisma.LocationCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type LocationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type LocationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type LocationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
+}
+export type LocationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  provinceRef?: boolean | Prisma.Location$provinceRefArgs<ExtArgs>
+  defaultArea?: boolean | Prisma.Location$defaultAreaArgs<ExtArgs>
+}
 
 export type $LocationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Location"
   objects: {
+    provinceRef: Prisma.$ProvincePayload<ExtArgs> | null
+    defaultArea: Prisma.$PickupDropoffAreaPayload<ExtArgs> | null
+    areaFilters: Prisma.$LocationAreaFilterPayload<ExtArgs>[]
     departureRoutes: Prisma.$RoutePayload<ExtArgs>[]
     arrivalRoutes: Prisma.$RoutePayload<ExtArgs>[]
+    tripDepartureLocations: Prisma.$TripPayload<ExtArgs>[]
+    tripArrivalLocations: Prisma.$TripPayload<ExtArgs>[]
+    tripServicePoints: Prisma.$TripServicePointPayload<ExtArgs>[]
+    pickupBookings: Prisma.$BookingPayload<ExtArgs>[]
+    dropoffBookings: Prisma.$BookingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    normalizedName: string | null
     province: string
+    provinceId: string | null
+    defaultAreaId: string | null
     address: string | null
+    locationType: string
+    sortOrder: number
     status: $Enums.RecordStatus
+    isDeleted: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["location"]>
@@ -1026,8 +2618,16 @@ readonly fields: LocationFieldRefs;
  */
 export interface Prisma__LocationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  provinceRef<T extends Prisma.Location$provinceRefArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$provinceRefArgs<ExtArgs>>): Prisma.Prisma__ProvinceClient<runtime.Types.Result.GetResult<Prisma.$ProvincePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  defaultArea<T extends Prisma.Location$defaultAreaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$defaultAreaArgs<ExtArgs>>): Prisma.Prisma__PickupDropoffAreaClient<runtime.Types.Result.GetResult<Prisma.$PickupDropoffAreaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  areaFilters<T extends Prisma.Location$areaFiltersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$areaFiltersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LocationAreaFilterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   departureRoutes<T extends Prisma.Location$departureRoutesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$departureRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoutePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   arrivalRoutes<T extends Prisma.Location$arrivalRoutesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$arrivalRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoutePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tripDepartureLocations<T extends Prisma.Location$tripDepartureLocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$tripDepartureLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tripArrivalLocations<T extends Prisma.Location$tripArrivalLocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$tripArrivalLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tripServicePoints<T extends Prisma.Location$tripServicePointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$tripServicePointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripServicePointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pickupBookings<T extends Prisma.Location$pickupBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$pickupBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  dropoffBookings<T extends Prisma.Location$dropoffBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Location$dropoffBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1059,9 +2659,15 @@ export interface Prisma__LocationClient<T, Null = never, ExtArgs extends runtime
 export interface LocationFieldRefs {
   readonly id: Prisma.FieldRef<"Location", 'String'>
   readonly name: Prisma.FieldRef<"Location", 'String'>
+  readonly normalizedName: Prisma.FieldRef<"Location", 'String'>
   readonly province: Prisma.FieldRef<"Location", 'String'>
+  readonly provinceId: Prisma.FieldRef<"Location", 'String'>
+  readonly defaultAreaId: Prisma.FieldRef<"Location", 'String'>
   readonly address: Prisma.FieldRef<"Location", 'String'>
+  readonly locationType: Prisma.FieldRef<"Location", 'String'>
+  readonly sortOrder: Prisma.FieldRef<"Location", 'Int'>
   readonly status: Prisma.FieldRef<"Location", 'RecordStatus'>
+  readonly isDeleted: Prisma.FieldRef<"Location", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Location", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Location", 'DateTime'>
 }
@@ -1318,6 +2924,10 @@ export type LocationCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    */
   data: Prisma.LocationCreateManyInput | Prisma.LocationCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1388,6 +2998,10 @@ export type LocationUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many Locations to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1457,6 +3071,68 @@ export type LocationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
+ * Location.provinceRef
+ */
+export type Location$provinceRefArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Province
+   */
+  select?: Prisma.ProvinceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Province
+   */
+  omit?: Prisma.ProvinceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProvinceInclude<ExtArgs> | null
+  where?: Prisma.ProvinceWhereInput
+}
+
+/**
+ * Location.defaultArea
+ */
+export type Location$defaultAreaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PickupDropoffArea
+   */
+  select?: Prisma.PickupDropoffAreaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PickupDropoffArea
+   */
+  omit?: Prisma.PickupDropoffAreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PickupDropoffAreaInclude<ExtArgs> | null
+  where?: Prisma.PickupDropoffAreaWhereInput
+}
+
+/**
+ * Location.areaFilters
+ */
+export type Location$areaFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LocationAreaFilter
+   */
+  select?: Prisma.LocationAreaFilterSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LocationAreaFilter
+   */
+  omit?: Prisma.LocationAreaFilterOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LocationAreaFilterInclude<ExtArgs> | null
+  where?: Prisma.LocationAreaFilterWhereInput
+  orderBy?: Prisma.LocationAreaFilterOrderByWithRelationInput | Prisma.LocationAreaFilterOrderByWithRelationInput[]
+  cursor?: Prisma.LocationAreaFilterWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LocationAreaFilterScalarFieldEnum | Prisma.LocationAreaFilterScalarFieldEnum[]
+}
+
+/**
  * Location.departureRoutes
  */
 export type Location$departureRoutesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1502,6 +3178,126 @@ export type Location$arrivalRoutesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.RouteScalarFieldEnum | Prisma.RouteScalarFieldEnum[]
+}
+
+/**
+ * Location.tripDepartureLocations
+ */
+export type Location$tripDepartureLocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trip
+   */
+  select?: Prisma.TripSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trip
+   */
+  omit?: Prisma.TripOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripInclude<ExtArgs> | null
+  where?: Prisma.TripWhereInput
+  orderBy?: Prisma.TripOrderByWithRelationInput | Prisma.TripOrderByWithRelationInput[]
+  cursor?: Prisma.TripWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TripScalarFieldEnum | Prisma.TripScalarFieldEnum[]
+}
+
+/**
+ * Location.tripArrivalLocations
+ */
+export type Location$tripArrivalLocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trip
+   */
+  select?: Prisma.TripSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trip
+   */
+  omit?: Prisma.TripOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripInclude<ExtArgs> | null
+  where?: Prisma.TripWhereInput
+  orderBy?: Prisma.TripOrderByWithRelationInput | Prisma.TripOrderByWithRelationInput[]
+  cursor?: Prisma.TripWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TripScalarFieldEnum | Prisma.TripScalarFieldEnum[]
+}
+
+/**
+ * Location.tripServicePoints
+ */
+export type Location$tripServicePointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TripServicePoint
+   */
+  select?: Prisma.TripServicePointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TripServicePoint
+   */
+  omit?: Prisma.TripServicePointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripServicePointInclude<ExtArgs> | null
+  where?: Prisma.TripServicePointWhereInput
+  orderBy?: Prisma.TripServicePointOrderByWithRelationInput | Prisma.TripServicePointOrderByWithRelationInput[]
+  cursor?: Prisma.TripServicePointWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TripServicePointScalarFieldEnum | Prisma.TripServicePointScalarFieldEnum[]
+}
+
+/**
+ * Location.pickupBookings
+ */
+export type Location$pickupBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Booking
+   */
+  select?: Prisma.BookingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Booking
+   */
+  omit?: Prisma.BookingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingInclude<ExtArgs> | null
+  where?: Prisma.BookingWhereInput
+  orderBy?: Prisma.BookingOrderByWithRelationInput | Prisma.BookingOrderByWithRelationInput[]
+  cursor?: Prisma.BookingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[]
+}
+
+/**
+ * Location.dropoffBookings
+ */
+export type Location$dropoffBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Booking
+   */
+  select?: Prisma.BookingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Booking
+   */
+  omit?: Prisma.BookingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingInclude<ExtArgs> | null
+  where?: Prisma.BookingWhereInput
+  orderBy?: Prisma.BookingOrderByWithRelationInput | Prisma.BookingOrderByWithRelationInput[]
+  cursor?: Prisma.BookingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[]
 }
 
 /**

@@ -3,6 +3,7 @@ import {
   changeTripStatus as changeTripStatusService,
   createTrip as createTripService,
   getTripById,
+  getTripSeatMap,
   getTripCompletionPreview,
   getTripPassengerList,
   getTrips,
@@ -26,6 +27,27 @@ const showTrip = async (request, response, next) => {
   try {
     const trip = await getTripById({ tripId: request.params.id, isAdmin: canManageTrips(request) })
     response.status(200).json({ success: true, message: 'Lấy chuyến xe thành công', data: { trip } })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const showTripSeatMap = async (
+  request,
+  response,
+  next,
+) => {
+  try {
+    const data =
+      await getTripSeatMap(
+        request.params.id,
+      )
+
+    response.status(200).json({
+      success: true,
+      message: 'Lấy sơ đồ ghế chuyến xe thành công',
+      data,
+    })
   } catch (error) {
     next(error)
   }
@@ -123,6 +145,7 @@ export {
   deleteTrip,
   listTrips,
   showTrip,
+  showTripSeatMap,
   showTripCompletionPreview,
   showTripPassengers,
   updateTrip,

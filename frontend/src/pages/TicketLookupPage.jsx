@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { LoadingState } from '../components/common/StatusState.jsx'
 import { useLocation } from 'react-router-dom'
+
+import './TicketLookupPage.css'
 
 import {
   cancelGuestBooking,
@@ -9,9 +12,10 @@ import { getApiErrorMessage } from '../services/apiClient.js'
 import formatCurrency from '../utils/formatCurrency.js'
 import { formatDateTime } from '../utils/formatDateTime.js'
 import {
+  formatBookingCode,
   formatPhoneInput,
   isVietnamesePhone,
-  normalizeBookingCode,
+  normalizeTicketLookupIdentifier,
   normalizePhone,
 } from '../utils/normalizers.js'
 import {
@@ -55,11 +59,9 @@ function TicketLookupPage() {
     setForm((current) => ({
       ...current,
       [name]:
-        name === 'bookingCode'
-          ? normalizeBookingCode(value)
-          : name === 'phone'
-            ? formatPhoneInput(value)
-            : value,
+        name === 'phone'
+          ? formatPhoneInput(value)
+          : value,
     }))
   }
 
@@ -68,7 +70,7 @@ function TicketLookupPage() {
 
     const booking = result.booking
     const message = [
-      `Bạn có chắc muốn hủy vé ${booking.bookingCode}?`,
+      `Bạn có chắc muốn hủy vé ${formatBookingCode(booking.bookingCode)}?`,
       `Chuyến: ${booking.trip.route.routeName}`,
       `Ghế: ${booking.seats.map((seat) => seat.seatCode).join(', ')}`,
       `Tổng tiền: ${formatCurrency(booking.totalAmount)}`,
@@ -126,10 +128,10 @@ function TicketLookupPage() {
     event.preventDefault()
     if (loading) return
 
-    const bookingCode = normalizeBookingCode(form.bookingCode)
+    const bookingCode = normalizeTicketLookupIdentifier(form.bookingCode)
     const phone = normalizePhone(form.phone)
-    if (!/^TN[A-F0-9]{16}$/.test(bookingCode)) {
-      setError('Mã đặt vé không đúng định dạng.')
+    if (!/^(?:\d{4}|TN\d{9}|TN[A-F0-9]{16})$/i.test(bookingCode)) {
+      setError('Mã vé hoặc mã giao dịch không đúng định dạng.')
       return
     }
     if (!isVietnamesePhone(phone)) {
@@ -156,22 +158,22 @@ function TicketLookupPage() {
         <div className="container">
           <span className="eyebrow eyebrow--light">THÔNG TIN CHUYẾN ĐI</span>
           <h1>Tra cứu vé</h1>
-          <p>Kiểm tra hành trình và trạng thái thanh toán bằng mã vé và số điện thoại.</p>
+          <p>Khách hàng tra cứu bằng mã vé hoặc mã giao dịch và số điện thoại đã đặt vé.</p>
         </div>
       </section>
 
       <div className="container lookup-content">
         <form className="lookup-form-card" onSubmit={submit}>
           <div>
-            <label className="form-label" htmlFor="lookupBookingCode">Mã đặt vé</label>
+            <label className="form-label" htmlFor="lookupBookingCode">Mã vé hoặc mã giao dịch</label>
             <input
               className="form-control"
               id="lookupBookingCode"
               name="bookingCode"
               value={form.bookingCode}
               onChange={update}
-              placeholder="Ví dụ: TNCCFD3AF347848E4A"
-              maxLength="18"
+              placeholder="Ví dụ: #1211 hoặc TN132321343"
+              maxLength="20"
               autoComplete="off"
               required
             />
@@ -200,19 +202,8 @@ function TicketLookupPage() {
         {error && <div className="alert alert-danger lookup-alert" role="alert">{error}</div>}
         {cancelNotice && <div className="alert alert-success lookup-alert" role="status">{cancelNotice}</div>}
 
-        {!hasSearched && !result && (
-          <div className="lookup-placeholder">
-            <span className="status-symbol status-symbol--muted">TN</span>
-            <h2>Sẵn sàng tra cứu</h2>
-            <p>Mã đặt vé và số điện thoại không được đưa lên địa chỉ trang.</p>
-          </div>
-        )}
-
         {loading && (
-          <div className="lookup-placeholder" role="status">
-            <span className="spinner-border text-primary" aria-hidden="true" />
-            <p>Đang tải trạng thái vé mới nhất...</p>
-          </div>
+          <LoadingState label="Đang tải trạng thái vé..." />
         )}
 
         {result && !loading && (
@@ -221,7 +212,7 @@ function TicketLookupPage() {
               <div>
                 <span className="eyebrow">KẾT QUẢ TRA CỨU</span>
                 <h2>{result.booking.trip.route.routeName}</h2>
-                <p>Mã đặt vé: <strong>{result.booking.bookingCode}</strong></p>
+                <p>Mã vé: <strong>{formatBookingCode(result.booking.bookingCode)}</strong></p>
               </div>
               <div className="lookup-statuses">
                 <span className={`status-badge status-badge--${result.booking.status.toLowerCase()}`}>

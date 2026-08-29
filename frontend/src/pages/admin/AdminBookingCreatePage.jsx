@@ -2,18 +2,23 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
+import BookingServicePointFields, {
+  createDefaultServiceSelection,
+  validateServiceSelection,
+} from '../../components/booking/BookingServicePointFields.jsx'
 import { ErrorState, LoadingState } from '../../components/common/StatusState.jsx'
 import RoomTypeDialog from '../../components/seats/RoomTypeDialog.jsx'
 import SeatMap from '../../components/seats/SeatMap.jsx'
 import { createManagedBooking } from '../../services/admin.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
-import { getTripDetail, getTripSeats } from '../../services/publicTrip.service.js'
+import { getTripDetail, getTripSeats, getTripServicePoints } from '../../services/publicTrip.service.js'
 import { saveBookingResult } from '../../utils/bookingSession.js'
 import { getSeatTypeLabel, isRoomBusType } from '../../utils/busTypes.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
 import { getPaymentOptionsForSource } from '../../utils/paymentLabels.js'
 import {
+  formatBookingCode,
   formatLicensePlate,
   formatPhoneInput,
   isValidFullName,
@@ -22,7 +27,6 @@ import {
   normalizeFullName,
   normalizeMultilineText,
   normalizePhone,
-  normalizeWhitespace,
 } from '../../utils/normalizers.js'
 
 const MAX_SELECTED = 6
@@ -44,11 +48,11 @@ function AdminBookingCreatePage({ source }) {
   const navigate = useNavigate()
   const [detail, setDetail] = useState(null)
   const [seatData, setSeatData] = useState(null)
+  const [servicePoints, setServicePoints] = useState(null)
+  const [serviceSelection, setServiceSelection] = useState(() => createDefaultServiceSelection())
   const [selected, setSelected] = useState(new Map())
   const [roomChoiceSeat, setRoomChoiceSeat] = useState(null)
   const [passenger, setPassenger] = useState({ fullName: '', phone: '', email: '' })
-  const [pickupPoint, setPickupPoint] = useState('')
-  const [dropoffPoint, setDropoffPoint] = useState('')
   const [customerNote, setCustomerNote] = useState('')
   const [staffNote, setStaffNote] = useState('')
   const [paymentMethod, setPaymentMethod] = useState(
@@ -62,12 +66,15 @@ function AdminBookingCreatePage({ source }) {
     setLoading(true)
     setError('')
     try {
-      const [tripDetail, seats] = await Promise.all([
+      const [tripDetail, seats, servicePointData] = await Promise.all([
         getTripDetail(tripId),
         getTripSeats(tripId),
+        getTripServicePoints(tripId),
       ])
       setDetail(tripDetail)
       setSeatData(seats)
+      setServicePoints(servicePointData)
+      setServiceSelection(createDefaultServiceSelection())
       setSelected(new Map())
       setRoomChoiceSeat(null)
     } catch (requestError) {
@@ -160,6 +167,15 @@ function AdminBookingCreatePage({ source }) {
       return
     }
 
+    const serviceValidationMessage = validateServiceSelection(
+      servicePoints,
+      serviceSelection,
+    )
+    if (serviceValidationMessage) {
+      setError(serviceValidationMessage)
+      return
+    }
+
     setSubmitting(true)
     setError('')
     try {
@@ -173,8 +189,14 @@ function AdminBookingCreatePage({ source }) {
           phone,
           email: email || undefined,
         },
-        pickupPoint: normalizeWhitespace(pickupPoint) || undefined,
-        dropoffPoint: normalizeWhitespace(dropoffPoint) || undefined,
+        pickupKind: serviceSelection.pickupKind,
+        dropoffKind: serviceSelection.dropoffKind,
+        pickupServicePointId: serviceSelection.pickupServicePointId || undefined,
+        dropoffServicePointId: serviceSelection.dropoffServicePointId || undefined,
+        pickupRequestedAddress:
+          serviceSelection.pickupRequestedAddress || undefined,
+        dropoffRequestedAddress:
+          serviceSelection.dropoffRequestedAddress || undefined,
         customerNote: customerNote.trim()
           ? normalizeMultilineText(customerNote.trim())
           : undefined,
@@ -185,8 +207,12 @@ function AdminBookingCreatePage({ source }) {
       })
       if (data.customerWarning) window.alert(data.customerWarning)
       saveBookingResult(data.booking)
-      navigate(`/dat-ve-thanh-cong/${data.booking.bookingCode}`, {
-        state: { booking: data.booking },
+      navigate('/admin/ve-xe', {
+        replace: true,
+        state: {
+          notice: `Đã tạo vé ${formatBookingCode(data.booking.bookingCode)} thành công.`,
+          bookingCode: data.booking.bookingCode,
+        },
       })
     } catch (requestError) {
       setError(getApiErrorMessage(requestError))
@@ -261,8 +287,14 @@ function AdminBookingCreatePage({ source }) {
             <label className="admin-field mb-3"><span>Họ và tên</span><input className="form-control" required minLength="2" maxLength="100" value={passenger.fullName} onChange={(event) => setPassenger((current) => ({ ...current, fullName: event.target.value }))} onBlur={(event) => setPassenger((current) => ({ ...current, fullName: normalizeFullName(event.target.value) }))} /></label>
             <label className="admin-field mb-3"><span>Số điện thoại</span><input className="form-control" required type="tel" maxLength="12" placeholder="0912 345 678" inputMode="tel" value={passenger.phone} onChange={(event) => setPassenger((current) => ({ ...current, phone: formatPhoneInput(event.target.value) }))} /></label>
             <label className="admin-field mb-3"><span>Email (không bắt buộc)</span><input className="form-control" type="email" maxLength="255" value={passenger.email} onChange={(event) => setPassenger((current) => ({ ...current, email: event.target.value }))} onBlur={(event) => setPassenger((current) => ({ ...current, email: normalizeEmail(event.target.value) }))} /></label>
-            <label className="admin-field mb-3"><span>Điểm đón chi tiết</span><input className="form-control" maxLength="300" placeholder="Địa chỉ hoặc điểm hẹn đón khách" value={pickupPoint} onChange={(event) => setPickupPoint(event.target.value)} /></label>
-            <label className="admin-field mb-3"><span>Điểm trả chi tiết</span><input className="form-control" maxLength="300" placeholder="Địa chỉ hoặc điểm trả khách" value={dropoffPoint} onChange={(event) => setDropoffPoint(event.target.value)} /></label>
+            <div className="mb-3">
+              <BookingServicePointFields
+                serviceData={servicePoints}
+                selection={serviceSelection}
+                onChange={setServiceSelection}
+                compact
+              />
+            </div>
             <label className="admin-field mb-3"><span>Ghi chú khách hàng</span><textarea className="form-control" rows="2" maxLength="500" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} /></label>
             <label className="admin-field mb-3"><span>Ghi chú nhân viên</span><textarea className="form-control" rows="3" maxLength="1000" value={staffNote} onChange={(event) => setStaffNote(event.target.value)} /></label>
             <label className="admin-field mb-3">

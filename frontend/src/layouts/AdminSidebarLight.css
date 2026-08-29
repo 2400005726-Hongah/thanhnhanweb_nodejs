@@ -1,0 +1,244 @@
+/* ==========================================================
+   BẢN THỬ SIDEBAR ADMIN SÁNG - NHÀ XE THÀNH NHÂN
+   Chỉ đổi AdminLayout: sidebar + topbar.
+   Nội dung các trang Admin giữ nguyên.
+   ========================================================== */
+
+.admin-shell {
+  --admin-light-red: #c50416;
+  --admin-light-red-soft: #f8e9eb;
+  --admin-light-sidebar: #f8f5f5;
+  --admin-light-border: #e5dada;
+  --admin-light-text: #2c2425;
+  --admin-light-muted: #806e70;
+}
+
+/* ===== SIDEBAR ===== */
+.admin-shell .admin-sidebar {
+  width: 215px !important;
+  background: var(--admin-light-sidebar) !important;
+  border-right: 1px solid var(--admin-light-border) !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-main {
+  margin-left: 215px !important;
+}
+
+/* Brand giống mẫu: logo nhỏ + tên hệ thống */
+.admin-shell .admin-sidebar .admin-brand {
+  width: auto !important;
+  min-height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--admin-light-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-sidebar .admin-brand:hover {
+  background: transparent !important;
+}
+
+.admin-shell .admin-sidebar .admin-brand .brand-logo,
+.admin-shell .admin-sidebar .admin-brand .brand-logo--header {
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  flex: 0 0 48px !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-sidebar .admin-brand .brand-logo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.admin-shell .admin-brand-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.admin-shell .admin-brand-copy strong {
+  color: #3a1014 !important;
+  font-size: 16px !important;
+  font-weight: 850 !important;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-brand-copy small {
+  color: #795e61 !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* Menu */
+.admin-shell .admin-sidebar nav {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  padding: 8px 9px !important;
+}
+
+.admin-shell .admin-nav-link {
+  min-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 8px 11px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  color: #4a3c3e !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-nav-link .admin-nav-icon {
+  width: 15px !important;
+  min-width: 15px !important;
+  height: 15px !important;
+  color: #704b50 !important;
+  fill: currentColor !important;
+}
+
+.admin-shell .admin-nav-link:hover {
+  color: var(--admin-light-red) !important;
+  background: #f1e8e9 !important;
+}
+
+.admin-shell .admin-nav-link:hover .admin-nav-icon {
+  color: var(--admin-light-red) !important;
+}
+
+.admin-shell .admin-nav-link.active {
+  color: #fff !important;
+  background: var(--admin-light-red) !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-nav-link.active .admin-nav-icon {
+  color: #fff !important;
+}
+
+/* Đăng xuất giống nút outline của mẫu */
+.admin-shell .admin-signout {
+  min-height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  margin: auto 9px 9px !important;
+  padding: 6px 9px !important;
+  border: 1px solid #d7c6c8 !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  color: #4c393c !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+}
+
+.admin-shell .admin-signout:hover {
+  border-color: var(--admin-light-red) !important;
+  background: #fff4f5 !important;
+  color: var(--admin-light-red) !important;
+}
+
+/* ===== TOPBAR ===== */
+.admin-shell .admin-topbar {
+  min-height: 52px !important;
+  margin: 0 !important;
+  padding: 7px 16px !important;
+  border-bottom: 1px solid #e8e2e3 !important;
+  background: #fbf9f9 !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-topbar::before {
+  display: none !important;
+}
+
+.admin-shell .admin-topbar-title h1 {
+  color: #2c2526 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell .admin-topbar > .admin-topbar-user {
+  gap: 7px !important;
+  padding: 0 !important;
+}
+
+.admin-shell .admin-topbar .admin-user-avatar {
+  width: 27px !important;
+  min-width: 27px !important;
+  height: 27px !important;
+  border: 1px solid #ead6d8 !important;
+  background: #fff !important;
+  color: var(--admin-light-red) !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta strong {
+  color: #2d2728 !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta small {
+  color: #846e71 !important;
+  font-size: 8px !important;
+}
+
+/* Content giữ nguyên, chỉ khớp lại chiều rộng sidebar */
+.admin-shell .admin-content {
+  background: #f4f5f7;
+}
+
+/* ===== MOBILE/TABLET ===== */
+@media (max-width: 991.98px) {
+  .admin-shell .admin-sidebar {
+    width: 215px !important;
+    transform: translateX(-100%);
+  }
+
+  .admin-shell.menu-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-shell .admin-main {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .admin-shell .admin-sidebar .admin-brand {
+    margin: 0 !important;
+    padding: 9px 11px !important;
+  }
+
+  .admin-shell .admin-topbar {
+    padding-inline: 10px !important;
+  }
+}

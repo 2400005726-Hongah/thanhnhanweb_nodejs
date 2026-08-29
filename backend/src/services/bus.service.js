@@ -2,15 +2,19 @@ import prisma from '../config/prisma.js'
 import {
   getBusCapacity,
   getBusSeatTemplate,
+  getBusTypeLabel,
   isManagedBusType,
 } from '../config/busCatalog.js'
 import HttpError from '../utils/HttpError.js'
-import { normalizeLicensePlate } from '../utils/normalize.js'
+import { formatLicensePlate, normalizeLicensePlate } from '../utils/normalize.js'
 import {
   buildPagination,
   normalizeText,
   parsePagination,
 } from '../utils/query.js'
+
+const buildSystemBusName = (busType, licensePlate) =>
+  `${getBusTypeLabel(busType)} - ${formatLicensePlate(licensePlate)}`
 
 const ensureBusHasNoFutureTrip = async (busId) => {
   const count = await prisma.trip.count({
@@ -76,9 +80,11 @@ const getBuses = async (query) => {
     const textKeyword = normalizeText(query.keyword)
     const plateKeyword = normalizeLicensePlate(query.keyword)
     where.OR = [
-      { busName: { contains: textKeyword, mode: 'insensitive' } },
       ...(plateKeyword
         ? [{ licensePlate: { contains: plateKeyword, mode: 'insensitive' } }]
+        : []),
+      ...(textKeyword
+        ? [{ busType: { contains: textKeyword, mode: 'insensitive' } }]
         : []),
     ]
   }
@@ -89,7 +95,7 @@ const getBuses = async (query) => {
       include: {
         seats: { orderBy: [{ floor: 'asc' }, { seatCode: 'asc' }] },
       },
-      orderBy: { busName: 'asc' },
+      orderBy: { licensePlate: 'asc' },
       skip,
       take: limit,
     }),
@@ -152,7 +158,9 @@ const createBus = async (payload) => {
 
     const bus = await transaction.bus.create({
       data: {
-        busName: normalizeText(payload.busName),
+        // busName được giữ lại trong DB chỉ để tương thích dữ liệu cũ.
+        // Người dùng không còn nhập tên xe; tên kỹ thuật được sinh tự động.
+        busName: buildSystemBusName(payload.busType, licensePlate),
         licensePlate,
         busType: payload.busType,
         capacity,
@@ -230,8 +238,8 @@ const updateBus = async (busId, payload) => {
     where: { id: busId },
     data: {
       licensePlate,
-      ...(payload.busName !== undefined && {
-        busName: normalizeText(payload.busName),
+      ...(payload.licensePlate !== undefined && {
+        busName: buildSystemBusName(bus.busType, licensePlate),
       }),
       ...(payload.capacity !== undefined && {
         capacity: Number(payload.capacity),

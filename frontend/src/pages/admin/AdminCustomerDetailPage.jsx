@@ -31,7 +31,8 @@ import {
 } from '../../utils/adminPermissions.js'
 import formatCurrency from '../../utils/formatCurrency.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
-import { formatLicensePlate, formatPhoneInput } from '../../utils/normalizers.js'
+import {
+  formatBookingCode, formatLicensePlate, formatPhoneInput } from '../../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
   getPaymentStatusLabel,
@@ -518,7 +519,7 @@ function AdminCustomerDetailPage() {
                     <tr key={booking.id}>
                       <td>
                         <strong>
-                          {booking.bookingCode}
+                          {formatBookingCode(booking.bookingCode)}
                         </strong>
 
                         {payment?.transactionCode && (

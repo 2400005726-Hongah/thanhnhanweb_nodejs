@@ -15,27 +15,28 @@ const requirePrice = (value, message) => {
 
 const resolveTripPricing = ({
   busType,
-  route,
+  route = {},
   ticketPrice,
   singleRoomPrice,
   doubleRoomPrice,
 }) => {
+  const routePricing = route || {}
   if (isRoomBusType(busType)) {
     const resolvedSingleRoomPrice = requirePrice(
       firstPrice(
         singleRoomPrice,
-        route.defaultSingleRoomPrice,
+        routePricing.defaultSingleRoomPrice,
         ticketPrice,
-        route.defaultTicketPrice,
+        routePricing.defaultTicketPrice,
       ),
       'Chưa cấu hình giá phòng đơn cho chuyến hoặc tuyến',
     )
     const resolvedDoubleRoomPrice = requirePrice(
       firstPrice(
         doubleRoomPrice,
-        route.defaultDoubleRoomPrice,
+        routePricing.defaultDoubleRoomPrice,
         ticketPrice,
-        route.defaultTicketPrice,
+        routePricing.defaultTicketPrice,
       ),
       'Chưa cấu hình giá phòng đôi cho chuyến hoặc tuyến',
     )
@@ -43,7 +44,7 @@ const resolveTripPricing = ({
     return {
       ticketPrice: firstPrice(
         ticketPrice,
-        route.defaultTicketPrice,
+        routePricing.defaultTicketPrice,
         resolvedSingleRoomPrice,
       ),
       singleRoomPrice: resolvedSingleRoomPrice,
@@ -53,7 +54,7 @@ const resolveTripPricing = ({
 
   return {
     ticketPrice: requirePrice(
-      firstPrice(ticketPrice, route.defaultTicketPrice),
+      firstPrice(ticketPrice, routePricing.defaultTicketPrice),
       'Chưa cấu hình giá vé cho chuyến hoặc tuyến',
     ),
     singleRoomPrice: null,

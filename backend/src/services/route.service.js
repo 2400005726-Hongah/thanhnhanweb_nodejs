@@ -289,10 +289,92 @@ const deactivateRoute = async (routeId, actor = null) => {
   return updatedRoute
 }
 
+const getRouteSummary = async () => {
+  const trips = await prisma.trip.findMany({
+    where: { status: { not: 'CANCELLED' } },
+    select: {
+      id: true,
+      status: true,
+      departureTime: true,
+      departureLocation: {
+        select: {
+          id: true,
+          name: true,
+          province: true,
+          provinceId: true,
+          provinceRef: { select: { id: true, name: true } },
+        },
+      },
+      arrivalLocation: {
+        select: {
+          id: true,
+          name: true,
+          province: true,
+          provinceId: true,
+          provinceRef: { select: { id: true, name: true } },
+        },
+      },
+      route: {
+        select: {
+          departureLocation: {
+            select: { id: true, name: true, province: true, provinceId: true },
+          },
+          arrivalLocation: {
+            select: { id: true, name: true, province: true, provinceId: true },
+          },
+        },
+      },
+    },
+    orderBy: { departureTime: 'desc' },
+  })
+
+  const grouped = new Map()
+  for (const trip of trips) {
+    const departure = trip.departureLocation || trip.route?.departureLocation
+    const arrival = trip.arrivalLocation || trip.route?.arrivalLocation
+    if (!departure || !arrival) continue
+
+    const key = `${departure.id}:${arrival.id}`
+    const current = grouped.get(key) || {
+      key,
+      departureLocation: departure,
+      arrivalLocation: arrival,
+      tripCount: 0,
+      openCount: 0,
+      closedCount: 0,
+      departedCount: 0,
+      completedCount: 0,
+      latestDepartureTime: null,
+    }
+
+    current.tripCount += 1
+    if (trip.status === 'OPEN') current.openCount += 1
+    if (trip.status === 'CLOSED') current.closedCount += 1
+    if (trip.status === 'DEPARTED') current.departedCount += 1
+    if (trip.status === 'COMPLETED') current.completedCount += 1
+    if (!current.latestDepartureTime || trip.departureTime > current.latestDepartureTime) {
+      current.latestDepartureTime = trip.departureTime
+    }
+    grouped.set(key, current)
+  }
+
+  const routes = [...grouped.values()].sort((left, right) => {
+    const departureCompare = left.departureLocation.name.localeCompare(
+      right.departureLocation.name,
+      'vi',
+    )
+    if (departureCompare !== 0) return departureCompare
+    return left.arrivalLocation.name.localeCompare(right.arrivalLocation.name, 'vi')
+  })
+
+  return { routes, total: routes.length }
+}
+
 export {
   createRoute,
   deactivateRoute,
   getRouteById,
+  getRouteSummary,
   getRoutes,
   updateRoute,
 }

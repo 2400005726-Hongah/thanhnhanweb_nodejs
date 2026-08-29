@@ -56,9 +56,9 @@ cd backend
 npm install
 ```
 
-Backend hiện có API từ Task 2 đến Task 10 và phân quyền ADMIN/STAFF tập trung. Sau khi cấu hình `backend/.env`, có thể chạy bằng `npm run dev`, kiểm thử bằng `npm test`, seed Chủ xe bằng `npm run seed:admin` và seed dữ liệu quản lý/chuyến tương lai bằng `npm run seed:data`.
+Backend hiện có API từ Task 2 đến Task 10 và phân quyền ADMIN/STAFF tập trung. Sau khi cấu hình `backend/.env`, có thể chạy bằng `npm run dev`, kiểm thử bằng `npm test`, seed Chủ xe bằng `npm run seed:admin` và dữ liệu tỉnh/bộ lọc/địa điểm/chuyến được tạo trực tiếp từ trang quản trị; `npm run seed:data` không còn tạo dữ liệu demo legacy.
 
-Seed dữ liệu hiện tạo 6 địa điểm, 10 tuyến, 8 xe và 12 chuyến mỗi ngày trong 30 ngày kế tiếp. Có thể chạy lại `npm run seed:data` định kỳ để nối dài lịch mẫu; không cần nhập từng chuyến bằng tay.
+`npm run seed:data` đã được chuyển thành lệnh thông báo an toàn và không ghi database. Dữ liệu vận hành mới phải đi theo thứ tự Tỉnh/Thành → Bộ lọc → Địa điểm cụ thể → Chuyến xe.
 
 ### Cài đặt và chạy frontend
 

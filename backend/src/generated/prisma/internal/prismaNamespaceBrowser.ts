@@ -53,11 +53,16 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Customer: 'Customer',
+  Province: 'Province',
+  PickupDropoffArea: 'PickupDropoffArea',
   Location: 'Location',
+  LocationAreaFilter: 'LocationAreaFilter',
   Route: 'Route',
+  RouteStop: 'RouteStop',
   Bus: 'Bus',
   Seat: 'Seat',
   Trip: 'Trip',
+  TripServicePoint: 'TripServicePoint',
   TripSeat: 'TripSeat',
   Booking: 'Booking',
   BookingItem: 'BookingItem',
@@ -85,6 +90,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   fullName: 'fullName',
+  username: 'username',
   email: 'email',
   phone: 'phone',
   passwordHash: 'passwordHash',
@@ -107,6 +113,7 @@ export const CustomerScalarFieldEnum = {
   blockedReason: 'blockedReason',
   blockedAt: 'blockedAt',
   blockedById: 'blockedById',
+  note: 'note',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -114,12 +121,45 @@ export const CustomerScalarFieldEnum = {
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
 
 
+export const ProvinceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProvinceScalarFieldEnum = (typeof ProvinceScalarFieldEnum)[keyof typeof ProvinceScalarFieldEnum]
+
+
+export const PickupDropoffAreaScalarFieldEnum = {
+  id: 'id',
+  provinceId: 'provinceId',
+  legacyRegion: 'legacyRegion',
+  name: 'name',
+  detailedAddress: 'detailedAddress',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  isDeleted: 'isDeleted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PickupDropoffAreaScalarFieldEnum = (typeof PickupDropoffAreaScalarFieldEnum)[keyof typeof PickupDropoffAreaScalarFieldEnum]
+
+
 export const LocationScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  normalizedName: 'normalizedName',
   province: 'province',
+  provinceId: 'provinceId',
+  defaultAreaId: 'defaultAreaId',
   address: 'address',
+  locationType: 'locationType',
+  sortOrder: 'sortOrder',
   status: 'status',
+  isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -127,9 +167,18 @@ export const LocationScalarFieldEnum = {
 export type LocationScalarFieldEnum = (typeof LocationScalarFieldEnum)[keyof typeof LocationScalarFieldEnum]
 
 
+export const LocationAreaFilterScalarFieldEnum = {
+  locationId: 'locationId',
+  areaId: 'areaId'
+} as const
+
+export type LocationAreaFilterScalarFieldEnum = (typeof LocationAreaFilterScalarFieldEnum)[keyof typeof LocationAreaFilterScalarFieldEnum]
+
+
 export const RouteScalarFieldEnum = {
   id: 'id',
   routeName: 'routeName',
+  description: 'description',
   departureLocationId: 'departureLocationId',
   arrivalLocationId: 'arrivalLocationId',
   distanceKm: 'distanceKm',
@@ -143,6 +192,20 @@ export const RouteScalarFieldEnum = {
 } as const
 
 export type RouteScalarFieldEnum = (typeof RouteScalarFieldEnum)[keyof typeof RouteScalarFieldEnum]
+
+
+export const RouteStopScalarFieldEnum = {
+  id: 'id',
+  routeId: 'routeId',
+  areaId: 'areaId',
+  pointType: 'pointType',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RouteStopScalarFieldEnum = (typeof RouteStopScalarFieldEnum)[keyof typeof RouteStopScalarFieldEnum]
 
 
 export const BusScalarFieldEnum = {
@@ -179,6 +242,17 @@ export const TripScalarFieldEnum = {
   busId: 'busId',
   departureTime: 'departureTime',
   expectedArrivalTime: 'expectedArrivalTime',
+  departureLocationId: 'departureLocationId',
+  arrivalLocationId: 'arrivalLocationId',
+  primaryPickupMode: 'primaryPickupMode',
+  primaryDropoffMode: 'primaryDropoffMode',
+  allowPickupTransfer: 'allowPickupTransfer',
+  allowPickupMeetingPoint: 'allowPickupMeetingPoint',
+  allowDropoffTransfer: 'allowDropoffTransfer',
+  allowDropoffStop: 'allowDropoffStop',
+  salesStatus: 'salesStatus',
+  operationStatus: 'operationStatus',
+  completedAt: 'completedAt',
   ticketPrice: 'ticketPrice',
   singleRoomPrice: 'singleRoomPrice',
   doubleRoomPrice: 'doubleRoomPrice',
@@ -189,6 +263,24 @@ export const TripScalarFieldEnum = {
 } as const
 
 export type TripScalarFieldEnum = (typeof TripScalarFieldEnum)[keyof typeof TripScalarFieldEnum]
+
+
+export const TripServicePointScalarFieldEnum = {
+  id: 'id',
+  tripId: 'tripId',
+  locationId: 'locationId',
+  pointType: 'pointType',
+  serviceMode: 'serviceMode',
+  estimatedMinutes: 'estimatedMinutes',
+  estimatedTime: 'estimatedTime',
+  isDefault: 'isDefault',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TripServicePointScalarFieldEnum = (typeof TripServicePointScalarFieldEnum)[keyof typeof TripServicePointScalarFieldEnum]
 
 
 export const TripSeatScalarFieldEnum = {
@@ -223,6 +315,18 @@ export const BookingScalarFieldEnum = {
   staffNote: 'staffNote',
   pickupPoint: 'pickupPoint',
   dropoffPoint: 'dropoffPoint',
+  pickupLocationId: 'pickupLocationId',
+  dropoffLocationId: 'dropoffLocationId',
+  pickupServicePointId: 'pickupServicePointId',
+  dropoffServicePointId: 'dropoffServicePointId',
+  pickupServiceMode: 'pickupServiceMode',
+  dropoffServiceMode: 'dropoffServiceMode',
+  pickupKind: 'pickupKind',
+  dropoffKind: 'dropoffKind',
+  pickupRequestedAddress: 'pickupRequestedAddress',
+  dropoffRequestedAddress: 'dropoffRequestedAddress',
+  smsSent: 'smsSent',
+  smsSentAt: 'smsSentAt',
   totalAmount: 'totalAmount',
   status: 'status',
   paymentStatus: 'paymentStatus',
@@ -284,7 +388,9 @@ export const NewsScalarFieldEnum = {
   createdById: 'createdById',
   updatedById: 'updatedById',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  viewCount: 'viewCount',
+  deletedAt: 'deletedAt'
 } as const
 
 export type NewsScalarFieldEnum = (typeof NewsScalarFieldEnum)[keyof typeof NewsScalarFieldEnum]

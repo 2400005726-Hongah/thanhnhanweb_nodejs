@@ -1,4 +1,3 @@
-import env from '../config/env.js'
 import prisma from '../config/prisma.js'
 import HttpError from '../utils/HttpError.js'
 import {
@@ -8,7 +7,7 @@ import {
 } from '../utils/normalize.js'
 import { writeAuditLog } from './auditLog.service.js'
 
-const CANCELLABLE_BOOKING_STATUSES = ['PENDING', 'CONFIRMED']
+const CANCELLABLE_BOOKING_STATUSES = ['CONFIRMED']
 const TRANSACTION_OPTIONS = {
   isolationLevel: 'Serializable',
   maxWait: 5000,
@@ -41,14 +40,10 @@ const toSafeNumber = (value, fieldName) => {
 
 const getCancellationState = (booking, now = new Date()) => {
   const departureTime = new Date(booking.trip.departureTime)
-  const cancelDeadline = new Date(
-    departureTime.getTime() -
-      env.bookingCancelBeforeMinutes * 60 * 1000,
-  )
+  const cancelDeadline = departureTime
   const canCancel =
     CANCELLABLE_BOOKING_STATUSES.includes(booking.status) &&
-    departureTime > now &&
-    now <= cancelDeadline
+    departureTime > now
 
   return { canCancel, cancelDeadline }
 }
@@ -118,13 +113,9 @@ const ensureBookingCanBeCancelled = (booking, now) => {
 
   const departureTime = new Date(booking.trip.departureTime)
   if (departureTime <= now) {
-    throw new HttpError('Không thể hủy vé sau khi chuyến đã khởi hành', 409)
+    throw new HttpError('Chuyến đã xuất bến. Hãy dùng chức năng Khách không đi.', 409)
   }
 
-  const { cancelDeadline } = getCancellationState(booking, now)
-  if (now > cancelDeadline) {
-    throw new HttpError('Đã quá thời hạn cho phép hủy vé', 409)
-  }
 }
 
 const runCancellationTransaction = ({

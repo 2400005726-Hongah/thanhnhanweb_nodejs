@@ -6,6 +6,12 @@ const tripId = randomUUID()
 const routeId = randomUUID()
 const busId = randomUUID()
 const otherBusId = randomUUID()
+const departureLocationId = randomUUID()
+const arrivalLocationId = randomUUID()
+const departureProvinceId = randomUUID()
+const arrivalProvinceId = randomUUID()
+const departureAreaId = randomUUID()
+const arrivalAreaId = randomUUID()
 const trip = {
   id: tripId,
   routeId,
@@ -16,6 +22,8 @@ const trip = {
   singleRoomPrice: null,
   doubleRoomPrice: null,
   status: 'OPEN',
+  departureLocationId,
+  arrivalLocationId,
 }
 
 let protectedSeatCount
@@ -35,8 +43,16 @@ const transaction = {
     findFirst: jest.fn(async () => ({
       id: routeId,
       status: 'ACTIVE',
+      departureLocationId,
+      arrivalLocationId,
       defaultTicketPrice: 240000,
     })),
+  },
+  location: {
+    findMany: jest.fn(async () => [
+      { id: departureLocationId, provinceId: departureProvinceId, defaultAreaId: departureAreaId, name: 'Điểm đi', locationType: 'BOTH', status: 'ACTIVE' },
+      { id: arrivalLocationId, provinceId: arrivalProvinceId, defaultAreaId: arrivalAreaId, name: 'Điểm đến', locationType: 'BOTH', status: 'ACTIVE' },
+    ]),
   },
   bus: {
     findFirst: jest.fn(async ({ where }) => ({

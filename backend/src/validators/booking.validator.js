@@ -15,6 +15,7 @@ import {
   normalizeWhitespace,
 } from '../utils/normalize.js'
 import { BOOKING_CODE_PATTERN } from './payment.validator.js'
+import { DROPOFF_KINDS, PICKUP_KINDS } from '../config/servicePointCatalog.js'
 
 const MAX_SEATS_PER_BOOKING = 6
 const HOLD_TOKEN_PATTERN = /^[a-f0-9]{64}$/i
@@ -55,6 +56,12 @@ const holdSeatsValidator = [
     .custom((values) => new Set(values).size === values.length)
     .withMessage('Danh sách ghế không được chứa ID trùng nhau'),
   body('tripSeatIds.*').isUUID().withMessage('ID ghế không hợp lệ'),
+  body('holdToken')
+    .optional()
+    .isString()
+    .withMessage('Mã giữ ghế không hợp lệ')
+    .matches(HOLD_TOKEN_PATTERN)
+    .withMessage('Mã giữ ghế không hợp lệ'),
   ...roomSelectionsRules,
   body('totalAmount')
     .not()
@@ -102,6 +109,38 @@ const passengerRules = ({ emailRequired }) => [
         .withMessage('Email không được vượt quá 255 ký tự'),
 ]
 
+
+const bookingServicePointRules = [
+  body('pickupKind')
+    .optional()
+    .isIn(Object.values(PICKUP_KINDS))
+    .withMessage('Phương án đón khách không hợp lệ'),
+  body('dropoffKind')
+    .optional()
+    .isIn(Object.values(DROPOFF_KINDS))
+    .withMessage('Phương án trả khách không hợp lệ'),
+  body('pickupServicePointId')
+    .optional({ values: 'falsy' })
+    .isUUID()
+    .withMessage('Điểm hẹn đón khách không hợp lệ'),
+  body('dropoffServicePointId')
+    .optional({ values: 'falsy' })
+    .isUUID()
+    .withMessage('Điểm dừng trả khách không hợp lệ'),
+  body('pickupRequestedAddress')
+    .optional({ values: 'falsy' })
+    .isString()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 500 })
+    .withMessage('Địa chỉ đón không được vượt quá 500 ký tự'),
+  body('dropoffRequestedAddress')
+    .optional({ values: 'falsy' })
+    .isString()
+    .customSanitizer(normalizeWhitespace)
+    .isLength({ max: 500 })
+    .withMessage('Địa chỉ trả không được vượt quá 500 ký tự'),
+]
+
 const bookingTextRules = [
   body('pickupPoint')
     .optional({ values: 'falsy' })
@@ -129,6 +168,7 @@ const createBookingValidator = [
   ...roomSelectionsRules,
   ...passengerRules({ emailRequired: true }),
   ...bookingTextRules,
+  ...bookingServicePointRules,
   body('paymentMethod')
     .isIn(SOURCE_PAYMENT_METHODS.ONLINE)
     .withMessage('Phương thức thanh toán trực tuyến không hợp lệ'),
@@ -144,6 +184,10 @@ const createBookingValidator = [
     'deletedReason',
     'deletedAt',
     'deletedById',
+    'pickupLocationId',
+    'dropoffLocationId',
+    'pickupServiceMode',
+    'dropoffServiceMode',
   ].map((field) =>
     body(field)
       .not()
@@ -166,6 +210,7 @@ const createManagedBookingValidator = [
     .withMessage('Nguồn đặt vé quản trị phải là Hotline hoặc Tại quầy'),
   ...passengerRules({ emailRequired: false }),
   ...bookingTextRules,
+  ...bookingServicePointRules,
   body('staffNote')
     .optional({ values: 'falsy' })
     .isString()
@@ -190,6 +235,10 @@ const createManagedBookingValidator = [
     'deletedReason',
     'deletedAt',
     'deletedById',
+    'pickupLocationId',
+    'dropoffLocationId',
+    'pickupServiceMode',
+    'dropoffServiceMode',
   ].map((field) =>
     body(field)
       .not()

@@ -163,7 +163,7 @@ describe('Simulated payment transaction service', () => {
     expect(result.payment.amount).toBe(320000)
     expect(result.payment.paymentMethod).toBe('SIMULATED')
     expect(result.payment.status).toBe('SUCCESS')
-    expect(result.payment.transactionCode).toMatch(/^PAY[A-F0-9]{20}$/)
+    expect(result.payment.transactionCode).toMatch(/^TN\d{9}$/)
     expect(result.payment.paidAt).toBeInstanceOf(Date)
     expect(payments).toHaveLength(1)
     expect(transaction.$queryRaw).toHaveBeenCalled()

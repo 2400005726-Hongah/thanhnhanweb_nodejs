@@ -45,6 +45,7 @@ export type RouteSumAggregateOutputType = {
 export type RouteMinAggregateOutputType = {
   id: string | null
   routeName: string | null
+  description: string | null
   departureLocationId: string | null
   arrivalLocationId: string | null
   distanceKm: runtime.Decimal | null
@@ -60,6 +61,7 @@ export type RouteMinAggregateOutputType = {
 export type RouteMaxAggregateOutputType = {
   id: string | null
   routeName: string | null
+  description: string | null
   departureLocationId: string | null
   arrivalLocationId: string | null
   distanceKm: runtime.Decimal | null
@@ -75,6 +77,7 @@ export type RouteMaxAggregateOutputType = {
 export type RouteCountAggregateOutputType = {
   id: number
   routeName: number
+  description: number
   departureLocationId: number
   arrivalLocationId: number
   distanceKm: number
@@ -108,6 +111,7 @@ export type RouteSumAggregateInputType = {
 export type RouteMinAggregateInputType = {
   id?: true
   routeName?: true
+  description?: true
   departureLocationId?: true
   arrivalLocationId?: true
   distanceKm?: true
@@ -123,6 +127,7 @@ export type RouteMinAggregateInputType = {
 export type RouteMaxAggregateInputType = {
   id?: true
   routeName?: true
+  description?: true
   departureLocationId?: true
   arrivalLocationId?: true
   distanceKm?: true
@@ -138,6 +143,7 @@ export type RouteMaxAggregateInputType = {
 export type RouteCountAggregateInputType = {
   id?: true
   routeName?: true
+  description?: true
   departureLocationId?: true
   arrivalLocationId?: true
   distanceKm?: true
@@ -240,6 +246,7 @@ export type RouteGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type RouteGroupByOutputType = {
   id: string
   routeName: string
+  description: string | null
   departureLocationId: string
   arrivalLocationId: string
   distanceKm: runtime.Decimal
@@ -278,6 +285,7 @@ export type RouteWhereInput = {
   NOT?: Prisma.RouteWhereInput | Prisma.RouteWhereInput[]
   id?: Prisma.UuidFilter<"Route"> | string
   routeName?: Prisma.StringFilter<"Route"> | string
+  description?: Prisma.StringNullableFilter<"Route"> | string | null
   departureLocationId?: Prisma.UuidFilter<"Route"> | string
   arrivalLocationId?: Prisma.UuidFilter<"Route"> | string
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -291,11 +299,13 @@ export type RouteWhereInput = {
   departureLocation?: Prisma.XOR<Prisma.LocationScalarRelationFilter, Prisma.LocationWhereInput>
   arrivalLocation?: Prisma.XOR<Prisma.LocationScalarRelationFilter, Prisma.LocationWhereInput>
   trips?: Prisma.TripListRelationFilter
+  routeStops?: Prisma.RouteStopListRelationFilter
 }
 
 export type RouteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   routeName?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   departureLocationId?: Prisma.SortOrder
   arrivalLocationId?: Prisma.SortOrder
   distanceKm?: Prisma.SortOrder
@@ -309,6 +319,7 @@ export type RouteOrderByWithRelationInput = {
   departureLocation?: Prisma.LocationOrderByWithRelationInput
   arrivalLocation?: Prisma.LocationOrderByWithRelationInput
   trips?: Prisma.TripOrderByRelationAggregateInput
+  routeStops?: Prisma.RouteStopOrderByRelationAggregateInput
 }
 
 export type RouteWhereUniqueInput = Prisma.AtLeast<{
@@ -318,6 +329,7 @@ export type RouteWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RouteWhereInput[]
   NOT?: Prisma.RouteWhereInput | Prisma.RouteWhereInput[]
   routeName?: Prisma.StringFilter<"Route"> | string
+  description?: Prisma.StringNullableFilter<"Route"> | string | null
   departureLocationId?: Prisma.UuidFilter<"Route"> | string
   arrivalLocationId?: Prisma.UuidFilter<"Route"> | string
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -331,11 +343,13 @@ export type RouteWhereUniqueInput = Prisma.AtLeast<{
   departureLocation?: Prisma.XOR<Prisma.LocationScalarRelationFilter, Prisma.LocationWhereInput>
   arrivalLocation?: Prisma.XOR<Prisma.LocationScalarRelationFilter, Prisma.LocationWhereInput>
   trips?: Prisma.TripListRelationFilter
+  routeStops?: Prisma.RouteStopListRelationFilter
 }, "id" | "departureLocationId_arrivalLocationId">
 
 export type RouteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   routeName?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   departureLocationId?: Prisma.SortOrder
   arrivalLocationId?: Prisma.SortOrder
   distanceKm?: Prisma.SortOrder
@@ -359,6 +373,7 @@ export type RouteScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RouteScalarWhereWithAggregatesInput | Prisma.RouteScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Route"> | string
   routeName?: Prisma.StringWithAggregatesFilter<"Route"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Route"> | string | null
   departureLocationId?: Prisma.UuidWithAggregatesFilter<"Route"> | string
   arrivalLocationId?: Prisma.UuidWithAggregatesFilter<"Route"> | string
   distanceKm?: Prisma.DecimalWithAggregatesFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -374,6 +389,7 @@ export type RouteScalarWhereWithAggregatesInput = {
 export type RouteCreateInput = {
   id?: string
   routeName: string
+  description?: string | null
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -385,11 +401,13 @@ export type RouteCreateInput = {
   departureLocation: Prisma.LocationCreateNestedOneWithoutDepartureRoutesInput
   arrivalLocation: Prisma.LocationCreateNestedOneWithoutArrivalRoutesInput
   trips?: Prisma.TripCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopCreateNestedManyWithoutRouteInput
 }
 
 export type RouteUncheckedCreateInput = {
   id?: string
   routeName: string
+  description?: string | null
   departureLocationId: string
   arrivalLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -401,11 +419,13 @@ export type RouteUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trips?: Prisma.TripUncheckedCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopUncheckedCreateNestedManyWithoutRouteInput
 }
 
 export type RouteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -417,11 +437,13 @@ export type RouteUpdateInput = {
   departureLocation?: Prisma.LocationUpdateOneRequiredWithoutDepartureRoutesNestedInput
   arrivalLocation?: Prisma.LocationUpdateOneRequiredWithoutArrivalRoutesNestedInput
   trips?: Prisma.TripUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -433,11 +455,13 @@ export type RouteUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trips?: Prisma.TripUncheckedUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUncheckedUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteCreateManyInput = {
   id?: string
   routeName: string
+  description?: string | null
   departureLocationId: string
   arrivalLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -453,6 +477,7 @@ export type RouteCreateManyInput = {
 export type RouteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -466,6 +491,7 @@ export type RouteUpdateManyMutationInput = {
 export type RouteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -496,6 +522,7 @@ export type RouteDepartureLocationIdArrivalLocationIdCompoundUniqueInput = {
 export type RouteCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   routeName?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   departureLocationId?: Prisma.SortOrder
   arrivalLocationId?: Prisma.SortOrder
   distanceKm?: Prisma.SortOrder
@@ -519,6 +546,7 @@ export type RouteAvgOrderByAggregateInput = {
 export type RouteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   routeName?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   departureLocationId?: Prisma.SortOrder
   arrivalLocationId?: Prisma.SortOrder
   distanceKm?: Prisma.SortOrder
@@ -534,6 +562,7 @@ export type RouteMaxOrderByAggregateInput = {
 export type RouteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   routeName?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   departureLocationId?: Prisma.SortOrder
   arrivalLocationId?: Prisma.SortOrder
   distanceKm?: Prisma.SortOrder
@@ -557,6 +586,11 @@ export type RouteSumOrderByAggregateInput = {
 export type RouteScalarRelationFilter = {
   is?: Prisma.RouteWhereInput
   isNot?: Prisma.RouteWhereInput
+}
+
+export type RouteNullableScalarRelationFilter = {
+  is?: Prisma.RouteWhereInput | null
+  isNot?: Prisma.RouteWhereInput | null
 }
 
 export type RouteCreateNestedManyWithoutDepartureLocationInput = {
@@ -651,14 +685,6 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type NullableDecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -667,16 +693,32 @@ export type NullableDecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type RouteCreateNestedOneWithoutRouteStopsInput = {
+  create?: Prisma.XOR<Prisma.RouteCreateWithoutRouteStopsInput, Prisma.RouteUncheckedCreateWithoutRouteStopsInput>
+  connectOrCreate?: Prisma.RouteCreateOrConnectWithoutRouteStopsInput
+  connect?: Prisma.RouteWhereUniqueInput
+}
+
+export type RouteUpdateOneRequiredWithoutRouteStopsNestedInput = {
+  create?: Prisma.XOR<Prisma.RouteCreateWithoutRouteStopsInput, Prisma.RouteUncheckedCreateWithoutRouteStopsInput>
+  connectOrCreate?: Prisma.RouteCreateOrConnectWithoutRouteStopsInput
+  upsert?: Prisma.RouteUpsertWithoutRouteStopsInput
+  connect?: Prisma.RouteWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RouteUpdateToOneWithWhereWithoutRouteStopsInput, Prisma.RouteUpdateWithoutRouteStopsInput>, Prisma.RouteUncheckedUpdateWithoutRouteStopsInput>
+}
+
 export type RouteCreateNestedOneWithoutTripsInput = {
   create?: Prisma.XOR<Prisma.RouteCreateWithoutTripsInput, Prisma.RouteUncheckedCreateWithoutTripsInput>
   connectOrCreate?: Prisma.RouteCreateOrConnectWithoutTripsInput
   connect?: Prisma.RouteWhereUniqueInput
 }
 
-export type RouteUpdateOneRequiredWithoutTripsNestedInput = {
+export type RouteUpdateOneWithoutTripsNestedInput = {
   create?: Prisma.XOR<Prisma.RouteCreateWithoutTripsInput, Prisma.RouteUncheckedCreateWithoutTripsInput>
   connectOrCreate?: Prisma.RouteCreateOrConnectWithoutTripsInput
   upsert?: Prisma.RouteUpsertWithoutTripsInput
+  disconnect?: Prisma.RouteWhereInput | boolean
+  delete?: Prisma.RouteWhereInput | boolean
   connect?: Prisma.RouteWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.RouteUpdateToOneWithWhereWithoutTripsInput, Prisma.RouteUpdateWithoutTripsInput>, Prisma.RouteUncheckedUpdateWithoutTripsInput>
 }
@@ -684,6 +726,7 @@ export type RouteUpdateOneRequiredWithoutTripsNestedInput = {
 export type RouteCreateWithoutDepartureLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -694,11 +737,13 @@ export type RouteCreateWithoutDepartureLocationInput = {
   updatedAt?: Date | string
   arrivalLocation: Prisma.LocationCreateNestedOneWithoutArrivalRoutesInput
   trips?: Prisma.TripCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopCreateNestedManyWithoutRouteInput
 }
 
 export type RouteUncheckedCreateWithoutDepartureLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   arrivalLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
@@ -709,6 +754,7 @@ export type RouteUncheckedCreateWithoutDepartureLocationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trips?: Prisma.TripUncheckedCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopUncheckedCreateNestedManyWithoutRouteInput
 }
 
 export type RouteCreateOrConnectWithoutDepartureLocationInput = {
@@ -724,6 +770,7 @@ export type RouteCreateManyDepartureLocationInputEnvelope = {
 export type RouteCreateWithoutArrivalLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -734,11 +781,13 @@ export type RouteCreateWithoutArrivalLocationInput = {
   updatedAt?: Date | string
   departureLocation: Prisma.LocationCreateNestedOneWithoutDepartureRoutesInput
   trips?: Prisma.TripCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopCreateNestedManyWithoutRouteInput
 }
 
 export type RouteUncheckedCreateWithoutArrivalLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   departureLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
@@ -749,6 +798,7 @@ export type RouteUncheckedCreateWithoutArrivalLocationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trips?: Prisma.TripUncheckedCreateNestedManyWithoutRouteInput
+  routeStops?: Prisma.RouteStopUncheckedCreateNestedManyWithoutRouteInput
 }
 
 export type RouteCreateOrConnectWithoutArrivalLocationInput = {
@@ -783,6 +833,7 @@ export type RouteScalarWhereInput = {
   NOT?: Prisma.RouteScalarWhereInput | Prisma.RouteScalarWhereInput[]
   id?: Prisma.UuidFilter<"Route"> | string
   routeName?: Prisma.StringFilter<"Route"> | string
+  description?: Prisma.StringNullableFilter<"Route"> | string | null
   departureLocationId?: Prisma.UuidFilter<"Route"> | string
   arrivalLocationId?: Prisma.UuidFilter<"Route"> | string
   distanceKm?: Prisma.DecimalFilter<"Route"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -811,9 +862,10 @@ export type RouteUpdateManyWithWhereWithoutArrivalLocationInput = {
   data: Prisma.XOR<Prisma.RouteUpdateManyMutationInput, Prisma.RouteUncheckedUpdateManyWithoutArrivalLocationInput>
 }
 
-export type RouteCreateWithoutTripsInput = {
+export type RouteCreateWithoutRouteStopsInput = {
   id?: string
   routeName: string
+  description?: string | null
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
   defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -824,11 +876,13 @@ export type RouteCreateWithoutTripsInput = {
   updatedAt?: Date | string
   departureLocation: Prisma.LocationCreateNestedOneWithoutDepartureRoutesInput
   arrivalLocation: Prisma.LocationCreateNestedOneWithoutArrivalRoutesInput
+  trips?: Prisma.TripCreateNestedManyWithoutRouteInput
 }
 
-export type RouteUncheckedCreateWithoutTripsInput = {
+export type RouteUncheckedCreateWithoutRouteStopsInput = {
   id?: string
   routeName: string
+  description?: string | null
   departureLocationId: string
   arrivalLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -839,6 +893,91 @@ export type RouteUncheckedCreateWithoutTripsInput = {
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutRouteInput
+}
+
+export type RouteCreateOrConnectWithoutRouteStopsInput = {
+  where: Prisma.RouteWhereUniqueInput
+  create: Prisma.XOR<Prisma.RouteCreateWithoutRouteStopsInput, Prisma.RouteUncheckedCreateWithoutRouteStopsInput>
+}
+
+export type RouteUpsertWithoutRouteStopsInput = {
+  update: Prisma.XOR<Prisma.RouteUpdateWithoutRouteStopsInput, Prisma.RouteUncheckedUpdateWithoutRouteStopsInput>
+  create: Prisma.XOR<Prisma.RouteCreateWithoutRouteStopsInput, Prisma.RouteUncheckedCreateWithoutRouteStopsInput>
+  where?: Prisma.RouteWhereInput
+}
+
+export type RouteUpdateToOneWithWhereWithoutRouteStopsInput = {
+  where?: Prisma.RouteWhereInput
+  data: Prisma.XOR<Prisma.RouteUpdateWithoutRouteStopsInput, Prisma.RouteUncheckedUpdateWithoutRouteStopsInput>
+}
+
+export type RouteUpdateWithoutRouteStopsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  departureLocation?: Prisma.LocationUpdateOneRequiredWithoutDepartureRoutesNestedInput
+  arrivalLocation?: Prisma.LocationUpdateOneRequiredWithoutArrivalRoutesNestedInput
+  trips?: Prisma.TripUpdateManyWithoutRouteNestedInput
+}
+
+export type RouteUncheckedUpdateWithoutRouteStopsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
+  arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
+  distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  trips?: Prisma.TripUncheckedUpdateManyWithoutRouteNestedInput
+}
+
+export type RouteCreateWithoutTripsInput = {
+  id?: string
+  routeName: string
+  description?: string | null
+  distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
+  estimatedDurationMinutes: number
+  defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.RecordStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  departureLocation: Prisma.LocationCreateNestedOneWithoutDepartureRoutesInput
+  arrivalLocation: Prisma.LocationCreateNestedOneWithoutArrivalRoutesInput
+  routeStops?: Prisma.RouteStopCreateNestedManyWithoutRouteInput
+}
+
+export type RouteUncheckedCreateWithoutTripsInput = {
+  id?: string
+  routeName: string
+  description?: string | null
+  departureLocationId: string
+  arrivalLocationId: string
+  distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
+  estimatedDurationMinutes: number
+  defaultTicketPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultSingleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  defaultDoubleRoomPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  status?: $Enums.RecordStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  routeStops?: Prisma.RouteStopUncheckedCreateNestedManyWithoutRouteInput
 }
 
 export type RouteCreateOrConnectWithoutTripsInput = {
@@ -860,6 +999,7 @@ export type RouteUpdateToOneWithWhereWithoutTripsInput = {
 export type RouteUpdateWithoutTripsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -870,11 +1010,13 @@ export type RouteUpdateWithoutTripsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   departureLocation?: Prisma.LocationUpdateOneRequiredWithoutDepartureRoutesNestedInput
   arrivalLocation?: Prisma.LocationUpdateOneRequiredWithoutArrivalRoutesNestedInput
+  routeStops?: Prisma.RouteStopUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateWithoutTripsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -885,11 +1027,13 @@ export type RouteUncheckedUpdateWithoutTripsInput = {
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  routeStops?: Prisma.RouteStopUncheckedUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteCreateManyDepartureLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   arrivalLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
@@ -904,6 +1048,7 @@ export type RouteCreateManyDepartureLocationInput = {
 export type RouteCreateManyArrivalLocationInput = {
   id?: string
   routeName: string
+  description?: string | null
   departureLocationId: string
   distanceKm: runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes: number
@@ -918,6 +1063,7 @@ export type RouteCreateManyArrivalLocationInput = {
 export type RouteUpdateWithoutDepartureLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -928,11 +1074,13 @@ export type RouteUpdateWithoutDepartureLocationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   arrivalLocation?: Prisma.LocationUpdateOneRequiredWithoutArrivalRoutesNestedInput
   trips?: Prisma.TripUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateWithoutDepartureLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -943,11 +1091,13 @@ export type RouteUncheckedUpdateWithoutDepartureLocationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trips?: Prisma.TripUncheckedUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUncheckedUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateManyWithoutDepartureLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   arrivalLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -962,6 +1112,7 @@ export type RouteUncheckedUpdateManyWithoutDepartureLocationInput = {
 export type RouteUpdateWithoutArrivalLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   defaultTicketPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -972,11 +1123,13 @@ export type RouteUpdateWithoutArrivalLocationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   departureLocation?: Prisma.LocationUpdateOneRequiredWithoutDepartureRoutesNestedInput
   trips?: Prisma.TripUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateWithoutArrivalLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -987,11 +1140,13 @@ export type RouteUncheckedUpdateWithoutArrivalLocationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trips?: Prisma.TripUncheckedUpdateManyWithoutRouteNestedInput
+  routeStops?: Prisma.RouteStopUncheckedUpdateManyWithoutRouteNestedInput
 }
 
 export type RouteUncheckedUpdateManyWithoutArrivalLocationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   routeName?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departureLocationId?: Prisma.StringFieldUpdateOperationsInput | string
   distanceKm?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   estimatedDurationMinutes?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1010,10 +1165,12 @@ export type RouteUncheckedUpdateManyWithoutArrivalLocationInput = {
 
 export type RouteCountOutputType = {
   trips: number
+  routeStops: number
 }
 
 export type RouteCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   trips?: boolean | RouteCountOutputTypeCountTripsArgs
+  routeStops?: boolean | RouteCountOutputTypeCountRouteStopsArgs
 }
 
 /**
@@ -1033,10 +1190,18 @@ export type RouteCountOutputTypeCountTripsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.TripWhereInput
 }
 
+/**
+ * RouteCountOutputType without action
+ */
+export type RouteCountOutputTypeCountRouteStopsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RouteStopWhereInput
+}
+
 
 export type RouteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   routeName?: boolean
+  description?: boolean
   departureLocationId?: boolean
   arrivalLocationId?: boolean
   distanceKm?: boolean
@@ -1050,12 +1215,14 @@ export type RouteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   departureLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
   arrivalLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
   trips?: boolean | Prisma.Route$tripsArgs<ExtArgs>
+  routeStops?: boolean | Prisma.Route$routeStopsArgs<ExtArgs>
   _count?: boolean | Prisma.RouteCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["route"]>
 
 export type RouteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   routeName?: boolean
+  description?: boolean
   departureLocationId?: boolean
   arrivalLocationId?: boolean
   distanceKm?: boolean
@@ -1073,6 +1240,7 @@ export type RouteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type RouteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   routeName?: boolean
+  description?: boolean
   departureLocationId?: boolean
   arrivalLocationId?: boolean
   distanceKm?: boolean
@@ -1090,6 +1258,7 @@ export type RouteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type RouteSelectScalar = {
   id?: boolean
   routeName?: boolean
+  description?: boolean
   departureLocationId?: boolean
   arrivalLocationId?: boolean
   distanceKm?: boolean
@@ -1102,11 +1271,12 @@ export type RouteSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RouteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeName" | "departureLocationId" | "arrivalLocationId" | "distanceKm" | "estimatedDurationMinutes" | "defaultTicketPrice" | "defaultSingleRoomPrice" | "defaultDoubleRoomPrice" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["route"]>
+export type RouteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "routeName" | "description" | "departureLocationId" | "arrivalLocationId" | "distanceKm" | "estimatedDurationMinutes" | "defaultTicketPrice" | "defaultSingleRoomPrice" | "defaultDoubleRoomPrice" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["route"]>
 export type RouteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   departureLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
   arrivalLocation?: boolean | Prisma.LocationDefaultArgs<ExtArgs>
   trips?: boolean | Prisma.Route$tripsArgs<ExtArgs>
+  routeStops?: boolean | Prisma.Route$routeStopsArgs<ExtArgs>
   _count?: boolean | Prisma.RouteCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RouteIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1124,10 +1294,12 @@ export type $RoutePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     departureLocation: Prisma.$LocationPayload<ExtArgs>
     arrivalLocation: Prisma.$LocationPayload<ExtArgs>
     trips: Prisma.$TripPayload<ExtArgs>[]
+    routeStops: Prisma.$RouteStopPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     routeName: string
+    description: string | null
     departureLocationId: string
     arrivalLocationId: string
     distanceKm: runtime.Decimal
@@ -1535,6 +1707,7 @@ export interface Prisma__RouteClient<T, Null = never, ExtArgs extends runtime.Ty
   departureLocation<T extends Prisma.LocationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocationDefaultArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   arrivalLocation<T extends Prisma.LocationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LocationDefaultArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   trips<T extends Prisma.Route$tripsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Route$tripsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  routeStops<T extends Prisma.Route$routeStopsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Route$routeStopsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RouteStopPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1566,6 +1739,7 @@ export interface Prisma__RouteClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface RouteFieldRefs {
   readonly id: Prisma.FieldRef<"Route", 'String'>
   readonly routeName: Prisma.FieldRef<"Route", 'String'>
+  readonly description: Prisma.FieldRef<"Route", 'String'>
   readonly departureLocationId: Prisma.FieldRef<"Route", 'String'>
   readonly arrivalLocationId: Prisma.FieldRef<"Route", 'String'>
   readonly distanceKm: Prisma.FieldRef<"Route", 'Decimal'>
@@ -1998,6 +2172,30 @@ export type Route$tripsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.TripScalarFieldEnum | Prisma.TripScalarFieldEnum[]
+}
+
+/**
+ * Route.routeStops
+ */
+export type Route$routeStopsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RouteStop
+   */
+  select?: Prisma.RouteStopSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RouteStop
+   */
+  omit?: Prisma.RouteStopOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RouteStopInclude<ExtArgs> | null
+  where?: Prisma.RouteStopWhereInput
+  orderBy?: Prisma.RouteStopOrderByWithRelationInput | Prisma.RouteStopOrderByWithRelationInput[]
+  cursor?: Prisma.RouteStopWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RouteStopScalarFieldEnum | Prisma.RouteStopScalarFieldEnum[]
 }
 
 /**

@@ -35,7 +35,7 @@ Trước `db:baseline`, hãy chạy thành công `database/supabase_schema.sql` 
 
 Prisma 7 chỉ chạy seed khi gọi rõ `prisma db seed`; server không tự động seed. Seed SQL và seed Node đã dùng cùng mã ghế và có thể chạy lại mà không tạo bản ghi trùng.
 
-`npm run seed:data` tạo dữ liệu demo mở rộng gồm 6 địa điểm, 10 tuyến hai chiều, 8 xe và lịch chạy trong 30 ngày kế tiếp. Sáu dịch vụ cố định tạo tổng cộng 12 chuyến mỗi ngày ở nhiều khung giờ; lệnh có thể chạy lại để bổ sung cửa sổ 30 ngày mới mà không nhân đôi chuyến cùng xe, tuyến và giờ khởi hành.
+`npm run seed:data` không còn ghi dữ liệu demo tuyến/chuyến kiểu cũ. Hãy tạo dữ liệu vận hành từ giao diện quản trị theo kiến trúc Tỉnh/Thành → Bộ lọc → Địa điểm cụ thể → Chuyến xe.
 
 ## API
 

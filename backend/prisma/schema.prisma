@@ -18,6 +18,7 @@ enum UserRole {
 enum UserStatus {
   ACTIVE
   INACTIVE
+  ARCHIVED
 
   @@map("user_status")
 }
@@ -25,6 +26,7 @@ enum UserStatus {
 enum CustomerStatus {
   ACTIVE
   BLOCKED
+  ARCHIVED
 
   @@map("customer_status")
 }
@@ -129,6 +131,7 @@ enum PaymentMethod {
 model User {
   id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   fullName          String     @map("full_name")
+  username          String?    @unique
   email             String     @unique
   phone             String     @unique
   passwordHash      String     @map("password_hash")
@@ -163,6 +166,7 @@ model Customer {
   blockedReason String?        @map("blocked_reason")
   blockedAt     DateTime?      @map("blocked_at") @db.Timestamptz(6)
   blockedById   String?        @map("blocked_by_id") @db.Uuid
+  note          String?
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   blockedBy     User?          @relation("CustomerBlockedBy", fields: [blockedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -173,25 +177,88 @@ model Customer {
   @@map("customers")
 }
 
-model Location {
+model Province {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String       @unique
+  status    RecordStatus @default(ACTIVE)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  areas     PickupDropoffArea[]
+  locations Location[]
+
+  @@index([status, name])
+  @@map("provinces")
+}
+
+model PickupDropoffArea {
   id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provinceId      String       @map("province_id") @db.Uuid
+  legacyRegion    String?      @map("legacy_region")
   name            String
-  province        String
-  address         String?
+  detailedAddress String?      @map("detailed_address")
+  sortOrder       Int          @default(0) @map("sort_order")
   status          RecordStatus @default(ACTIVE)
+  isDeleted       Boolean      @default(false) @map("is_deleted")
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  departureRoutes Route[]      @relation("RouteDepartureLocation")
-  arrivalRoutes   Route[]      @relation("RouteArrivalLocation")
+  province        Province     @relation(fields: [provinceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  defaultLocations Location[]  @relation("LocationDefaultArea")
+  locationFilters LocationAreaFilter[]
+  routeStops      RouteStop[]
+
+  @@unique([provinceId, name], map: "pickup_dropoff_areas_province_name_key")
+  @@index([provinceId, isDeleted, status, sortOrder], map: "pickup_dropoff_areas_province_deleted_status_sort_idx")
+  @@map("pickup_dropoff_areas")
+}
+
+model Location {
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String
+  normalizedName        String?      @map("normalized_name")
+  province              String
+  provinceId            String?      @map("province_id") @db.Uuid
+  defaultAreaId         String?      @map("default_area_id") @db.Uuid
+  address               String?
+  locationType          String       @default("BOTH") @map("location_type")
+  sortOrder             Int          @default(0) @map("sort_order")
+  status                RecordStatus @default(ACTIVE)
+  isDeleted             Boolean      @default(false) @map("is_deleted")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  provinceRef           Province?    @relation(fields: [provinceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  defaultArea           PickupDropoffArea? @relation("LocationDefaultArea", fields: [defaultAreaId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  areaFilters           LocationAreaFilter[]
+  departureRoutes       Route[]      @relation("RouteDepartureLocation")
+  arrivalRoutes         Route[]      @relation("RouteArrivalLocation")
+  tripDepartureLocations Trip[]      @relation("TripDepartureSpecificLocation")
+  tripArrivalLocations  Trip[]       @relation("TripArrivalSpecificLocation")
+  tripServicePoints     TripServicePoint[]
+  pickupBookings        Booking[]    @relation("BookingPickupLocation")
+  dropoffBookings       Booking[]    @relation("BookingDropoffLocation")
 
   @@unique([name, province])
+  @@unique([provinceId, normalizedName], map: "locations_province_normalized_name_key")
   @@index([province, status])
+  @@index([provinceId, isDeleted, status, sortOrder], map: "locations_province_deleted_status_sort_idx")
+  @@index([defaultAreaId])
   @@map("locations")
+}
+
+model LocationAreaFilter {
+  locationId String            @map("location_id") @db.Uuid
+  areaId     String            @map("area_id") @db.Uuid
+  location   Location          @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  area       PickupDropoffArea @relation(fields: [areaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([locationId, areaId])
+  @@index([areaId, locationId], map: "location_area_filters_area_location_idx")
+  @@map("location_area_filters")
 }
 
 model Route {
   id                       String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   routeName                String       @map("route_name")
+  description              String?
   departureLocationId      String       @map("departure_location_id") @db.Uuid
   arrivalLocationId        String       @map("arrival_location_id") @db.Uuid
   distanceKm               Decimal      @map("distance_km") @db.Decimal(10, 2)
@@ -205,10 +272,28 @@ model Route {
   departureLocation        Location     @relation("RouteDepartureLocation", fields: [departureLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   arrivalLocation          Location     @relation("RouteArrivalLocation", fields: [arrivalLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   trips                    Trip[]
+  routeStops               RouteStop[]
 
   @@unique([departureLocationId, arrivalLocationId], map: "routes_departure_arrival_key")
   @@index([status, routeName], map: "routes_status_name_idx")
   @@map("routes")
+}
+
+model RouteStop {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  routeId   String            @map("route_id") @db.Uuid
+  areaId    String            @map("area_id") @db.Uuid
+  pointType String            @map("point_type")
+  sortOrder Int               @default(0) @map("sort_order")
+  status    RecordStatus      @default(ACTIVE)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  route     Route             @relation(fields: [routeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  area      PickupDropoffArea @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([routeId, areaId, pointType], map: "route_stops_route_area_type_key")
+  @@index([routeId, pointType, status, sortOrder], map: "route_stops_route_type_status_sort_idx")
+  @@map("route_stops")
 }
 
 model Bus {
@@ -246,10 +331,21 @@ model Seat {
 
 model Trip {
   id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  routeId             String     @map("route_id") @db.Uuid
+  routeId             String?    @map("route_id") @db.Uuid
   busId               String     @map("bus_id") @db.Uuid
   departureTime       DateTime   @map("departure_time") @db.Timestamptz(6)
   expectedArrivalTime DateTime   @map("expected_arrival_time") @db.Timestamptz(6)
+  departureLocationId String?    @map("departure_specific_location_id") @db.Uuid
+  arrivalLocationId   String?    @map("arrival_specific_location_id") @db.Uuid
+  primaryPickupMode   String     @default("DonTaiBenXe") @map("primary_pickup_mode")
+  primaryDropoffMode  String     @default("TraTaiBenXe") @map("primary_dropoff_mode")
+  allowPickupTransfer Boolean       @default(false) @map("allow_pickup_transfer")
+  allowPickupMeetingPoint Boolean   @default(false) @map("allow_pickup_meeting_point")
+  allowDropoffTransfer Boolean      @default(false) @map("allow_dropoff_transfer")
+  allowDropoffStop     Boolean      @default(false) @map("allow_dropoff_stop")
+  salesStatus          String     @default("OPEN") @map("sales_status")
+  operationStatus      String     @default("NOT_DEPARTED") @map("operation_status")
+  completedAt          DateTime?  @map("completed_at") @db.Timestamptz(6)
   ticketPrice         Decimal?   @map("ticket_price") @db.Decimal(12, 2)
   singleRoomPrice     Decimal?   @map("single_room_price") @db.Decimal(12, 2)
   doubleRoomPrice     Decimal?   @map("double_room_price") @db.Decimal(12, 2)
@@ -257,15 +353,44 @@ model Trip {
   createdById         String?    @map("created_by_id") @db.Uuid
   createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  route               Route      @relation(fields: [routeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  route               Route?     @relation(fields: [routeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   bus                 Bus        @relation(fields: [busId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   createdBy           User?      @relation("TripCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  departureLocation   Location?  @relation("TripDepartureSpecificLocation", fields: [departureLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  arrivalLocation     Location?  @relation("TripArrivalSpecificLocation", fields: [arrivalLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  servicePoints       TripServicePoint[]
   tripSeats           TripSeat[]
   bookings            Booking[]
 
   @@index([routeId, departureTime, status], map: "trips_route_departure_status_idx")
   @@index([busId, departureTime, expectedArrivalTime], map: "trips_bus_departure_arrival_idx")
+  @@index([departureLocationId, arrivalLocationId, departureTime], map: "trips_specific_locations_departure_idx")
+  @@index([salesStatus, operationStatus, departureTime], map: "trips_sales_operation_departure_idx")
   @@map("trips")
+}
+
+model TripServicePoint {
+  id                     String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId                 String       @map("trip_id") @db.Uuid
+  locationId             String       @map("location_id") @db.Uuid
+  pointType              String       @map("point_type")
+  serviceMode            String       @map("service_mode")
+  estimatedMinutes      Int          @default(0) @map("estimated_minutes")
+  estimatedTime          DateTime?    @map("estimated_time") @db.Time(0) // legacy: giữ để tương thích dữ liệu cũ
+  isDefault              Boolean         @default(false) @map("is_default")
+  sortOrder              Int          @default(0) @map("sort_order")
+  status                 RecordStatus @default(ACTIVE)
+  createdAt              DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  trip                   Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  location               Location     @relation(fields: [locationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  pickupBookings         Booking[]    @relation("BookingPickupServicePoint")
+  dropoffBookings        Booking[]    @relation("BookingDropoffServicePoint")
+
+  @@unique([tripId, locationId, pointType, serviceMode], map: "trip_service_points_trip_location_type_mode_key")
+  @@index([tripId, pointType, status, sortOrder], map: "trip_service_points_trip_type_status_sort_idx")
+  @@index([locationId, status])
+  @@map("trip_service_points")
 }
 
 model TripSeat {
@@ -306,6 +431,18 @@ model Booking {
   staffNote          String?       @map("staff_note")
   pickupPoint        String?       @map("pickup_point")
   dropoffPoint       String?       @map("dropoff_point")
+  pickupLocationId   String?       @map("pickup_location_id") @db.Uuid
+  dropoffLocationId  String?       @map("dropoff_location_id") @db.Uuid
+  pickupServicePointId String?      @map("pickup_service_point_id") @db.Uuid
+  dropoffServicePointId String?     @map("dropoff_service_point_id") @db.Uuid
+  pickupServiceMode  String?       @map("pickup_service_mode")
+  dropoffServiceMode String?       @map("dropoff_service_mode")
+  pickupKind         String?       @map("pickup_kind")
+  dropoffKind        String?       @map("dropoff_kind")
+  pickupRequestedAddress String?   @map("pickup_requested_address")
+  dropoffRequestedAddress String?  @map("dropoff_requested_address")
+  smsSent            Boolean          @default(false) @map("sms_sent")
+  smsSentAt          DateTime?     @map("sms_sent_at") @db.Timestamptz(6)
   totalAmount        Decimal       @map("total_amount") @db.Decimal(12, 2)
   status             BookingStatus @default(PENDING)
   paymentStatus      PaymentStatus @default(PENDING) @map("payment_status")
@@ -329,6 +466,10 @@ model Booking {
   cancelledBy        User?         @relation("BookingCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   noShowBy           User?         @relation("BookingNoShowBy", fields: [noShowById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedBy          User?         @relation("BookingDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  pickupLocation     Location?     @relation("BookingPickupLocation", fields: [pickupLocationId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  dropoffLocation    Location?     @relation("BookingDropoffLocation", fields: [dropoffLocationId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  pickupServicePoint TripServicePoint? @relation("BookingPickupServicePoint", fields: [pickupServicePointId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  dropoffServicePoint TripServicePoint? @relation("BookingDropoffServicePoint", fields: [dropoffServicePointId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   items              BookingItem[]
   payments           Payment[]
 
@@ -344,6 +485,10 @@ model Booking {
   @@index([deletedById])
   @@index([createdById])
   @@index([createdAt])
+  @@index([pickupLocationId])
+  @@index([dropoffLocationId])
+  @@index([pickupServicePointId])
+  @@index([dropoffServicePointId])
   @@map("bookings")
 }
 
@@ -394,6 +539,8 @@ model News {
   updatedById  String?    @map("updated_by_id") @db.Uuid
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  viewCount    Int        @default(0) @map("view_count")
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
   createdBy    User       @relation("NewsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: NoAction)
   updatedBy    User?      @relation("NewsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
 

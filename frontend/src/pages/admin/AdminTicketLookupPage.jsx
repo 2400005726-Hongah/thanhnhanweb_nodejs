@@ -10,7 +10,7 @@ import {
   LoadingState,
 } from '../../components/common/StatusState.jsx'
 import {
-  getBookingDetail,
+  lookupBookingForAdmin,
 } from '../../services/admin.service.js'
 import {
   getApiErrorMessage,
@@ -20,9 +20,10 @@ import {
   formatDateTime,
 } from '../../utils/formatDateTime.js'
 import {
+  formatBookingCode,
   formatLicensePlate,
   formatPhoneInput,
-  normalizeBookingCode,
+  normalizeTicketLookupIdentifier,
 } from '../../utils/normalizers.js'
 import {
   getPaymentMethodLabel,
@@ -111,11 +112,11 @@ function AdminTicketLookupPage() {
     event.preventDefault()
 
     const normalizedCode =
-      normalizeBookingCode(bookingCode)
+      normalizeTicketLookupIdentifier(bookingCode)
 
     if (!normalizedCode) {
       setError(
-        'Vui lòng nhập mã vé cần kiểm tra.',
+        'Vui lòng nhập mã vé hoặc mã giao dịch cần kiểm tra.',
       )
       return
     }
@@ -127,7 +128,7 @@ function AdminTicketLookupPage() {
 
     try {
       const result =
-        await getBookingDetail(
+        await lookupBookingForAdmin(
           normalizedCode,
         )
 
@@ -138,8 +139,9 @@ function AdminTicketLookupPage() {
       setBooking(data)
 
       setBookingCode(
-        data?.bookingCode ??
-          normalizedCode,
+        data?.bookingCode
+          ? formatBookingCode(data.bookingCode)
+          : normalizedCode,
       )
     } catch (requestError) {
       setError(
@@ -199,7 +201,7 @@ function AdminTicketLookupPage() {
     <>
       <AdminPageHeader
         title="Kiểm tra vé"
-        description="Tra cứu nhanh vé của khách bằng mã vé."
+        description="Tra cứu bằng mã vé hoặc mã giao dịch. Khu vực quản trị không yêu cầu số điện thoại."
       />
 
       <form
@@ -211,10 +213,10 @@ function AdminTicketLookupPage() {
           className="form-control"
           onChange={(event) =>
             setBookingCode(
-              normalizeBookingCode(event.target.value),
+              event.target.value,
             )
           }
-          placeholder="Nhập mã vé, ví dụ TN068BF81BF5A1B11D"
+          placeholder="Nhập mã vé #1211 hoặc mã giao dịch TN132321343"
           value={bookingCode}
         />
 
@@ -292,7 +294,7 @@ function AdminTicketLookupPage() {
               </div>
 
               <strong>
-                {booking.bookingCode}
+                {formatBookingCode(booking.bookingCode)}
               </strong>
             </div>
 
@@ -358,7 +360,7 @@ function AdminTicketLookupPage() {
                 </span>
 
                 <strong>
-                  {booking.bookingCode}
+                  {formatBookingCode(booking.bookingCode)}
                 </strong>
               </div>
 

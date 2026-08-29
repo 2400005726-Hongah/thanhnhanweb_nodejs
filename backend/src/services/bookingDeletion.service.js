@@ -4,7 +4,6 @@ import { normalizeBookingCode, normalizeMultilineText } from '../utils/normalize
 import { writeAuditLog } from './auditLog.service.js'
 
 const DELETABLE_BOOKING_STATUSES = [
-  'PENDING',
   'CONFIRMED',
 ]
 
@@ -95,7 +94,14 @@ const softDeleteManagedBooking = async ({
         )
       ) {
         throw new HttpError(
-          'Chỉ vé đang chờ xử lý hoặc đã đặt mới được xóa',
+          'Chỉ vé đang ở trạng thái Đã đặt mới được xóa',
+          409,
+        )
+      }
+
+      if (booking.paymentStatus === 'SUCCESS') {
+        throw new HttpError(
+          'Vé đã thanh toán nên không thể xóa. Hãy sử dụng chức năng Hủy vé để hoàn tiền.',
           409,
         )
       }
