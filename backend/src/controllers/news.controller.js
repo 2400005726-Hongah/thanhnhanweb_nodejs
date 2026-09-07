@@ -7,7 +7,10 @@ import {
   softDeleteNews,
   updateNews as updateNewsService,
 } from '../services/news.service.js'
-
+import {
+  deleteNewsImage as deleteNewsImageService,
+  uploadNewsImage as uploadNewsImageService,
+} from '../services/newsImageStorage.service.js'
 
 const listPublicNews = async (request, response, next) => {
   try {
@@ -55,6 +58,40 @@ const showNews = async (request, response, next) => {
       success: true,
       message: 'Lấy tin tức thành công',
       data: { news },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const uploadNewsImage = async (request, response, next) => {
+  try {
+    const mimeType = String(request.get('content-type') || '')
+      .split(';')[0]
+      .trim()
+
+    const image = await uploadNewsImageService({
+      buffer: request.body,
+      mimeType,
+    })
+
+    response.status(201).json({
+      success: true,
+      message: 'Tải ảnh tin tức thành công',
+      data: { image },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const removeNewsImage = async (request, response, next) => {
+  try {
+    const image = await deleteNewsImageService(request.body.path)
+    response.status(200).json({
+      success: true,
+      message: 'Xóa ảnh tạm thành công',
+      data: { image },
     })
   } catch (error) {
     next(error)
@@ -127,7 +164,9 @@ export {
   deleteNews,
   listNews,
   listPublicNews,
-  showPublicNews,
+  removeNewsImage,
   showNews,
+  showPublicNews,
   updateNews,
+  uploadNewsImage,
 }

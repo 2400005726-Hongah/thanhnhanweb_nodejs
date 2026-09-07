@@ -18,6 +18,7 @@ const listNewsValidator = [
 
 const newsBodyRules = (optional = false) => {
   const applyOptional = (chain) => (optional ? chain.optional() : chain)
+
   return [
     applyOptional(body('title'))
       .isString()
@@ -46,13 +47,9 @@ const newsBodyRules = (optional = false) => {
       .optional({ nullable: true })
       .custom((value) => {
         if (!value) return true
-        if (/^https?:\/\//i.test(value)) return true
-        if (/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(value)) {
-          return value.length <= 7_000_000
-        }
-        return false
+        return /^https?:\/\//i.test(value) && String(value).length <= 5000
       })
-      .withMessage('Ảnh đại diện phải là URL HTTP/HTTPS hoặc ảnh JPG, PNG, WEBP không quá 5 MB'),
+      .withMessage('Ảnh đại diện phải là URL HTTP/HTTPS hợp lệ'),
     body('status')
       .optional()
       .isIn(NEWS_STATUSES)
@@ -69,9 +66,19 @@ const changeNewsStatusValidator = [
     .withMessage('Trạng thái tin tức không hợp lệ'),
 ]
 
+const deleteNewsImageValidator = [
+  body('path')
+    .isString()
+    .trim()
+    .matches(/^news\//)
+    .isLength({ min: 6, max: 500 })
+    .withMessage('Đường dẫn ảnh tạm không hợp lệ'),
+]
+
 export {
   changeNewsStatusValidator,
   createNewsValidator,
+  deleteNewsImageValidator,
   listNewsValidator,
   newsIdValidator,
   updateNewsValidator,

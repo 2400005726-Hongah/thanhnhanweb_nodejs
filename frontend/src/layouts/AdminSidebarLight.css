@@ -242,3 +242,147 @@
     padding-inline: 10px !important;
   }
 }
+/* ===== TOPBAR ADMIN GỌN LẠI ===== */
+.admin-shell .admin-topbar{
+  height:46px!important;
+  min-height:46px!important;
+  padding:0 16px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+}
+
+.admin-shell .admin-topbar>.admin-topbar-user{
+  width:auto!important;
+  min-width:0!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:2px 8px!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+.admin-shell .admin-topbar .admin-user-avatar{
+  width:26px!important;
+  height:26px!important;
+  min-width:26px!important;
+  flex:0 0 26px!important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta{
+  width:auto!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  line-height:1.1!important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta strong{
+  margin:0!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta small{
+  margin:0!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+/* ===== TÀI KHOẢN GÓC PHẢI TOPBAR ===== */
+.admin-shell .admin-topbar{
+  height:46px!important;
+  min-height:46px!important;
+  padding:0 14px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+}
+
+.admin-shell .admin-topbar>.admin-topbar-user{
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:3px 8px!important;
+  margin:0!important;
+
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:6px!important;
+  box-shadow:none!important;
+}
+
+/* Avatar chữ C */
+.admin-shell .admin-topbar .admin-user-avatar{
+  width:24px!important;
+  height:24px!important;
+  min-width:24px!important;
+  flex:0 0 24px!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  margin:0!important;
+  padding:0!important;
+
+  color:#d00018!important;
+  background:#fff!important;
+  border:1px solid #e5e7eb!important;
+  border-radius:4px!important;
+
+  font-size:9px!important;
+  font-weight:700!important;
+}
+
+/* Tên + vai trò */
+.admin-shell .admin-topbar .admin-user-meta{
+  width:auto!important;
+  min-width:0!important;
+
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+
+  margin:0!important;
+  padding:0!important;
+  gap:1px!important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta strong{
+  margin:0!important;
+  padding:0!important;
+
+  color:#1f2937!important;
+  font-size:10px!important;
+  font-weight:700!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+
+.admin-shell .admin-topbar .admin-user-meta small{
+  margin:0!important;
+  padding:0!important;
+
+  color:#94a3b8!important;
+  font-size:7px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}

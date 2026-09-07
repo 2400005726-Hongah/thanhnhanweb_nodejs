@@ -569,3 +569,17 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+model BusTypeImage {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  busType     String   @map("bus_type")
+  imageUrl    String   @map("image_url")
+  storagePath String   @unique @map("storage_path")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([busType, isActive, sortOrder], map: "bus_type_images_type_active_sort_idx")
+  @@map("bus_type_images")
+}

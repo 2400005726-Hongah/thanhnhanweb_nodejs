@@ -1,0 +1,299 @@
+/* Sơ đồ ghế dùng chung cho khách hàng, nhân viên và quản trị */
+.seat-map-compact {
+  width: 100%;
+}
+
+.seat-map-compact__legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border: 1px solid #e0e5ea;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.seat-map-compact__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #4e5863;
+  font-size: .72rem;
+  font-weight: 650;
+}
+
+.seat-map-compact__legend i {
+  width: 17px;
+  height: 17px;
+  display: inline-block;
+  border: 1px solid #d4dbe2;
+  border-radius: 4px;
+  background: #f4f6f8;
+}
+
+.seat-map-compact__legend i.is-selected {
+  border-color: #24a148;
+  background: #24a148;
+}
+
+.seat-map-compact__legend i.is-held {
+  border-color: #aab2bb;
+  background: #aab2bb;
+}
+
+.seat-map-compact__legend i.is-booked,
+.seat-map-compact__legend i.is-unavailable {
+  border-color: #737d87;
+  background: #737d87;
+}
+
+.seat-map-compact__room-note {
+  margin: -5px 0 16px;
+  color: #727c87;
+  font-size: .7rem;
+  text-align: center;
+}
+
+.seat-map-compact__floors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: center;
+  align-items: start;
+  gap: 34px;
+  padding: 6px 0 4px;
+}
+
+.seat-map-compact__floor {
+  position: relative;
+  min-width: 150px;
+  padding: 18px 15px 13px;
+  border: 1px solid #dde2e7;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.seat-map-compact--sleeper-34 .seat-map-compact__floor {
+  min-width: 178px;
+}
+
+.seat-map-compact__floor h3 {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #8f0011;
+  color: #fff;
+  font-size: .61rem;
+  line-height: 1;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.seat-map-compact__grid {
+  display: grid;
+  justify-content: center;
+  gap: 9px 13px;
+}
+
+.seat-map-compact--rooms-22 .seat-map-compact__grid {
+  grid-template-columns: repeat(2, 31px);
+}
+
+.seat-map-compact--sleeper-34 .seat-map-compact__grid {
+  grid-template-columns: repeat(3, 31px);
+}
+
+.seat-map-compact__seat {
+  width: 31px !important;
+  height: 31px !important;
+  min-width: 31px !important;
+  min-height: 31px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1px solid #d4dbe2 !important;
+  border-radius: 6px !important;
+  background: #f4f6f8 !important;
+  color: #5b6570 !important;
+  box-shadow: none !important;
+  font-size: .58rem !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+
+.seat-map-compact__seat:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #9ca7b2 !important;
+  background: #fff !important;
+}
+
+.seat-map-compact__seat.is-selected {
+  border-color: #24a148 !important;
+  background: #24a148 !important;
+  color: #fff !important;
+}
+
+.seat-map-compact__seat.is-held {
+  border-color: #aab2bb !important;
+  background: #aab2bb !important;
+  color: #fff !important;
+}
+
+.seat-map-compact__seat.is-booked,
+.seat-map-compact__seat.is-unavailable {
+  border-color: #737d87 !important;
+  background: #737d87 !important;
+  color: #fff !important;
+}
+
+.seat-map-compact__seat:disabled {
+  cursor: not-allowed;
+  opacity: 1 !important;
+}
+
+.seat-map-compact__seat span {
+  display: block;
+  line-height: 1;
+}
+
+@media (max-width: 767.98px) {
+  .seat-map-compact__floors {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 30px;
+  }
+}
+
+
+/* =========================================================
+   ADMIN - THU GỌN PHẦN THÔNG TIN CHUYẾN + 4 Ô THỐNG KÊ
+   Chỉ tác động trang /admin/chuyen-xe/:tripId/so-do-ghe
+   Không làm thay đổi sơ đồ ghế ở trang khách.
+   ========================================================= */
+
+/* Card "THÔNG TIN CHUYẾN" nằm ngay trước dãy 4 ô thống kê */
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)){
+  padding:10px 13px!important;
+  margin-bottom:8px!important;
+  min-height:0!important;
+}
+
+/* Tiêu đề + trạng thái của card thông tin chuyến */
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-panel-heading{
+  min-height:0!important;
+  margin:0 0 7px!important;
+  padding:0!important;
+  gap:10px!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-panel-heading>div{
+  min-width:0;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-panel-heading>div>span{
+  margin:0 0 2px!important;
+  font-size:10px!important;
+  line-height:1.1!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-panel-heading h2{
+  margin:0!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+
+/* Trạng thái Đang mở bán / Đã hoàn thành */
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-panel-heading>.status-badge{
+  align-self:flex-start!important;
+  min-height:22px!important;
+  padding:4px 7px!important;
+  font-size:10px!important;
+  line-height:1.1!important;
+}
+
+/* 4 thông tin: Khởi hành - Xe - Loại xe - Sức chứa */
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-form-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:6px 28px!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-field{
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-field>span{
+  display:block!important;
+  margin:0 0 2px!important;
+  font-size:9.5px!important;
+  line-height:1.1!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-field>strong{
+  display:block!important;
+  margin:0!important;
+  font-size:12px!important;
+  line-height:1.2!important;
+}
+
+.admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-field>small{
+  display:block!important;
+  margin:1px 0 0!important;
+  font-size:9.5px!important;
+  line-height:1.15!important;
+}
+
+/* Dãy 4 ô: Tổng vị trí - Còn trống - Đang giữ - Đã đặt */
+.admin-stat-grid:has(+ .admin-panel .seat-map-compact){
+  gap:8px!important;
+  margin:0 0 8px!important;
+}
+
+.admin-stat-grid:has(+ .admin-panel .seat-map-compact) .admin-stat-card{
+  min-height:58px!important;
+  padding:8px 12px!important;
+  border-radius:8px!important;
+}
+
+.admin-stat-grid:has(+ .admin-panel .seat-map-compact) .admin-stat-card>span{
+  display:block!important;
+  margin:0 0 4px!important;
+  font-size:9.5px!important;
+  line-height:1.1!important;
+}
+
+.admin-stat-grid:has(+ .admin-panel .seat-map-compact) .admin-stat-card>strong{
+  display:block!important;
+  margin:0!important;
+  font-size:17px!important;
+  line-height:1.05!important;
+}
+
+/* Kéo phần sơ đồ ghế lên sát hơn một chút */
+.admin-stat-grid:has(+ .admin-panel .seat-map-compact)+.admin-panel{
+  margin-top:0!important;
+}
+
+/* Mobile vẫn gọn nhưng không ép 2 cột thông tin */
+@media (max-width:767.98px){
+  .admin-panel:has(+ .admin-stat-grid:has(+ .admin-panel .seat-map-compact)) .admin-form-grid{
+    grid-template-columns:1fr!important;
+    gap:6px!important;
+  }
+
+  .admin-stat-grid:has(+ .admin-panel .seat-map-compact){
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}

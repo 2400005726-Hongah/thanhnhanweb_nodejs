@@ -1,40 +1,171 @@
-/* Chỉ áp dụng cho trang Tra cứu vé */
-.lookup-page .page-banner {
-  background: #c50416 !important;
+/* Chỉ bổ sung phần trang trí cho trang Tra cứu vé.
+   Các style lookup-page/lookup-form-card/lookup-result-card hiện có vẫn giữ nguyên. */
+
+.lookup-welcome{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);
+  min-height:355px;
+  margin:24px 0 34px;
+  overflow:hidden;
+  border:1px solid #e5e8ed;
+  border-radius:16px;
+  background:radial-gradient(circle at 12% 18%,rgba(197,4,22,.07),transparent 28%),#fff;
+  box-shadow:0 8px 24px rgba(16,24,40,.06);
 }
 
-.lookup-page .page-banner::before,
-.lookup-page .page-banner::after {
-  background: none !important;
+.lookup-welcome__content{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:36px 38px;
 }
 
-.lookup-page .page-banner .eyebrow--light,
-.lookup-page .page-banner h1,
-.lookup-page .page-banner p {
-  color: #fff !important;
+.lookup-welcome__eyebrow{
+  margin-bottom:9px;
+  color:#c50416;
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.14em;
 }
 
-.lookup-page .lookup-form-card .btn-warning {
-  border-color: #c50416 !important;
-  background: #c50416 !important;
-  color: #fff !important;
-  box-shadow: 0 8px 20px rgba(197, 4, 22, .18);
+.lookup-welcome h2{
+  margin:0;
+  color:#20242b;
+  font-size:clamp(1.8rem,3vw,2.65rem);
+  line-height:1.12;
+  font-weight:900;
+  letter-spacing:-.035em;
 }
 
-.lookup-page .lookup-form-card .btn-warning:hover,
-.lookup-page .lookup-form-card .btn-warning:focus,
-.lookup-page .lookup-form-card .btn-warning:active {
-  border-color: #c50416 !important;
-  background: #c50416 !important;
-  color: #fff !important;
+.lookup-welcome__lead{
+  max-width:620px;
+  margin:12px 0 22px;
+  color:#657080;
+  font-size:.94rem;
+  line-height:1.7;
 }
 
-/* Khi chưa tra cứu, không chừa khoảng trống cho placeholder cũ */
-.lookup-page .lookup-content {
-  padding-bottom: 48px;
+.lookup-welcome__steps{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
 }
 
-/* Loading chỉ xuất hiện sau khi người dùng bấm tra cứu */
-.lookup-page .lookup-placeholder[role="status"] {
-  margin-top: 1.25rem;
+.lookup-welcome__steps>div{
+  min-width:0;
+  padding:14px 13px;
+  border:1px solid #eceef2;
+  border-radius:10px;
+  background:#fff;
+}
+
+.lookup-welcome__steps span{
+  display:block;
+  margin-bottom:8px;
+  color:#c50416;
+  font-size:.7rem;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.lookup-welcome__steps strong,
+.lookup-welcome__steps small{
+  display:block;
+}
+
+.lookup-welcome__steps strong{
+  margin-bottom:5px;
+  color:#22262d;
+  font-size:.83rem;
+}
+
+.lookup-welcome__steps small{
+  color:#7a8492;
+  font-size:.7rem;
+  line-height:1.45;
+}
+
+.lookup-welcome__note{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:17px;
+  color:#5e6876;
+  font-size:.78rem;
+}
+
+.lookup-welcome__note>span{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  flex:0 0 22px;
+  border-radius:50%;
+  background:#c50416;
+  color:#fff;
+  font-size:.7rem;
+  font-weight:900;
+}
+
+.lookup-welcome__visual{
+  position:relative;
+  min-height:355px;
+  overflow:hidden;
+}
+
+.lookup-welcome__visual::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,rgba(255,255,255,.18) 0%,transparent 28%,rgba(0,0,0,.08) 100%);
+  pointer-events:none;
+}
+
+.lookup-welcome__visual img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+
+.lookup-welcome__badge{
+  position:absolute;
+  z-index:2;
+  left:18px;
+  bottom:18px;
+  min-width:190px;
+  padding:12px 15px;
+  border-left:4px solid #c50416;
+  border-radius:8px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 8px 20px rgba(0,0,0,.14);
+}
+
+.lookup-welcome__badge strong,
+.lookup-welcome__badge span{
+  display:block;
+}
+
+.lookup-welcome__badge strong{
+  color:#c50416;
+  font-size:.92rem;
+}
+
+.lookup-welcome__badge span{
+  margin-top:2px;
+  color:#667180;
+  font-size:.7rem;
+}
+
+@media(max-width:991.98px){
+  .lookup-welcome{grid-template-columns:1fr}
+  .lookup-welcome__visual{min-height:260px}
+}
+
+@media(max-width:575.98px){
+  .lookup-welcome__content{padding:26px 20px}
+  .lookup-welcome__steps{grid-template-columns:1fr}
+  .lookup-welcome__visual{min-height:220px}
 }

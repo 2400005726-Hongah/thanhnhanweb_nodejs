@@ -1,10 +1,16 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
 import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusState.jsx'
 import { useAuth } from '../../contexts/authContext.js'
 import { getBuses, getTrips, updateBus } from '../../services/admin.service.js'
+import {
+  deleteBusTypeImage,
+  getAdminBusTypeImages,
+  reorderBusTypeImages,
+  uploadBusTypeImage,
+} from '../../services/busTypeImage.service.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import { hasPermission, PERMISSIONS } from '../../utils/adminPermissions.js'
 import { formatDateTime } from '../../utils/formatDateTime.js'
@@ -35,6 +41,185 @@ const tripDeparture = (trip) => trip?.departureLocation || trip?.route?.departur
 const tripArrival = (trip) => trip?.arrivalLocation || trip?.route?.arrivalLocation || null
 const tripJourneyName = (location, fallback) => location?.name || fallback || 'Chưa xác định'
 const isFutureTrip = (trip, now = Date.now()) => Boolean(trip?.departureTime) && !['COMPLETED', 'CANCELLED'].includes(trip.status) && new Date(trip.departureTime).getTime() > now
+
+
+const BUS_IMAGE_TYPES = [
+  { value: 'SLEEPER_34', label: 'Giường nằm 34 giường' },
+  { value: 'LIMOUSINE_22', label: 'Limousine 22 phòng' },
+]
+
+function BusTypeImageLibrary() {
+  const [busType, setBusType] = useState('SLEEPER_34')
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const fileInputRef = useRef(null)
+
+  const loadImages = useCallback(async (targetType) => {
+    setLoading(true)
+    setError('')
+    try {
+      const data = await getAdminBusTypeImages(targetType)
+      setImages(data?.images || [])
+    } catch (requestError) {
+      setImages([])
+      setError(getApiErrorMessage(requestError))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadImages(busType)
+  }, [busType, loadImages])
+
+  const uploadFiles = async (event) => {
+    const files = [...(event.target.files || [])]
+    event.target.value = ''
+    if (!files.length) return
+
+    const invalid = files.find(
+      (file) =>
+        !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+        file.size > 5 * 1024 * 1024,
+    )
+    if (invalid) {
+      window.alert('Mỗi ảnh phải là JPG, PNG hoặc WEBP và không vượt quá 5 MB.')
+      return
+    }
+
+    setUploading(true)
+    setError('')
+    try {
+      for (const file of files) {
+        await uploadBusTypeImage(busType, file)
+      }
+      await loadImages(busType)
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = async (image) => {
+    if (!window.confirm('Xóa ảnh này khỏi thư viện loại xe?')) return
+    try {
+      await deleteBusTypeImage(image.id)
+      setImages((current) => current.filter((item) => item.id !== image.id))
+    } catch (requestError) {
+      window.alert(getApiErrorMessage(requestError))
+    }
+  }
+
+  const moveImage = async (index, direction) => {
+    const target = index + direction
+    if (target < 0 || target >= images.length) return
+
+    const previous = images
+    const next = [...images]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setImages(next)
+
+    try {
+      const data = await reorderBusTypeImages(
+        busType,
+        next.map((item) => item.id),
+      )
+      setImages(data?.images || next)
+    } catch (requestError) {
+      setImages(previous)
+      window.alert(getApiErrorMessage(requestError))
+    }
+  }
+
+  return (
+    <section className="admin-panel admin-bus-type-gallery-panel">
+      <div className="admin-panel-heading admin-bus-type-gallery-heading">
+        <div>
+          <span>THƯ VIỆN ẢNH LOẠI XE</span>
+          <h2>Hình ảnh hiển thị ngoài trang tìm chuyến</h2>
+          <small>
+            Ảnh dùng chung theo loại xe, không theo biển số. Chuyến 34 giường và 22 phòng tự lấy đúng thư viện tương ứng.
+          </small>
+        </div>
+        <button
+          className="btn btn-primary"
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+          type="button"
+        >
+          {uploading ? 'Đang tải...' : '+ Thêm nhiều ảnh'}
+        </button>
+        <input
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          multiple
+          onChange={uploadFiles}
+          ref={fileInputRef}
+          type="file"
+        />
+      </div>
+
+      <div className="admin-bus-type-tabs" role="tablist" aria-label="Loại xe">
+        {BUS_IMAGE_TYPES.map((item) => (
+          <button
+            className={busType === item.value ? 'is-active' : ''}
+            key={item.value}
+            onClick={() => setBusType(item.value)}
+            type="button"
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {error && <div className="alert alert-danger py-2 mb-2">{error}</div>}
+
+      {loading ? (
+        <div className="admin-bus-type-gallery-empty">Đang tải thư viện ảnh...</div>
+      ) : images.length === 0 ? (
+        <div className="admin-bus-type-gallery-empty">
+          Chưa có ảnh cho {getBusTypeLabel(busType)}. Khi chưa có ảnh, website khách hàng dùng ảnh xe mặc định.
+        </div>
+      ) : (
+        <div className="admin-bus-type-gallery-grid">
+          {images.map((image, index) => (
+            <article className="admin-bus-type-gallery-card" key={image.id}>
+              <div className="admin-bus-type-gallery-image">
+                <img
+                  alt={`${getBusTypeLabel(busType)} - ảnh ${index + 1}`}
+                  src={image.imageUrl}
+                />
+                <span>{index + 1}/{images.length}</span>
+              </div>
+              <div className="admin-bus-type-gallery-actions">
+                <button
+                  disabled={index === 0}
+                  onClick={() => moveImage(index, -1)}
+                  type="button"
+                >
+                  ←
+                </button>
+                <button
+                  disabled={index === images.length - 1}
+                  onClick={() => moveImage(index, 1)}
+                  type="button"
+                >
+                  →
+                </button>
+                <button className="is-delete" onClick={() => removeImage(image)} type="button">
+                  Xóa
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
 function AdminBusesPage() {
   const { user } = useAuth()
@@ -165,6 +350,8 @@ function AdminBusesPage() {
           {pagination.totalPages > 1 && <div className="d-flex justify-content-between align-items-center mt-3"><button className="btn btn-outline-secondary" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))} type="button">Trang trước</button><strong>Trang {pagination.page ?? page}/{pagination.totalPages}</strong><button className="btn btn-outline-secondary" disabled={page >= pagination.totalPages || loading} onClick={() => setPage((current) => current + 1)} type="button">Trang sau</button></div>}
         </section>
       )}
+
+      {canManage && <BusTypeImageLibrary />}
     </>
   )
 }

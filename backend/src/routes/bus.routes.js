@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
 
 import {
   addBusSeat,
@@ -11,6 +11,12 @@ import {
   updateBus,
   updateBusSeat,
 } from '../controllers/bus.controller.js'
+import {
+  deleteBusTypeImage,
+  listBusTypeImages,
+  reorderBusTypeImages,
+  uploadBusTypeImage,
+} from '../controllers/busTypeImage.controller.js'
 import { PERMISSIONS } from '../config/permissions.js'
 import {
   authenticate,
@@ -30,6 +36,31 @@ import {
 const router = Router()
 
 router.use(authenticate)
+
+router.get(
+  '/type-images',
+  authorizePermissions(PERMISSIONS.VIEW_BUSES),
+  listBusTypeImages,
+)
+router.post(
+  '/type-images/upload',
+  authorizePermissions(PERMISSIONS.MANAGE_BUSES),
+  express.raw({
+    type: ['image/jpeg', 'image/png', 'image/webp'],
+    limit: '5mb',
+  }),
+  uploadBusTypeImage,
+)
+router.put(
+  '/type-images/order',
+  authorizePermissions(PERMISSIONS.MANAGE_BUSES),
+  reorderBusTypeImages,
+)
+router.delete(
+  '/type-images/:imageId',
+  authorizePermissions(PERMISSIONS.MANAGE_BUSES),
+  deleteBusTypeImage,
+)
 
 router.get(
   '/',

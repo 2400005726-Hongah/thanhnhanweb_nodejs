@@ -1,0 +1,100 @@
+.tn-about-page{
+  min-height:100%;
+  background:#f4f6f9;
+  color:#20242b;
+}
+
+.tn-about-container{
+  width:min(840px,calc(100% - 32px));
+  margin:0 auto;
+}
+
+.tn-about-hero{
+  padding:24px 0 18px;
+}
+
+.tn-about-hero .tn-about-container{
+  padding:30px 28px;
+  border-radius:14px;
+  background:#c50416;
+  box-shadow:0 8px 22px rgba(197,4,22,.12);
+}
+
+.tn-about-hero h1{
+  margin:0 0 7px;
+  color:#fff;
+  font-size:30px;
+  font-weight:800;
+  line-height:1.2;
+}
+
+.tn-about-hero p{
+  margin:0;
+  color:#fff;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.tn-about-content{
+  padding-bottom:34px;
+}
+
+.tn-about-card{
+  padding:22px 20px;
+  border:1px solid #e4e7eb;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 3px 10px rgba(15,23,42,.04);
+}
+
+.tn-about-card h2{
+  margin:0 0 12px;
+  font-size:18px;
+  font-weight:800;
+}
+
+.tn-about-card p{
+  margin:0;
+  color:#596273;
+  font-size:13px;
+  line-height:1.8;
+  text-align:justify;
+}
+
+.tn-about-values{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+
+.tn-about-values article{
+  padding:18px 16px;
+  border:1px solid #e4e7eb;
+  border-radius:10px;
+  background:#fff;
+}
+
+.tn-about-values h3{
+  margin:0 0 7px;
+  color:#c50416;
+  font-size:14px;
+  font-weight:800;
+}
+
+.tn-about-values p{
+  margin:0;
+  color:#667085;
+  font-size:12px;
+  line-height:1.6;
+}
+
+@media(max-width:767px){
+  .tn-about-values{
+    grid-template-columns:1fr;
+  }
+
+  .tn-about-hero h1{
+    font-size:25px;
+  }
+}

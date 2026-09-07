@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import BookingFlowSteps from '../components/booking/BookingFlowSteps.jsx'
 import BookingServicePointFields, {
@@ -34,6 +34,14 @@ function BookingServicePointPage() {
   const [error, setError] = useState('')
   const [validation, setValidation] = useState('')
   const [leaving, setLeaving] = useState(false)
+
+  const backToSeatSelection = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+      return
+    }
+    navigate('/tim-chuyen')
+  }
 
   const load = useCallback(async () => {
     if (!seatDraft) return
@@ -84,38 +92,15 @@ function BookingServicePointPage() {
   )
 
   const continueToPassenger = () => {
-    if (leaving) return
-
     const message = validateServiceSelection(serviceData, selection)
     if (message) {
       setValidation(message)
       return
     }
 
-    const nextPath = `/dat-ve/${tripId}/thong-tin`
-
-    try {
-      saveBookingServiceSelection(tripId, selection)
-      setValidation('')
-      setLeaving(true)
-
-      navigate(nextPath, {
-        state: {
-          bookingServiceSelection: selection,
-          fromBookingStep: 2,
-        },
-      })
-
-      // Fallback cho trường hợp trình duyệt/HMR không đổi route sau thao tác.
-      window.setTimeout(() => {
-        if (window.location.pathname !== nextPath) {
-          window.location.assign(nextPath)
-        }
-      }, 180)
-    } catch {
-      setLeaving(false)
-      setValidation('Không thể lưu lựa chọn điểm đón/trả. Vui lòng thử lại.')
-    }
+    saveBookingServiceSelection(tripId, selection)
+    setLeaving(true)
+    navigate(`/dat-ve/${tripId}/thong-tin`)
   }
 
   if (!seatDraft) {
@@ -125,7 +110,7 @@ function BookingServicePointPage() {
         <span className="eyebrow">CHƯA CHỌN CHỖ</span>
         <h1>Vui lòng hoàn tất Bước 1</h1>
         <p>Hãy chọn ghế/phòng trước khi chọn điểm đón và điểm trả.</p>
-        <Link className="btn btn-primary" to={`/chuyen-xe/${tripId}`}>Quay lại chọn chỗ</Link>
+        <button className="btn btn-primary" onClick={backToSeatSelection} type="button">Quay lại chọn chỗ</button>
       </div>
     )
   }
@@ -154,11 +139,6 @@ function BookingServicePointPage() {
             Nhà xe chỉ hiển thị các địa điểm phục vụ đang hoạt động của chuyến.
             Mỗi vé chọn đúng 1 điểm đón và 1 điểm trả; hình thức phục vụ đi cùng với địa điểm đã chọn.
           </span>
-        </div>
-
-        <div className="booking-service-reference-note">
-          <strong>Thời gian tại từng điểm chỉ là thời gian dự kiến để tham khảo.</strong>
-          <span>Thời gian thực tế có thể thay đổi theo tình hình vận hành.</span>
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
@@ -205,7 +185,7 @@ function BookingServicePointPage() {
             <button className="btn btn-primary w-100" disabled={leaving} onClick={continueToPassenger} type="button">
               Xác nhận và tiếp tục →
             </button>
-            <button className="btn btn-link w-100 mt-2" disabled={leaving} onClick={() => navigate(`/chuyen-xe/${tripId}`)} type="button">
+            <button className="btn btn-link w-100 mt-2" disabled={leaving} onClick={backToSeatSelection} type="button">
               Quay lại chọn chỗ
             </button>
           </aside>

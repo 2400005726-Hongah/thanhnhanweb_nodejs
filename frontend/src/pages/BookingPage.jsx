@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import BookingFlowSteps from '../components/booking/BookingFlowSteps.jsx'
 import { validateServiceSelection } from '../components/booking/BookingServicePointFields.jsx'
@@ -14,7 +14,6 @@ import {
 import {
   getBookingServiceSelection,
   getSelectedServiceSummary,
-  saveBookingServiceSelection,
 } from '../utils/bookingServiceSelection.js'
 import { getBusTypeLabel, getSeatTypeLabel } from '../utils/busTypes.js'
 import formatCurrency from '../utils/formatCurrency.js'
@@ -37,14 +36,8 @@ const emptyPassenger = { fullName: '', phone: '', email: '' }
 function BookingPage() {
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const location = useLocation()
   const [seatDraft] = useState(() => getBookingSeatDraft(tripId))
-  const [serviceSelection] = useState(
-    () =>
-      getBookingServiceSelection(tripId) ||
-      location.state?.bookingServiceSelection ||
-      null,
-  )
+  const [serviceSelection] = useState(() => getBookingServiceSelection(tripId))
   const savedPassengerDraft = useMemo(() => getBookingPassengerDraft(tripId), [tripId])
   const [detail, setDetail] = useState(null)
   const [servicePoints, setServicePoints] = useState(null)
@@ -71,15 +64,6 @@ function BookingPage() {
   useEffect(() => {
     loadTrip()
   }, [loadTrip])
-
-  useEffect(() => {
-    if (!serviceSelection) return
-    try {
-      saveBookingServiceSelection(tripId, serviceSelection)
-    } catch {
-      // Router state vẫn đủ để Bước 3 tiếp tục trong phiên hiện tại.
-    }
-  }, [serviceSelection, tripId])
 
   const serviceData = useMemo(() => {
     if (!servicePoints) return null
@@ -160,7 +144,7 @@ function BookingPage() {
         <div className="status-symbol">1</div>
         <span className="eyebrow">CHƯA CHỌN CHỖ</span>
         <h1>Vui lòng hoàn tất Bước 1</h1>
-        <Link className="btn btn-primary" to={`/chuyen-xe/${tripId}`}>Quay lại chọn chỗ</Link>
+        <Link className="btn btn-primary" to="/tim-chuyen">Quay lại chọn chỗ</Link>
       </div>
     )
   }
@@ -189,124 +173,144 @@ function BookingPage() {
       <div className="container page-content booking-step3-container">
         <BookingFlowSteps activeStep={3} />
 
-        <div className="alert alert-info">
-          <strong>Chưa giữ chỗ.</strong> Sau khi nhập xong thông tin và chuyển sang Bước 4 – Thanh toán, hệ thống mới kiểm tra lại ghế/phòng và bắt đầu giữ trong 10 phút.
+        <div className="booking-step3-hold-note">
+          <strong>Chưa giữ chỗ.</strong>
+          <span>Ghế/phòng chỉ bắt đầu được giữ 10 phút khi chuyển sang Bước 4 – Thanh toán.</span>
         </div>
 
         <div className="booking-step3-layout">
           <form className="booking-step3-form-card" onSubmit={continueToPayment}>
-            <h1>THÔNG TIN LIÊN HỆ ĐẶT VÉ</h1>
+            <div className="booking-step3-form-heading">
+              <span>BƯỚC 3</span>
+              <h1>Thông tin liên hệ đặt vé</h1>
+              <p>Vui lòng nhập chính xác thông tin để nhận vé điện tử và hỗ trợ khi cần.</p>
+            </div>
+
             {error && <div className="alert alert-danger">{error}</div>}
             {validation && <div className="alert alert-warning">{validation}</div>}
 
-            <label className="form-label" htmlFor="fullName">Họ và tên hành khách</label>
-            <input
-              className="form-control mb-3"
-              id="fullName"
-              name="fullName"
-              value={passenger.fullName}
-              onChange={updatePassenger}
-              maxLength="100"
-              placeholder="Ví dụ: Nguyễn Văn A"
-              required
-            />
+            <div className="booking-step3-fields">
+              <label>
+                <span>Họ và tên hành khách</span>
+                <input
+                  className="form-control"
+                  id="fullName"
+                  name="fullName"
+                  value={passenger.fullName}
+                  onChange={updatePassenger}
+                  maxLength="100"
+                  placeholder="Ví dụ: Nguyễn Văn A"
+                  required
+                />
+              </label>
 
-            <label className="form-label" htmlFor="email">Email nhận vé</label>
-            <input
-              className="form-control mb-3"
-              id="email"
-              name="email"
-              type="email"
-              value={passenger.email}
-              onChange={updatePassenger}
-              maxLength="255"
-              placeholder="Ví dụ: email@gmail.com"
-              required
-            />
+              <label>
+                <span>Email nhận vé</span>
+                <input
+                  className="form-control"
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={passenger.email}
+                  onChange={updatePassenger}
+                  maxLength="255"
+                  placeholder="Ví dụ: email@gmail.com"
+                  required
+                />
+              </label>
 
-            <label className="form-label" htmlFor="phone">Số điện thoại liên hệ</label>
-            <input
-              className="form-control mb-3"
-              id="phone"
-              name="phone"
-              type="tel"
-              value={passenger.phone}
-              onChange={updatePassenger}
-              maxLength="12"
-              placeholder="Ví dụ: 0901234567"
-              required
-            />
+              <label>
+                <span>Số điện thoại liên hệ</span>
+                <input
+                  className="form-control"
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={passenger.phone}
+                  onChange={updatePassenger}
+                  maxLength="12"
+                  placeholder="Ví dụ: 0901234567"
+                  required
+                />
+              </label>
 
-            <label className="form-label" htmlFor="customerNote">Ghi chú <span className="text-muted">(không bắt buộc)</span></label>
-            <textarea
-              className="form-control"
-              id="customerNote"
-              maxLength="500"
-              onChange={(event) => setCustomerNote(event.target.value)}
-              rows="3"
-              value={customerNote}
-              placeholder="VD: cần ghế gần cửa sổ, cần hỗ trợ hành lý..."
-            />
-
-            <section className="booking-step3-itinerary">
-              <div className="booking-step3-itinerary-header">
-                <div>
-                  <span className="booking-step3-itinerary-eyebrow">CHI TIẾT VÉ ĐẶT</span>
-                  <h2>{routeName}</h2>
-                </div>
-                <div className="booking-step3-itinerary-price">
-                  <span>Tổng tạm tính</span>
-                  <strong>{formatCurrency(seatDraft.totalAmount)}</strong>
-                </div>
-              </div>
-
-              <div className="booking-step3-itinerary-meta">
-                <div>
-                  <span>Khởi hành</span>
-                  <strong>{formatDateTime(trip.departureTime)}</strong>
-                </div>
-                <div>
-                  <span>Xe</span>
-                  <strong>{getBusTypeLabel(trip.bus.busType)}</strong>
-                  <small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
-                </div>
-                <div>
-                  <span>Ghế/Phòng</span>
-                  <strong>{seatDescriptions}</strong>
-                </div>
-              </div>
-
-              <div className="booking-step3-service-grid">
-                <article className="booking-step3-service-card is-pickup">
-                  <div className="booking-step3-service-badge">ĐÓN</div>
-                  <div>
-                    <span>Điểm đón</span>
-                    <h3>{serviceSummary.pickup.title}</h3>
-                    <p>{serviceSummary.pickup.serviceLabel}</p>
-                    {serviceSummary.pickup.detail && <small>{serviceSummary.pickup.detail}</small>}
-                    {serviceSummary.pickup.time && <b>{serviceSummary.pickup.time}</b>}
-                  </div>
-                </article>
-
-                <article className="booking-step3-service-card is-dropoff">
-                  <div className="booking-step3-service-badge">TRẢ</div>
-                  <div>
-                    <span>Điểm trả</span>
-                    <h3>{serviceSummary.dropoff.title}</h3>
-                    <p>{serviceSummary.dropoff.serviceLabel}</p>
-                    {serviceSummary.dropoff.detail && <small>{serviceSummary.dropoff.detail}</small>}
-                    {serviceSummary.dropoff.time && <b>{serviceSummary.dropoff.time}</b>}
-                  </div>
-                </article>
-              </div>
-            </section>
+              <label>
+                <span>Ghi chú <small>(không bắt buộc)</small></span>
+                <textarea
+                  className="form-control"
+                  id="customerNote"
+                  maxLength="500"
+                  onChange={(event) => setCustomerNote(event.target.value)}
+                  rows="4"
+                  value={customerNote}
+                  placeholder="VD: cần ghế gần cửa sổ, cần hỗ trợ hành lý..."
+                />
+              </label>
+            </div>
 
             <div className="booking-step3-actions">
-              <button className="btn btn-outline-secondary" onClick={() => navigate(`/dat-ve/${tripId}`)} type="button">← Quay lại Bước 2</button>
-              <button className="btn btn-primary" disabled={leaving} type="submit">Tiếp tục thanh toán →</button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate(`/dat-ve/${tripId}`)}
+                type="button"
+              >
+                ← Quay lại Bước 2
+              </button>
+              <button className="btn btn-primary" disabled={leaving} type="submit">
+                {leaving ? 'Đang chuyển...' : 'Tiếp tục thanh toán →'}
+              </button>
             </div>
           </form>
 
+          <aside className="booking-step3-ticket-card">
+            <div className="booking-step3-ticket-head">
+              <div>
+                <span>CHI TIẾT VÉ ĐẶT</span>
+                <h2>{routeName}</h2>
+              </div>
+              <div className="booking-step3-ticket-price">
+                <small>Tổng tạm tính</small>
+                <strong>{formatCurrency(seatDraft.totalAmount)}</strong>
+              </div>
+            </div>
+
+            <div className="booking-step3-ticket-row">
+              <span>Khởi hành</span>
+              <strong>{formatDateTime(trip.departureTime)}</strong>
+            </div>
+
+            <div className="booking-step3-ticket-row">
+              <span>Xe</span>
+              <strong>{getBusTypeLabel(trip.bus.busType)}</strong>
+              <small>Biển số {formatLicensePlate(trip.bus.licensePlate)}</small>
+            </div>
+
+            <div className="booking-step3-ticket-row">
+              <span>Ghế/Phòng</span>
+              <strong>{seatDescriptions}</strong>
+            </div>
+
+            <div className="booking-step3-ticket-service is-pickup">
+              <span>Điểm đón</span>
+              <strong>{serviceSummary.pickup.title}</strong>
+              <small>{serviceSummary.pickup.serviceLabel}</small>
+              {serviceSummary.pickup.detail && <small>{serviceSummary.pickup.detail}</small>}
+              {serviceSummary.pickup.time && <b>{serviceSummary.pickup.time}</b>}
+            </div>
+
+            <div className="booking-step3-ticket-service is-dropoff">
+              <span>Điểm trả</span>
+              <strong>{serviceSummary.dropoff.title}</strong>
+              <small>{serviceSummary.dropoff.serviceLabel}</small>
+              {serviceSummary.dropoff.detail && <small>{serviceSummary.dropoff.detail}</small>}
+              {serviceSummary.dropoff.time && <b>{serviceSummary.dropoff.time}</b>}
+            </div>
+
+            <div className="booking-step3-ticket-total">
+              <span>Tổng tiền vé</span>
+              <strong>{formatCurrency(seatDraft.totalAmount)}</strong>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

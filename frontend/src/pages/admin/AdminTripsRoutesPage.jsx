@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
@@ -125,6 +125,35 @@ const getTripStatusClass = (status) => {
   return 'status-badge status-badge--active'
 }
 
+
+const getTripSaleStatus = (trip, effectiveStatus, hasDeparted) => {
+  if (effectiveStatus === 'COMPLETED') {
+    return {
+      label: 'Đã hoàn thành',
+      className: 'status-badge status-badge--completed',
+    }
+  }
+
+  if (effectiveStatus === 'CANCELLED') {
+    return {
+      label: 'Đã hủy',
+      className: 'status-badge status-badge--cancelled',
+    }
+  }
+
+  if (hasDeparted || trip.status === 'CLOSED') {
+    return {
+      label: 'Ngừng bán',
+      className: 'status-badge status-badge--closed',
+    }
+  }
+
+  return {
+    label: 'Mở bán',
+    className: 'status-badge status-badge--active',
+  }
+}
+
 const getEffectiveTripStatus = (trip, now = new Date()) => {
   if (['COMPLETED', 'CANCELLED'].includes(trip.status)) return trip.status
   return new Date(trip.departureTime) <= now ? 'DEPARTED' : trip.status
@@ -190,8 +219,57 @@ const getJourneyDayBadge = (trip, effectiveStatus) => {
   if (effectiveStatus === 'COMPLETED') return { label: 'Hoàn thành', className: 'is-completed' }
   if (effectiveStatus === 'CANCELLED') return { label: 'Đã hủy', className: 'is-cancelled' }
   if (effectiveStatus === 'DEPARTED') return { label: 'Đã khởi hành', className: 'is-departed' }
+
+  const departureTime = new Date(trip.departureTime)
+  const now = new Date()
+  const millisecondsUntilDeparture = departureTime.getTime() - now.getTime()
+
+  if (
+    !Number.isNaN(departureTime.getTime()) &&
+    millisecondsUntilDeparture > 0 &&
+    millisecondsUntilDeparture <= 24 * 60 * 60 * 1000
+  ) {
+    return { label: 'Sắp chạy', className: 'is-upcoming' }
+  }
+
   if (isToday(trip.departureTime)) return { label: 'Hôm nay', className: 'is-today' }
   return null
+}
+
+
+// Thứ tự quản trị:
+// 1. Chuyến tương lai gần nhất -> tương lai xa hơn.
+// 2. Chuyến đã khởi hành nhưng chưa hoàn thành.
+// 3. Chuyến đã hủy.
+// 4. Chuyến đã hoàn thành xuống cuối.
+const getTripManagementSortGroup = (trip, now = new Date()) => {
+  const effectiveStatus = getEffectiveTripStatus(trip, now)
+  if (effectiveStatus === 'COMPLETED') return 4
+  if (effectiveStatus === 'CANCELLED') return 3
+
+  const departureTime = new Date(trip.departureTime)
+  if (!Number.isNaN(departureTime.getTime()) && departureTime > now) return 1
+
+  return 2
+}
+
+const sortTripsForManagement = (left, right, now = new Date()) => {
+  const leftGroup = getTripManagementSortGroup(left, now)
+  const rightGroup = getTripManagementSortGroup(right, now)
+
+  if (leftGroup !== rightGroup) return leftGroup - rightGroup
+
+  const leftTime = new Date(left.departureTime).getTime()
+  const rightTime = new Date(right.departureTime).getTime()
+
+  if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) return 0
+
+  // Tương lai: chuyến sắp chạy nhất đứng trước.
+  if (leftGroup === 1) return leftTime - rightTime
+
+  // Đã khởi hành / đã hủy / đã hoàn thành:
+  // ưu tiên bản ghi gần đây trước trong chính nhóm đó.
+  return rightTime - leftTime
 }
 
 function AdminTripsRoutesPage({ pageMode = 'list' }) {
@@ -199,7 +277,6 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
   const navigate = useNavigate()
   const { tripId } = useParams()
   const isFormPage = pageMode !== 'list'
-  const editLoadRef = useRef('')
 
   const [trips, setTrips] = useState([])
   const [tripPage, setTripPage] = useState(1)
@@ -227,6 +304,11 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
     operation: true,
   }))
   const [formRecordLoading, setFormRecordLoading] = useState(pageMode === 'edit')
+
+  const sortedTrips = useMemo(() => {
+    const now = new Date()
+    return [...trips].sort((left, right) => sortTripsForManagement(left, right, now))
+  }, [trips])
 
   const canCreateTrips = hasPermission(user, PERMISSIONS.CREATE_TRIPS)
   const canEditTrips = hasPermission(user, PERMISSIONS.EDIT_TRIPS)
@@ -380,87 +462,74 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
     setServiceConfig({ ...EMPTY_SERVICE_CONFIG })
   }
 
-  const openEditTrip = async (trip) => {
+  const applyTripToEditForm = (trip, serviceData = null) => {
     const departureLocation = trip.departureLocation || trip.route?.departureLocation || null
     const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation || null
+    const serviceTrip = serviceData?.trip || trip
+    const servicePoints = serviceData?.servicePoints ?? []
 
-    setProcessingTripId(trip.id)
-    try {
-      let serviceData = null
-      try {
-        serviceData = await getTripServicePoints(trip.id)
-      } catch {
-        // Chuyến cũ chưa từng cấu hình vẫn mở được form sửa với giá trị mặc định.
-      }
+    const meetingPoints = servicePoints
+      .filter(
+        (point) =>
+          point.status === 'ACTIVE' &&
+          point.isDefault !== true &&
+          point.pointType === 'PICKUP' &&
+          point.serviceMode === 'DonTaiDiemHen',
+      )
+      .map((point, index) =>
+        createServiceRow('PICKUP', point.locationId || point.location?.id || '', {
+          id: point.id,
+          estimatedTime: toTimeInput(point.estimatedTime),
+          sortOrder: point.sortOrder ?? index + 2,
+        }),
+      )
 
-      const serviceTrip = serviceData?.trip || trip
-      const servicePoints = serviceData?.servicePoints ?? []
-      const meetingPoints = servicePoints
-        .filter(
-          (point) =>
-            point.status === 'ACTIVE' &&
-            point.isDefault !== true &&
-            point.pointType === 'PICKUP' &&
-            point.serviceMode === 'DonTaiDiemHen',
-        )
-        .map((point, index) =>
-          createServiceRow('PICKUP', point.locationId || point.location?.id || '', {
-            id: point.id,
-            estimatedTime: toTimeInput(point.estimatedTime),
-            sortOrder: point.sortOrder ?? index + 2,
-          }),
-        )
-      const dropoffStops = servicePoints
-        .filter(
-          (point) =>
-            point.status === 'ACTIVE' &&
-            point.isDefault !== true &&
-            point.pointType === 'DROPOFF' &&
-            point.serviceMode === 'TraTaiDiemDung',
-        )
-        .map((point, index) =>
-          createServiceRow('DROPOFF', point.locationId || point.location?.id || '', {
-            id: point.id,
-            estimatedTime: toTimeInput(point.estimatedTime),
-            sortOrder: point.sortOrder ?? index + 2,
-          }),
-        )
+    const dropoffStops = servicePoints
+      .filter(
+        (point) =>
+          point.status === 'ACTIVE' &&
+          point.isDefault !== true &&
+          point.pointType === 'DROPOFF' &&
+          point.serviceMode === 'TraTaiDiemDung',
+      )
+      .map((point, index) =>
+        createServiceRow('DROPOFF', point.locationId || point.location?.id || '', {
+          id: point.id,
+          estimatedTime: toTimeInput(point.estimatedTime),
+          sortOrder: point.sortOrder ?? index + 2,
+        }),
+      )
 
-      setEditingTrip(trip)
-      setTripForm({
-        departureProvinceId:
-          trip.departureProvince?.id || locationProvinceId(departureLocation) || '',
-        departureLocationId: departureLocation?.id || '',
-        arrivalProvinceId:
-          trip.arrivalProvince?.id || locationProvinceId(arrivalLocation) || '',
-        arrivalLocationId: arrivalLocation?.id || '',
-        bus: trip.bus?.id ?? trip.busId ?? '',
-        departureTime: toLocalDateTimeInput(trip.departureTime),
-        expectedArrivalTime: toLocalDateTimeInput(trip.expectedArrivalTime),
-        ticketPrice: trip.ticketPrice == null ? '' : String(Number(trip.ticketPrice)),
-        singleRoomPrice:
-          trip.singleRoomPrice == null ? '' : String(Number(trip.singleRoomPrice)),
-        doubleRoomPrice:
-          trip.doubleRoomPrice == null ? '' : String(Number(trip.doubleRoomPrice)),
-        status: trip.status === 'CLOSED' ? 'CLOSED' : 'OPEN',
-      })
-      setServiceConfig({
-        primaryPickupMode: serviceTrip.primaryPickupMode || 'DonTaiBenXe',
-        primaryDropoffMode: serviceTrip.primaryDropoffMode || 'TraTaiBenXe',
-        allowPickupTransfer: serviceTrip.allowPickupTransfer === true,
-        allowPickupMeetingPoint:
-          serviceTrip.allowPickupMeetingPoint === true || meetingPoints.length > 0,
-        allowDropoffTransfer: serviceTrip.allowDropoffTransfer === true,
-        allowDropoffStop: serviceTrip.allowDropoffStop === true || dropoffStops.length > 0,
-        meetingPoints,
-        dropoffStops,
-      })
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } catch (requestError) {
-      window.alert(getApiErrorMessage(requestError))
-    } finally {
-      setProcessingTripId('')
-    }
+    setEditingTrip(trip)
+    setTripForm({
+      departureProvinceId:
+        trip.departureProvince?.id || locationProvinceId(departureLocation) || '',
+      departureLocationId: departureLocation?.id || '',
+      arrivalProvinceId:
+        trip.arrivalProvince?.id || locationProvinceId(arrivalLocation) || '',
+      arrivalLocationId: arrivalLocation?.id || '',
+      bus: trip.bus?.id ?? trip.busId ?? '',
+      departureTime: toLocalDateTimeInput(trip.departureTime),
+      expectedArrivalTime: toLocalDateTimeInput(trip.expectedArrivalTime),
+      ticketPrice: trip.ticketPrice == null ? '' : String(Number(trip.ticketPrice)),
+      singleRoomPrice:
+        trip.singleRoomPrice == null ? '' : String(Number(trip.singleRoomPrice)),
+      doubleRoomPrice:
+        trip.doubleRoomPrice == null ? '' : String(Number(trip.doubleRoomPrice)),
+      status: trip.status === 'CLOSED' ? 'CLOSED' : 'OPEN',
+    })
+
+    setServiceConfig({
+      primaryPickupMode: serviceTrip.primaryPickupMode || 'DonTaiBenXe',
+      primaryDropoffMode: serviceTrip.primaryDropoffMode || 'TraTaiBenXe',
+      allowPickupTransfer: serviceTrip.allowPickupTransfer === true,
+      allowPickupMeetingPoint:
+        serviceTrip.allowPickupMeetingPoint === true || meetingPoints.length > 0,
+      allowDropoffTransfer: serviceTrip.allowDropoffTransfer === true,
+      allowDropoffStop: serviceTrip.allowDropoffStop === true || dropoffStops.length > 0,
+      meetingPoints,
+      dropoffStops,
+    })
   }
 
   useEffect(() => {
@@ -473,28 +542,53 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
   }, [pageMode])
 
   useEffect(() => {
-    if (pageMode !== 'edit' || !tripId || editLoadRef.current === tripId) return
-    editLoadRef.current = tripId
+    if (pageMode !== 'edit' || !tripId) return undefined
+
+    // Không dùng ref để chặn chạy lại effect.
+    // React StrictMode ở môi trường dev sẽ mount -> cleanup -> mount lại effect.
+    // Nếu đánh dấu tripId đã tải ở lần mount đầu, lần mount thứ hai bị bỏ qua,
+    // còn request đầu bị cleanup đánh dấu cancelled => trang đứng mãi ở LoadingState.
+    let active = true
+
     setFormSections({ route: false, pickup: true, dropoff: false, operation: true })
-    let cancelled = false
+    setFormRecordLoading(true)
+    setError('')
+    setEditingTrip(null)
 
     const loadTripForEdit = async () => {
-      setFormRecordLoading(true)
       try {
         const result = await getTrip(tripId)
         const trip = result?.trip || result
-        if (!trip?.id) throw new Error('Không tìm thấy chuyến xe cần sửa.')
-        if (!cancelled) await openEditTrip(trip)
+
+        if (!trip?.id) {
+          throw new Error('Không tìm thấy chuyến xe cần sửa.')
+        }
+
+        if (!active) return
+
+        // Có dữ liệu chuyến là mở form ngay.
+        applyTripToEditForm(trip, null)
+        setFormRecordLoading(false)
+
+        // Điểm phục vụ là dữ liệu phụ: tải sau, không khóa form.
+        try {
+          const serviceData = await getTripServicePoints(tripId)
+          if (active) applyTripToEditForm(trip, serviceData)
+        } catch {
+          // Chuyến cũ chưa có cấu hình điểm phục vụ vẫn cho phép sửa bình thường.
+        }
       } catch (requestError) {
-        if (!cancelled) setError(getApiErrorMessage(requestError))
-      } finally {
-        if (!cancelled) setFormRecordLoading(false)
+        if (!active) return
+        setError(getApiErrorMessage(requestError))
+        setFormRecordLoading(false)
       }
     }
 
     loadTripForEdit()
-    return () => { cancelled = true }
-    // openEditTrip intentionally uses current form helpers; route id is the reload key.
+
+    return () => {
+      active = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageMode, tripId])
 
@@ -1543,15 +1637,29 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
     </>
   )
 
+  // Form Thêm/Sửa có luồng tải riêng, không phụ thuộc danh sách chuyến.
+  // Đặt nhánh form trước LoadingState chung để tránh trang Sửa bị kẹt vì trips luôn rỗng.
+  if (isFormPage) {
+    if (pageMode === 'edit' && formRecordLoading) {
+      return <LoadingState />
+    }
+    if (pageMode === 'edit' && error && !editingTrip) {
+      return (
+        <ErrorState
+          message={error}
+          onRetry={() => {
+            window.location.reload()
+          }}
+        />
+      )
+    }
+    return renderTripFormPage()
+  }
+
   if (error && !trips.length) {
     return <ErrorState message={error} onRetry={() => load(tripPage, appliedTripFilters)} />
   }
   if (loading && !trips.length) return <LoadingState />
-  if (isFormPage && pageMode === 'edit' && formRecordLoading) return <LoadingState />
-  if (isFormPage && pageMode === 'edit' && error && !editingTrip) {
-    return <ErrorState message={error} onRetry={() => { editLoadRef.current = ''; window.location.reload() }} />
-  }
-  if (isFormPage) return renderTripFormPage()
 
   return (
     <>
@@ -1643,7 +1751,7 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
                 </tr>
               </thead>
               <tbody>
-                {trips.map((trip) => {
+                {sortedTrips.map((trip) => {
                   const effectiveStatus = getEffectiveTripStatus(trip)
                   const hasDeparted = new Date(trip.departureTime) <= new Date()
                   const isProcessing = processingTripId === trip.id
@@ -1662,9 +1770,15 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
                     ? Math.min(100, Math.round((occupied / capacity) * 100))
                     : 0
                   const dayBadge = getJourneyDayBadge(trip, effectiveStatus)
+                  const saleStatus = getTripSaleStatus(trip, effectiveStatus, hasDeparted)
+
+                  const rowGroup = getTripManagementSortGroup(trip)
 
                   return (
-                    <tr key={trip.id}>
+                    <tr
+                      className={`admin-trip-row admin-trip-row--group-${rowGroup}`}
+                      key={trip.id}
+                    >
                       <td className="admin-trip-mvc-code">
                         <strong>#{String(trip.id || '').split('-')[0].toUpperCase()}</strong>
                       </td>
@@ -1684,8 +1798,8 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
                       </td>
                       <td><strong>{formatAdminTime(trip.departureTime)}</strong></td>
                       <td>
-                        <span className={getTripStatusClass(effectiveStatus)}>
-                          {TRIP_STATUS_LABELS[effectiveStatus] || 'Không xác định'}
+                        <span className={saleStatus.className}>
+                          {saleStatus.label}
                         </span>
                       </td>
                       <td className="admin-trip-mvc-price">
@@ -1712,8 +1826,12 @@ function AdminTripsRoutesPage({ pageMode = 'list' }) {
                         <div className="admin-trip-mvc-actions admin-trip-mvc-actions--booking">
                           {canBook ? (
                             <>
-                              <Link className="is-counter" to={`/admin/dat-ve-tai-quay/${trip.id}`}>▣ Tại quầy</Link>
-                              <Link className="is-hotline" to={`/admin/dat-ve-hotline/${trip.id}`}>☎ Hotline</Link>
+                              <Link className="is-counter" to={`/admin/dat-ve-tai-quay/${trip.id}`}>
+                                      Tại quầy
+                              </Link>
+                              <Link className="is-hotline" to={`/admin/dat-ve-hotline/${trip.id}`}>
+  Hotline
+                              </Link>
                             </>
                           ) : (
                             <span className="admin-trip-disabled-action">Không thể đặt</span>

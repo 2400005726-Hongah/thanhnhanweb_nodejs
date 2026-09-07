@@ -73,8 +73,19 @@ const tripInclude = {
     },
   },
 
-  departureLocation: { include: { provinceRef: true, defaultArea: true } },
-  arrivalLocation: { include: { provinceRef: true, defaultArea: true } },
+  departureLocation: {
+    include: {
+      provinceRef: true,
+      defaultArea: true,
+    },
+  },
+
+  arrivalLocation: {
+    include: {
+      provinceRef: true,
+      defaultArea: true,
+    },
+  },
 
   bus: {
     select: {
@@ -98,21 +109,49 @@ const tripInclude = {
   },
 }
 
-const buildTripJourneyRoute = (trip) => {
-  const departureLocation = trip.departureLocation || trip.route?.departureLocation || null
-  const arrivalLocation = trip.arrivalLocation || trip.route?.arrivalLocation || null
-  const routeName = departureLocation && arrivalLocation
-    ? `${departureLocation.name} → ${arrivalLocation.name}`
-    : trip.route?.routeName || 'Chưa xác định hành trình'
+const buildTripJourneyRoute = (
+  trip,
+) => {
+  const departureLocation =
+    trip.departureLocation ||
+    trip.route?.departureLocation ||
+    null
+
+  const arrivalLocation =
+    trip.arrivalLocation ||
+    trip.route?.arrivalLocation ||
+    null
+
+  const routeName =
+    departureLocation &&
+    arrivalLocation
+      ? `${departureLocation.name} → ${arrivalLocation.name}`
+      : trip.route?.routeName ||
+        'Chưa xác định hành trình'
 
   return {
-    id: trip.route?.id || null,
+    id:
+      trip.route?.id ||
+      null,
+
     routeName,
+
     departureLocation,
     arrivalLocation,
-    distanceKm: trip.route?.distanceKm ?? null,
-    estimatedDurationMinutes: trip.route?.estimatedDurationMinutes ?? null,
-    legacy: Boolean(trip.route?.id),
+
+    distanceKm:
+      trip.route?.distanceKm ??
+      null,
+
+    estimatedDurationMinutes:
+      trip.route
+        ?.estimatedDurationMinutes ??
+      null,
+
+    legacy:
+      Boolean(
+        trip.route?.id,
+      ),
   }
 }
 
@@ -127,110 +166,313 @@ const ensureTripReferences = async (
     arrivalProvinceId,
   },
 ) => {
-  const route = routeId
-    ? await database.route.findFirst({
-        where: { id: routeId, status: 'ACTIVE' },
-        include: { departureLocation: true, arrivalLocation: true },
-      })
-    : null
+  const route =
+    routeId
+      ? await database.route.findFirst({
+          where: {
+            id: routeId,
+            status: 'ACTIVE',
+          },
 
-  if (routeId && !route) {
-    throw new HttpError('Tuyến xe legacy không tồn tại hoặc không hoạt động', 400)
+          include: {
+            departureLocation: true,
+            arrivalLocation: true,
+          },
+        })
+      : null
+
+  if (
+    routeId &&
+    !route
+  ) {
+    throw new HttpError(
+      'Tuyến xe legacy không tồn tại hoặc không hoạt động',
+      400,
+    )
   }
 
   const resolvedDepartureLocationId =
-    departureLocationId || route?.departureLocationId || null
+    departureLocationId ||
+    route?.departureLocationId ||
+    null
+
   const resolvedArrivalLocationId =
-    arrivalLocationId || route?.arrivalLocationId || null
+    arrivalLocationId ||
+    route?.arrivalLocationId ||
+    null
 
-  if (!resolvedDepartureLocationId || !resolvedArrivalLocationId) {
-    throw new HttpError('Vui lòng chọn đầy đủ điểm đi cụ thể và điểm đến cụ thể', 400)
+  if (
+    !resolvedDepartureLocationId ||
+    !resolvedArrivalLocationId
+  ) {
+    throw new HttpError(
+      'Vui lòng chọn đầy đủ điểm đi cụ thể và điểm đến cụ thể',
+      400,
+    )
   }
 
-  if (resolvedDepartureLocationId === resolvedArrivalLocationId) {
-    throw new HttpError('Điểm đi cụ thể phải khác điểm đến cụ thể', 400)
+  if (
+    resolvedDepartureLocationId ===
+    resolvedArrivalLocationId
+  ) {
+    throw new HttpError(
+      'Điểm đi cụ thể phải khác điểm đến cụ thể',
+      400,
+    )
   }
 
-  const [bus, locations] = await Promise.all([
+  const [
+    bus,
+    locations,
+  ] = await Promise.all([
     database.bus.findFirst({
-      where: { id: busId, status: 'ACTIVE' },
+      where: {
+        id: busId,
+        status: 'ACTIVE',
+      },
+
       include: {
         seats: {
-          where: { status: 'ACTIVE' },
-          orderBy: { seatCode: 'asc' },
+          where: {
+            status: 'ACTIVE',
+          },
+
+          orderBy: {
+            seatCode: 'asc',
+          },
         },
       },
     }),
+
     database.location.findMany({
       where: {
-        id: { in: [resolvedDepartureLocationId, resolvedArrivalLocationId] },
+        id: {
+          in: [
+            resolvedDepartureLocationId,
+            resolvedArrivalLocationId,
+          ],
+        },
+
         status: 'ACTIVE',
       },
-      include: { provinceRef: true, defaultArea: true },
+
+      include: {
+        provinceRef: true,
+        defaultArea: true,
+      },
     }),
   ])
 
   if (!bus) {
-    throw new HttpError('Xe không tồn tại hoặc không hoạt động', 400)
-  }
-  if (bus.seats.length === 0) {
-    throw new HttpError('Xe phải có ít nhất một ghế đang hoạt động', 400)
+    throw new HttpError(
+      'Xe không tồn tại hoặc không hoạt động',
+      400,
+    )
   }
 
-  const locationById = new Map(locations.map((location) => [location.id, location]))
-  const departureLocation = locationById.get(resolvedDepartureLocationId)
-  const arrivalLocation = locationById.get(resolvedArrivalLocationId)
-
-  if (!departureLocation || !arrivalLocation) {
-    throw new HttpError('Điểm đi hoặc điểm đến không tồn tại hoặc đã ngừng hoạt động', 400)
-  }
-  if (!departureLocation.provinceId || !arrivalLocation.provinceId) {
-    throw new HttpError('Địa điểm cụ thể phải được gắn với tỉnh/thành', 409)
-  }
-  if (!departureLocation.defaultAreaId || !arrivalLocation.defaultAreaId) {
-    throw new HttpError('Địa điểm cụ thể phải được gắn với một bộ lọc địa điểm', 409)
-  }
   if (
-    departureLocation.provinceRef?.status === 'INACTIVE' ||
-    arrivalLocation.provinceRef?.status === 'INACTIVE'
+    bus.seats.length ===
+    0
   ) {
-    throw new HttpError('Tỉnh/Thành của điểm đi hoặc điểm đến đã ngừng hoạt động', 409)
-  }
-  if (
-    departureLocation.defaultArea?.status === 'INACTIVE' ||
-    arrivalLocation.defaultArea?.status === 'INACTIVE'
-  ) {
-    throw new HttpError('Bộ lọc của điểm đi hoặc điểm đến đã ngừng hoạt động', 409)
-  }
-  if (departureLocation.provinceId === arrivalLocation.provinceId) {
-    throw new HttpError('Tỉnh/Thành đi phải khác Tỉnh/Thành đến', 400)
-  }
-  if (departureProvinceId && departureLocation.provinceId !== departureProvinceId) {
-    throw new HttpError('Điểm đi cụ thể không thuộc Tỉnh/Thành đi đã chọn', 400)
-  }
-  if (arrivalProvinceId && arrivalLocation.provinceId !== arrivalProvinceId) {
-    throw new HttpError('Điểm đến cụ thể không thuộc Tỉnh/Thành đến đã chọn', 400)
-  }
-  if (!['PICKUP', 'BOTH'].includes(departureLocation.locationType)) {
-    throw new HttpError('Địa điểm đã chọn không được phép sử dụng làm điểm đi', 400)
-  }
-  if (!['DROPOFF', 'BOTH'].includes(arrivalLocation.locationType)) {
-    throw new HttpError('Địa điểm đã chọn không được phép sử dụng làm điểm đến', 400)
+    throw new HttpError(
+      'Xe phải có ít nhất một ghế đang hoạt động',
+      400,
+    )
   }
 
-  if (isManagedBusType(bus.busType)) {
-    const expectedCapacity = getBusCapacity(bus.busType)
-    const expectedSeats = getBusSeatTemplate(bus.busType)
-    const actualByCode = new Map(bus.seats.map((seat) => [seat.seatCode, seat]))
+  const locationById =
+    new Map(
+      locations.map(
+        (location) => [
+          location.id,
+          location,
+        ],
+      ),
+    )
+
+  const departureLocation =
+    locationById.get(
+      resolvedDepartureLocationId,
+    )
+
+  const arrivalLocation =
+    locationById.get(
+      resolvedArrivalLocationId,
+    )
+
+  if (
+    !departureLocation ||
+    !arrivalLocation
+  ) {
+    throw new HttpError(
+      'Điểm đi hoặc điểm đến không tồn tại hoặc đã ngừng hoạt động',
+      400,
+    )
+  }
+
+  if (
+    !departureLocation.provinceId ||
+    !arrivalLocation.provinceId
+  ) {
+    throw new HttpError(
+      'Địa điểm cụ thể phải được gắn với tỉnh/thành',
+      409,
+    )
+  }
+
+  if (
+    !departureLocation.defaultAreaId ||
+    !arrivalLocation.defaultAreaId
+  ) {
+    throw new HttpError(
+      'Địa điểm cụ thể phải được gắn với một bộ lọc địa điểm',
+      409,
+    )
+  }
+
+  if (
+    departureLocation
+      .provinceRef
+      ?.status ===
+      'INACTIVE' ||
+    arrivalLocation
+      .provinceRef
+      ?.status ===
+      'INACTIVE'
+  ) {
+    throw new HttpError(
+      'Tỉnh/Thành của điểm đi hoặc điểm đến đã ngừng hoạt động',
+      409,
+    )
+  }
+
+  if (
+    departureLocation
+      .defaultArea
+      ?.status ===
+      'INACTIVE' ||
+    arrivalLocation
+      .defaultArea
+      ?.status ===
+      'INACTIVE'
+  ) {
+    throw new HttpError(
+      'Bộ lọc của điểm đi hoặc điểm đến đã ngừng hoạt động',
+      409,
+    )
+  }
+
+  if (
+    departureLocation.provinceId ===
+    arrivalLocation.provinceId
+  ) {
+    throw new HttpError(
+      'Tỉnh/Thành đi phải khác Tỉnh/Thành đến',
+      400,
+    )
+  }
+
+  if (
+    departureProvinceId &&
+    departureLocation.provinceId !==
+      departureProvinceId
+  ) {
+    throw new HttpError(
+      'Điểm đi cụ thể không thuộc Tỉnh/Thành đi đã chọn',
+      400,
+    )
+  }
+
+  if (
+    arrivalProvinceId &&
+    arrivalLocation.provinceId !==
+      arrivalProvinceId
+  ) {
+    throw new HttpError(
+      'Điểm đến cụ thể không thuộc Tỉnh/Thành đến đã chọn',
+      400,
+    )
+  }
+
+  if (
+    ![
+      'PICKUP',
+      'BOTH',
+    ].includes(
+      departureLocation
+        .locationType,
+    )
+  ) {
+    throw new HttpError(
+      'Địa điểm đã chọn không được phép sử dụng làm điểm đi',
+      400,
+    )
+  }
+
+  if (
+    ![
+      'DROPOFF',
+      'BOTH',
+    ].includes(
+      arrivalLocation
+        .locationType,
+    )
+  ) {
+    throw new HttpError(
+      'Địa điểm đã chọn không được phép sử dụng làm điểm đến',
+      400,
+    )
+  }
+
+  if (
+    isManagedBusType(
+      bus.busType,
+    )
+  ) {
+    const expectedCapacity =
+      getBusCapacity(
+        bus.busType,
+      )
+
+    const expectedSeats =
+      getBusSeatTemplate(
+        bus.busType,
+      )
+
+    const actualByCode =
+      new Map(
+        bus.seats.map(
+          (seat) => [
+            seat.seatCode,
+            seat,
+          ],
+        ),
+      )
+
     const structureMatches =
-      bus.capacity === expectedCapacity &&
-      bus.seats.length === expectedSeats.length &&
-      expectedSeats.every((expected) => {
-        const actual = actualByCode.get(expected.seatCode)
-        return actual?.floor === expected.floor && actual?.seatType === expected.seatType
-      })
+      bus.capacity ===
+        expectedCapacity &&
+      bus.seats.length ===
+        expectedSeats.length &&
+      expectedSeats.every(
+        (expected) => {
+          const actual =
+            actualByCode.get(
+              expected.seatCode,
+            )
 
-    if (!structureMatches) {
+          return (
+            actual?.floor ===
+              expected.floor &&
+            actual?.seatType ===
+              expected.seatType
+          )
+        },
+      )
+
+    if (
+      !structureMatches
+    ) {
       throw new HttpError(
         'Sơ đồ ghế của xe không khớp mẫu chuẩn; không thể tạo chuyến',
         409,
@@ -241,7 +483,10 @@ const ensureTripReferences = async (
   return {
     route,
     bus,
-    activeSeats: bus.seats,
+
+    activeSeats:
+      bus.seats,
+
     departureLocation,
     arrivalLocation,
   }
@@ -267,16 +512,19 @@ const ensureNoScheduleConflict =
           },
 
           departureTime: {
-            lt: expectedArrivalTime,
+            lt:
+              expectedArrivalTime,
           },
 
           expectedArrivalTime: {
-            gt: departureTime,
+            gt:
+              departureTime,
           },
 
           ...(excludeTripId && {
             id: {
-              not: excludeTripId,
+              not:
+                excludeTripId,
             },
           }),
         },
@@ -299,45 +547,90 @@ const buildTripSeatData = (
   seats,
   pricing,
 ) =>
-  seats.map((seat) => ({
-    tripId,
-    seatId: seat.id,
-    seatCode: seat.seatCode,
-    floor: seat.floor,
-    seatType: seat.seatType,
+  seats.map(
+    (seat) => ({
+      tripId,
 
-    price:
-      getTripSeatPrice(
-        pricing,
+      seatId:
+        seat.id,
+
+      seatCode:
+        seat.seatCode,
+
+      floor:
+        seat.floor,
+
+      seatType:
         seat.seatType,
-      ),
 
-    status: 'AVAILABLE',
-  }))
+      price:
+        getTripSeatPrice(
+          pricing,
+          seat.seatType,
+        ),
+
+      status:
+        'AVAILABLE',
+    }),
+  )
 
 const serializeManagedTrip = (
   trip,
   now = new Date(),
 ) => {
-  const pricing = serializeTripPricing(
-    resolveTripPricing({
-      busType: trip.bus.busType,
-      route: trip.route || {},
-      ticketPrice: trip.ticketPrice,
-      singleRoomPrice: trip.singleRoomPrice,
-      doubleRoomPrice: trip.doubleRoomPrice,
-    }),
-  )
+  const pricing =
+    serializeTripPricing(
+      resolveTripPricing({
+        busType:
+          trip.bus.busType,
 
-  const { tripSeats, ...tripData } = trip
+        route:
+          trip.route ||
+          {},
+
+        ticketPrice:
+          trip.ticketPrice,
+
+        singleRoomPrice:
+          trip.singleRoomPrice,
+
+        doubleRoomPrice:
+          trip.doubleRoomPrice,
+      }),
+    )
+
+  const {
+    tripSeats,
+    ...tripData
+  } = trip
 
   return {
     ...tripData,
-    route: buildTripJourneyRoute(trip),
-    departureProvince: trip.departureLocation?.provinceRef || null,
-    arrivalProvince: trip.arrivalLocation?.provinceRef || null,
+
+    route:
+      buildTripJourneyRoute(
+        trip,
+      ),
+
+    departureProvince:
+      trip.departureLocation
+        ?.provinceRef ||
+      null,
+
+    arrivalProvince:
+      trip.arrivalLocation
+        ?.provinceRef ||
+      null,
+
     ...pricing,
-    ...(tripSeats && { seatStats: summarizeTripSeats(tripSeats, now) }),
+
+    ...(tripSeats && {
+      seatStats:
+        summarizeTripSeats(
+          tripSeats,
+          now,
+        ),
+    }),
   }
 }
 
@@ -349,9 +642,13 @@ const getTrips = async ({
     page,
     limit,
     skip,
-  } = parsePagination(query)
+  } =
+    parsePagination(
+      query,
+    )
 
-  const now = new Date()
+  const now =
+    new Date()
 
   const where = {
     ...(!isAdmin && {
@@ -394,7 +691,8 @@ const getTrips = async ({
       )
 
     end.setUTCDate(
-      end.getUTCDate() + 1,
+      end.getUTCDate() +
+        1,
     )
 
     where.departureTime = {
@@ -430,7 +728,8 @@ const getTrips = async ({
 
       orderBy: {
         departureTime:
-          query.sort === 'desc'
+          query.sort ===
+          'desc'
             ? 'desc'
             : 'asc',
       },
@@ -446,11 +745,12 @@ const getTrips = async ({
 
   return {
     trips:
-      trips.map((trip) =>
-        serializeManagedTrip(
-          trip,
-          now,
-        ),
+      trips.map(
+        (trip) =>
+          serializeManagedTrip(
+            trip,
+            now,
+          ),
       ),
 
     pagination:
@@ -466,32 +766,159 @@ const getTripById = async ({
   tripId,
   isAdmin,
 }) => {
+  /*
+   * Trang sửa chuyến quản trị chỉ lấy dữ liệu cần thiết.
+   * Không kéo toàn bộ ghế để tránh tải chậm.
+   */
+  if (isAdmin) {
+    const locationRefSelect = {
+      id: true,
+      provinceId: true,
+    }
+
+    const trip =
+      await prisma.trip.findUnique({
+        where: {
+          id: tripId,
+        },
+
+        select: {
+          id: true,
+          routeId: true,
+          busId: true,
+
+          departureTime:
+            true,
+
+          expectedArrivalTime:
+            true,
+
+          departureLocationId:
+            true,
+
+          arrivalLocationId:
+            true,
+
+          primaryPickupMode:
+            true,
+
+          primaryDropoffMode:
+            true,
+
+          allowPickupTransfer:
+            true,
+
+          allowPickupMeetingPoint:
+            true,
+
+          allowDropoffTransfer:
+            true,
+
+          allowDropoffStop:
+            true,
+
+          salesStatus:
+            true,
+
+          operationStatus:
+            true,
+
+          completedAt:
+            true,
+
+          ticketPrice:
+            true,
+
+          singleRoomPrice:
+            true,
+
+          doubleRoomPrice:
+            true,
+
+          status: true,
+
+          departureLocation: {
+            select:
+              locationRefSelect,
+          },
+
+          arrivalLocation: {
+            select:
+              locationRefSelect,
+          },
+
+          route: {
+            select: {
+              id: true,
+
+              departureLocation: {
+                select:
+                  locationRefSelect,
+              },
+
+              arrivalLocation: {
+                select:
+                  locationRefSelect,
+              },
+            },
+          },
+        },
+      })
+
+    if (!trip) {
+      throw new HttpError(
+        'Không tìm thấy chuyến xe',
+        404,
+      )
+    }
+
+    return {
+      ...trip,
+
+      ticketPrice:
+        trip.ticketPrice ==
+        null
+          ? null
+          : Number(
+              trip.ticketPrice,
+            ),
+
+      singleRoomPrice:
+        trip.singleRoomPrice ==
+        null
+          ? null
+          : Number(
+              trip.singleRoomPrice,
+            ),
+
+      doubleRoomPrice:
+        trip.doubleRoomPrice ==
+        null
+          ? null
+          : Number(
+              trip.doubleRoomPrice,
+            ),
+    }
+  }
+
+  /*
+   * Website khách.
+   */
   const trip =
     await prisma.trip.findFirst({
       where: {
         id: tripId,
 
-        ...(!isAdmin && {
-          status: 'OPEN',
+        status: 'OPEN',
 
-          departureTime: {
-            gt: new Date(),
-          },
-        }),
+        departureTime: {
+          gt:
+            new Date(),
+        },
       },
 
-      include: {
-        ...tripInclude,
-
-        ...(isAdmin && {
-          tripSeats: {
-            select: {
-              status: true,
-              holdExpiresAt: true,
-            },
-          },
-        }),
-      },
+      include:
+        tripInclude,
     })
 
   if (!trip) {
@@ -506,36 +933,56 @@ const getTripById = async ({
   )
 }
 
+const getTripSeatMap = async (
+  tripId,
+) => {
+  const now =
+    new Date()
 
-const getTripSeatMap = async (tripId) => {
-  const now = new Date()
-
+  /*
+   * Tự giải phóng ghế giữ đã hết hạn.
+   */
   await prisma.tripSeat.updateMany({
     where: {
       tripId,
+
       status: 'HELD',
+
       holdExpiresAt: {
         lte: now,
       },
     },
+
     data: {
-      status: 'AVAILABLE',
-      heldBy: null,
-      holdExpiresAt: null,
+      status:
+        'AVAILABLE',
+
+      heldBy:
+        null,
+
+      holdExpiresAt:
+        null,
     },
   })
 
-  const [trip, seats] = await Promise.all([
+  const [
+    trip,
+    seats,
+  ] = await Promise.all([
     prisma.trip.findUnique({
       where: {
         id: tripId,
       },
-      include: tripInclude,
+
+      include:
+        tripInclude,
     }),
+
     prisma.tripSeat.findMany({
       where: {
         tripId,
       },
+
       select: {
         id: true,
         seatCode: true,
@@ -544,12 +991,14 @@ const getTripSeatMap = async (tripId) => {
         status: true,
         holdExpiresAt: true,
       },
+
       orderBy: [
         {
           floor: 'asc',
         },
         {
-          seatCode: 'asc',
+          seatCode:
+            'asc',
         },
       ],
     }),
@@ -569,26 +1018,40 @@ const getTripSeatMap = async (tripId) => {
     )
 
   const floors =
-    [...new Set(
-      seats.map(
-        (seat) => seat.floor,
+    [
+      ...new Set(
+        seats.map(
+          (seat) =>
+            seat.floor,
+        ),
       ),
-    )].map(
+    ].map(
       (floor) => ({
         floor,
+
         seats:
           seats
             .filter(
               (seat) =>
-                seat.floor === floor,
+                seat.floor ===
+                floor,
             )
             .map(
               (seat) => ({
-                id: seat.id,
-                seatCode: seat.seatCode,
-                floor: seat.floor,
-                seatType: seat.seatType,
-                status: seat.status,
+                id:
+                  seat.id,
+
+                seatCode:
+                  seat.seatCode,
+
+                floor:
+                  seat.floor,
+
+                seatType:
+                  seat.seatType,
+
+                status:
+                  seat.status,
               }),
             ),
       }),
@@ -600,11 +1063,11 @@ const getTripSeatMap = async (tripId) => {
         trip,
         now,
       ),
+
     summary,
     floors,
   }
 }
-
 
 const createTrip = async (
   payload,
@@ -649,14 +1112,30 @@ const createTrip = async (
         activeSeats,
         departureLocation,
         arrivalLocation,
-      } = await ensureTripReferences(transaction, {
-        routeId: payload.route || null,
-        busId: payload.bus,
-        departureLocationId: payload.departureLocationId,
-        arrivalLocationId: payload.arrivalLocationId,
-        departureProvinceId: payload.departureProvinceId,
-        arrivalProvinceId: payload.arrivalProvinceId,
-      })
+      } =
+        await ensureTripReferences(
+          transaction,
+          {
+            routeId:
+              payload.route ||
+              null,
+
+            busId:
+              payload.bus,
+
+            departureLocationId:
+              payload.departureLocationId,
+
+            arrivalLocationId:
+              payload.arrivalLocationId,
+
+            departureProvinceId:
+              payload.departureProvinceId,
+
+            arrivalProvinceId:
+              payload.arrivalProvinceId,
+          },
+        )
 
       await ensureNoScheduleConflict(
         transaction,
@@ -675,7 +1154,9 @@ const createTrip = async (
           busType:
             bus.busType,
 
-          route: route || {},
+          route:
+            route ||
+            {},
 
           ticketPrice:
             payload.ticketPrice,
@@ -691,7 +1172,8 @@ const createTrip = async (
         await transaction.trip.create({
           data: {
             routeId:
-              route?.id || null,
+              route?.id ||
+              null,
 
             busId:
               payload.bus,
@@ -719,29 +1201,40 @@ const createTrip = async (
               arrivalLocation.id,
 
             primaryPickupMode:
-              normalizePrimaryPickupMode(payload.primaryPickupMode),
+              normalizePrimaryPickupMode(
+                payload.primaryPickupMode,
+              ),
 
             primaryDropoffMode:
-              normalizePrimaryDropoffMode(payload.primaryDropoffMode),
+              normalizePrimaryDropoffMode(
+                payload.primaryDropoffMode,
+              ),
 
             allowPickupTransfer:
-              payload.allowPickupTransfer === true,
+              payload.allowPickupTransfer ===
+              true,
 
             allowPickupMeetingPoint:
-              payload.allowPickupMeetingPoint === true,
+              payload.allowPickupMeetingPoint ===
+              true,
 
             allowDropoffTransfer:
-              payload.allowDropoffTransfer === true,
+              payload.allowDropoffTransfer ===
+              true,
 
             allowDropoffStop:
-              payload.allowDropoffStop === true,
+              payload.allowDropoffStop ===
+              true,
 
             status:
               payload.status ||
               'OPEN',
 
             salesStatus:
-              payload.status === 'CLOSED' ? 'CLOSED' : 'OPEN',
+              payload.status ===
+              'CLOSED'
+                ? 'CLOSED'
+                : 'OPEN',
 
             operationStatus:
               'NOT_DEPARTED',
@@ -762,7 +1255,8 @@ const createTrip = async (
       const createdTrip =
         await transaction.trip.findUnique({
           where: {
-            id: trip.id,
+            id:
+              trip.id,
           },
 
           include:
@@ -822,7 +1316,8 @@ const updateTrip = async (
       }
 
       if (
-        trip.departureTime <= new Date()
+        trip.departureTime <=
+        new Date()
       ) {
         throw new HttpError(
           'Chuyến đã qua giờ khởi hành nên không thể sửa thông tin',
@@ -842,15 +1337,19 @@ const updateTrip = async (
       }
 
       const nextRouteId =
-        payload.route !== undefined
-          ? payload.route || null
+        payload.route !==
+        undefined
+          ? payload.route ||
+            null
           : trip.routeId
 
       const nextDepartureLocationId =
-        payload.departureLocationId || trip.departureLocationId
+        payload.departureLocationId ||
+        trip.departureLocationId
 
       const nextArrivalLocationId =
-        payload.arrivalLocationId || trip.arrivalLocationId
+        payload.arrivalLocationId ||
+        trip.arrivalLocationId
 
       const nextBusId =
         payload.bus ||
@@ -872,7 +1371,8 @@ const updateTrip = async (
 
       const protectedChange =
         Boolean(
-          payload.route !== undefined ||
+          payload.route !==
+            undefined ||
             payload.departureLocationId ||
             payload.arrivalLocationId ||
             payload.bus ||
@@ -880,35 +1380,39 @@ const updateTrip = async (
             payload.expectedArrivalTime,
         )
 
-      if (protectedChange) {
+      if (
+        protectedChange
+      ) {
         const [
           protectedSeatCount,
           bookingItemCount,
-        ] = await Promise.all([
-          transaction.tripSeat.count({
-            where: {
-              tripId,
-
-              status: {
-                in: [
-                  'HELD',
-                  'BOOKED',
-                ],
-              },
-            },
-          }),
-
-          transaction.bookingItem.count({
-            where: {
-              tripSeat: {
+        ] =
+          await Promise.all([
+            transaction.tripSeat.count({
+              where: {
                 tripId,
+
+                status: {
+                  in: [
+                    'HELD',
+                    'BOOKED',
+                  ],
+                },
               },
-            },
-          }),
-        ])
+            }),
+
+            transaction.bookingItem.count({
+              where: {
+                tripSeat: {
+                  tripId,
+                },
+              },
+            }),
+          ])
 
         if (
-          protectedSeatCount > 0 ||
+          protectedSeatCount >
+            0 ||
           bookingItemCount > 0
         ) {
           throw new HttpError(
@@ -936,14 +1440,29 @@ const updateTrip = async (
         activeSeats,
         departureLocation,
         arrivalLocation,
-      } = await ensureTripReferences(transaction, {
-        routeId: nextRouteId,
-        busId: nextBusId,
-        departureLocationId: nextDepartureLocationId,
-        arrivalLocationId: nextArrivalLocationId,
-        departureProvinceId: payload.departureProvinceId,
-        arrivalProvinceId: payload.arrivalProvinceId,
-      })
+      } =
+        await ensureTripReferences(
+          transaction,
+          {
+            routeId:
+              nextRouteId,
+
+            busId:
+              nextBusId,
+
+            departureLocationId:
+              nextDepartureLocationId,
+
+            arrivalLocationId:
+              nextArrivalLocationId,
+
+            departureProvinceId:
+              payload.departureProvinceId,
+
+            arrivalProvinceId:
+              payload.arrivalProvinceId,
+          },
+        )
 
       await ensureNoScheduleConflict(
         transaction,
@@ -989,7 +1508,9 @@ const updateTrip = async (
           busType:
             bus.busType,
 
-          route: route || {},
+          route:
+            route ||
+            {},
 
           ticketPrice:
             nextTicketPrice,
@@ -1008,10 +1529,14 @@ const updateTrip = async (
           undefined ||
         payload.doubleRoomPrice !==
           undefined ||
-        payload.route !== undefined ||
-        payload.departureLocationId !== undefined ||
-        payload.arrivalLocationId !== undefined ||
-        payload.bus !== undefined
+        payload.route !==
+          undefined ||
+        payload.departureLocationId !==
+          undefined ||
+        payload.arrivalLocationId !==
+          undefined ||
+        payload.bus !==
+          undefined
 
       if (busChanged) {
         await transaction.tripSeat.deleteMany({
@@ -1035,7 +1560,9 @@ const updateTrip = async (
           transaction.tripSeat.updateMany({
             where: {
               tripId,
-              status: 'AVAILABLE',
+
+              status:
+                'AVAILABLE',
 
               seatType: {
                 in: [
@@ -1054,8 +1581,12 @@ const updateTrip = async (
           transaction.tripSeat.updateMany({
             where: {
               tripId,
-              status: 'AVAILABLE',
-              seatType: 'SINGLE_ROOM',
+
+              status:
+                'AVAILABLE',
+
+              seatType:
+                'SINGLE_ROOM',
             },
 
             data: {
@@ -1068,8 +1599,12 @@ const updateTrip = async (
           transaction.tripSeat.updateMany({
             where: {
               tripId,
-              status: 'AVAILABLE',
-              seatType: 'DOUBLE_ROOM',
+
+              status:
+                'AVAILABLE',
+
+              seatType:
+                'DOUBLE_ROOM',
             },
 
             data: {
@@ -1084,12 +1619,14 @@ const updateTrip = async (
       const updatedTrip =
         await transaction.trip.update({
           where: {
-            id: tripId,
+            id:
+              tripId,
           },
 
           data: {
             routeId:
-              route?.id || null,
+              route?.id ||
+              null,
 
             busId:
               nextBusId,
@@ -1106,34 +1643,48 @@ const updateTrip = async (
             arrivalLocationId:
               arrivalLocation.id,
 
-            ...(payload.primaryPickupMode !== undefined && {
+            ...(payload.primaryPickupMode !==
+              undefined && {
               primaryPickupMode:
-                normalizePrimaryPickupMode(payload.primaryPickupMode),
+                normalizePrimaryPickupMode(
+                  payload.primaryPickupMode,
+                ),
             }),
 
-            ...(payload.primaryDropoffMode !== undefined && {
+            ...(payload.primaryDropoffMode !==
+              undefined && {
               primaryDropoffMode:
-                normalizePrimaryDropoffMode(payload.primaryDropoffMode),
+                normalizePrimaryDropoffMode(
+                  payload.primaryDropoffMode,
+                ),
             }),
 
-            ...(payload.allowPickupTransfer !== undefined && {
+            ...(payload.allowPickupTransfer !==
+              undefined && {
               allowPickupTransfer:
-                payload.allowPickupTransfer === true,
+                payload.allowPickupTransfer ===
+                true,
             }),
 
-            ...(payload.allowPickupMeetingPoint !== undefined && {
+            ...(payload.allowPickupMeetingPoint !==
+              undefined && {
               allowPickupMeetingPoint:
-                payload.allowPickupMeetingPoint === true,
+                payload.allowPickupMeetingPoint ===
+                true,
             }),
 
-            ...(payload.allowDropoffTransfer !== undefined && {
+            ...(payload.allowDropoffTransfer !==
+              undefined && {
               allowDropoffTransfer:
-                payload.allowDropoffTransfer === true,
+                payload.allowDropoffTransfer ===
+                true,
             }),
 
-            ...(payload.allowDropoffStop !== undefined && {
+            ...(payload.allowDropoffStop !==
+              undefined && {
               allowDropoffStop:
-                payload.allowDropoffStop === true,
+                payload.allowDropoffStop ===
+                true,
             }),
 
             ticketPrice:
@@ -1188,7 +1739,9 @@ const inspectTripCompletion = async (
     await database.booking.findMany({
       where: {
         tripId,
-        status: 'CONFIRMED',
+
+        status:
+          'CONFIRMED',
       },
 
       select: {
@@ -1208,7 +1761,8 @@ const inspectTripCompletion = async (
           },
 
           orderBy: {
-            createdAt: 'desc',
+            createdAt:
+              'desc',
           },
 
           take: 1,
@@ -1216,7 +1770,8 @@ const inspectTripCompletion = async (
       },
 
       orderBy: {
-        createdAt: 'asc',
+        createdAt:
+          'asc',
       },
     })
 
@@ -1225,27 +1780,42 @@ const inspectTripCompletion = async (
   const missingPaymentBookings = []
   const abnormalPaymentBookings = []
 
-  for (const booking of bookings) {
-    const payment = booking.payments[0] || null
+  for (
+    const booking of
+    bookings
+  ) {
+    const payment =
+      booking.payments[0] ||
+      null
 
     if (!payment) {
-      missingPaymentBookings.push(booking)
+      missingPaymentBookings.push(
+        booking,
+      )
       continue
     }
 
-    if (payment.status === 'SUCCESS') {
+    if (
+      payment.status ===
+      'SUCCESS'
+    ) {
       paidBookings.push({
         ...booking,
         payment,
       })
+
       continue
     }
 
-    if (payment.status === 'PENDING') {
+    if (
+      payment.status ===
+      'PENDING'
+    ) {
       unpaidBookings.push({
         ...booking,
         payment,
       })
+
       continue
     }
 
@@ -1257,8 +1827,16 @@ const inspectTripCompletion = async (
 
   const unpaidAmount =
     unpaidBookings.reduce(
-      (sum, booking) =>
-        sum + Number(booking.totalAmount || 0),
+      (
+        sum,
+        booking,
+      ) =>
+        sum +
+        Number(
+          booking.totalAmount ||
+            0,
+        ),
+
       0,
     )
 
@@ -1273,8 +1851,10 @@ const inspectTripCompletion = async (
       unpaidBookings.length,
 
     unpaidAmount,
+
     paidBookings,
     unpaidBookings,
+
     missingPaymentBookings,
     abnormalPaymentBookings,
   }
@@ -1303,10 +1883,12 @@ const getTripCompletionPreview = async (
     )
   }
 
-  const now = new Date()
+  const now =
+    new Date()
 
   if (
-    trip.status === 'CANCELLED'
+    trip.status ===
+    'CANCELLED'
   ) {
     throw new HttpError(
       'Chuyến đã hủy nên không thể hoàn thành',
@@ -1315,7 +1897,8 @@ const getTripCompletionPreview = async (
   }
 
   if (
-    trip.status === 'COMPLETED'
+    trip.status ===
+    'COMPLETED'
   ) {
     throw new HttpError(
       'Chuyến này đã được xác nhận hoàn thành',
@@ -1324,7 +1907,8 @@ const getTripCompletionPreview = async (
   }
 
   if (
-    trip.departureTime > now
+    trip.departureTime >
+    now
   ) {
     throw new HttpError(
       'Chuyến chưa qua giờ khởi hành nên chưa thể hoàn thành',
@@ -1340,6 +1924,7 @@ const getTripCompletionPreview = async (
 
   return {
     tripId,
+
     departureTime:
       trip.departureTime,
 
@@ -1356,14 +1941,24 @@ const getTripCompletionPreview = async (
       inspection.unpaidAmount,
 
     missingPaymentCount:
-      inspection.missingPaymentBookings.length,
+      inspection
+        .missingPaymentBookings
+        .length,
 
     abnormalPaymentCount:
-      inspection.abnormalPaymentBookings.length,
+      inspection
+        .abnormalPaymentBookings
+        .length,
 
     canComplete:
-      inspection.missingPaymentBookings.length === 0 &&
-      inspection.abnormalPaymentBookings.length === 0,
+      inspection
+        .missingPaymentBookings
+        .length ===
+        0 &&
+      inspection
+        .abnormalPaymentBookings
+        .length ===
+        0,
   }
 }
 
@@ -1381,7 +1976,8 @@ const changeTripStatus = async (
       const trip =
         await transaction.trip.findUnique({
           where: {
-            id: tripId,
+            id:
+              tripId,
           },
 
           select: {
@@ -1399,12 +1995,18 @@ const changeTripStatus = async (
       }
 
       const hasDeparted =
-        trip.departureTime <= now
+        trip.departureTime <=
+        now
 
       const completingAfterDeparture =
-        nextStatus === 'COMPLETED' &&
+        nextStatus ===
+          'COMPLETED' &&
         hasDeparted &&
-        ['OPEN', 'CLOSED', 'DEPARTED'].includes(
+        [
+          'OPEN',
+          'CLOSED',
+          'DEPARTED',
+        ].includes(
           trip.status,
         )
 
@@ -1431,7 +2033,11 @@ const changeTripStatus = async (
 
       if (
         hasDeparted &&
-        ['OPEN', 'CLOSED', 'CANCELLED'].includes(
+        [
+          'OPEN',
+          'CLOSED',
+          'CANCELLED',
+        ].includes(
           nextStatus,
         )
       ) {
@@ -1442,7 +2048,8 @@ const changeTripStatus = async (
       }
 
       if (
-        nextStatus === 'DEPARTED' &&
+        nextStatus ===
+          'DEPARTED' &&
         !hasDeparted
       ) {
         throw new HttpError(
@@ -1452,7 +2059,8 @@ const changeTripStatus = async (
       }
 
       if (
-        nextStatus === 'COMPLETED' &&
+        nextStatus ===
+          'COMPLETED' &&
         !hasDeparted
       ) {
         throw new HttpError(
@@ -1468,31 +2076,36 @@ const changeTripStatus = async (
         const [
           bookedSeatCount,
           activeBookingCount,
-        ] = await Promise.all([
-          transaction.tripSeat.count({
-            where: {
-              tripId,
-              status: 'BOOKED',
-            },
-          }),
+        ] =
+          await Promise.all([
+            transaction.tripSeat.count({
+              where: {
+                tripId,
 
-          transaction.booking.count({
-            where: {
-              tripId,
-
-              status: {
-                in: [
-                  'PENDING',
-                  'CONFIRMED',
-                ],
+                status:
+                  'BOOKED',
               },
-            },
-          }),
-        ])
+            }),
+
+            transaction.booking.count({
+              where: {
+                tripId,
+
+                status: {
+                  in: [
+                    'PENDING',
+                    'CONFIRMED',
+                  ],
+                },
+              },
+            }),
+          ])
 
         if (
-          bookedSeatCount > 0 ||
-          activeBookingCount > 0
+          bookedSeatCount >
+            0 ||
+          activeBookingCount >
+            0
         ) {
           throw new HttpError(
             'Chưa thể hủy chuyến vì vẫn còn vé hoặc ghế đã đặt. Hãy xử lý hủy vé và hoàn tiền trước.',
@@ -1501,11 +2114,20 @@ const changeTripStatus = async (
         }
       }
 
-      let completedBookingCount = 0
-      let noShowBookingCount = 0
-      let pendingBookingCount = 0
-      let collectedBookingCount = 0
-      let collectedAmount = 0
+      let completedBookingCount =
+        0
+
+      let noShowBookingCount =
+        0
+
+      let pendingBookingCount =
+        0
+
+      let collectedBookingCount =
+        0
+
+      let collectedAmount =
+        0
 
       if (
         nextStatus ===
@@ -1518,54 +2140,81 @@ const changeTripStatus = async (
           )
 
         if (
-          inspection.missingPaymentBookings.length > 0
+          inspection
+            .missingPaymentBookings
+            .length >
+          0
         ) {
           throw new HttpError(
             `Có ${inspection.missingPaymentBookings.length} vé thiếu dữ liệu thanh toán. Hãy kiểm tra từng vé trước khi hoàn thành chuyến.`,
             409,
             [
               {
-                field: 'payments',
-                code: 'MISSING_PAYMENT_DATA',
+                field:
+                  'payments',
+
+                code:
+                  'MISSING_PAYMENT_DATA',
+
                 count:
-                  inspection.missingPaymentBookings.length,
+                  inspection
+                    .missingPaymentBookings
+                    .length,
               },
             ],
           )
         }
 
         if (
-          inspection.abnormalPaymentBookings.length > 0
+          inspection
+            .abnormalPaymentBookings
+            .length >
+          0
         ) {
           throw new HttpError(
             `Có ${inspection.abnormalPaymentBookings.length} vé có trạng thái thanh toán bất thường hoặc đã hoàn tiền. Hãy xử lý từng vé trước.`,
             409,
             [
               {
-                field: 'payments',
-                code: 'ABNORMAL_PAYMENT_STATUS',
+                field:
+                  'payments',
+
+                code:
+                  'ABNORMAL_PAYMENT_STATUS',
+
                 count:
-                  inspection.abnormalPaymentBookings.length,
+                  inspection
+                    .abnormalPaymentBookings
+                    .length,
               },
             ],
           )
         }
 
         if (
-          inspection.unpaidBookingCount > 0 &&
-          options.confirmCollectUnpaid !== true
+          inspection.unpaidBookingCount >
+            0 &&
+          options.confirmCollectUnpaid !==
+            true
         ) {
           throw new HttpError(
             `Chuyến còn ${inspection.unpaidBookingCount} vé chưa thanh toán. Cần xác nhận đã thu tiền các vé này trước khi hoàn thành chuyến.`,
             409,
             [
               {
-                field: 'confirmCollectUnpaid',
-                code: 'UNPAID_TICKETS',
+                field:
+                  'confirmCollectUnpaid',
+
+                code:
+                  'UNPAID_TICKETS',
+
                 count:
-                  inspection.unpaidBookingCount,
+                  inspection
+                    .unpaidBookingCount,
+
                 amount:
-                  inspection.unpaidAmount,
+                  inspection
+                    .unpaidAmount,
               },
             ],
           )
@@ -1576,33 +2225,46 @@ const changeTripStatus = async (
 
         for (
           const booking of
-            inspection.unpaidBookings
+          inspection.unpaidBookings
         ) {
           await transaction.payment.update({
             where: {
-              id: booking.payment.id,
+              id:
+                booking.payment.id,
             },
 
             data: {
-              status: 'SUCCESS',
-              amount: booking.totalAmount,
-              paidAt: completionTime,
+              status:
+                'SUCCESS',
+
+              amount:
+                booking.totalAmount,
+
+              paidAt:
+                completionTime,
             },
           })
 
           await transaction.booking.update({
             where: {
-              id: booking.id,
+              id:
+                booking.id,
             },
 
             data: {
-              paymentStatus: 'SUCCESS',
+              paymentStatus:
+                'SUCCESS',
             },
           })
 
-          collectedBookingCount += 1
+          collectedBookingCount +=
+            1
+
           collectedAmount +=
-            Number(booking.totalAmount || 0)
+            Number(
+              booking.totalAmount ||
+                0,
+            )
 
           if (actor) {
             await writeAuditLog(
@@ -1624,24 +2286,36 @@ const changeTripStatus = async (
 
                 description:
                   `Xác nhận đã thu ${Number(
-                    booking.totalAmount || 0,
-                  ).toLocaleString('vi-VN')} đồng cho vé ${booking.bookingCode} khi hoàn thành chuyến.`,
+                    booking.totalAmount ||
+                      0,
+                  ).toLocaleString(
+                    'vi-VN',
+                  )} đồng cho vé ${booking.bookingCode} khi hoàn thành chuyến.`,
 
                 reason:
                   'Thu tiền hàng loạt khi hoàn thành chuyến',
 
                 metadata: {
                   tripId,
+
                   bookingCode:
                     booking.bookingCode,
+
                   paymentId:
                     booking.payment.id,
+
                   paymentMethod:
-                    booking.payment.paymentMethod,
+                    booking.payment
+                      .paymentMethod,
+
                   amount:
-                    Number(booking.totalAmount || 0),
+                    Number(
+                      booking.totalAmount ||
+                        0,
+                    ),
                 },
               },
+
               transaction,
             )
           }
@@ -1651,32 +2325,40 @@ const changeTripStatus = async (
           completedResult,
           noShowCount,
           pendingCount,
-        ] = await Promise.all([
-          transaction.booking.updateMany({
-            where: {
-              tripId,
-              status: 'CONFIRMED',
-            },
+        ] =
+          await Promise.all([
+            transaction.booking.updateMany({
+              where: {
+                tripId,
 
-            data: {
-              status: 'COMPLETED',
-            },
-          }),
+                status:
+                  'CONFIRMED',
+              },
 
-          transaction.booking.count({
-            where: {
-              tripId,
-              status: 'NO_SHOW',
-            },
-          }),
+              data: {
+                status:
+                  'COMPLETED',
+              },
+            }),
 
-          transaction.booking.count({
-            where: {
-              tripId,
-              status: 'PENDING',
-            },
-          }),
-        ])
+            transaction.booking.count({
+              where: {
+                tripId,
+
+                status:
+                  'NO_SHOW',
+              },
+            }),
+
+            transaction.booking.count({
+              where: {
+                tripId,
+
+                status:
+                  'PENDING',
+              },
+            }),
+          ])
 
         completedBookingCount =
           completedResult.count
@@ -1691,25 +2373,36 @@ const changeTripStatus = async (
       const updatedTrip =
         await transaction.trip.update({
           where: {
-            id: tripId,
+            id:
+              tripId,
           },
 
           data: {
-            status: nextStatus,
+            status:
+              nextStatus,
+
             salesStatus:
-              nextStatus === 'OPEN'
+              nextStatus ===
+              'OPEN'
                 ? 'OPEN'
                 : 'CLOSED',
+
             operationStatus:
-              nextStatus === 'DEPARTED'
+              nextStatus ===
+              'DEPARTED'
                 ? 'DEPARTED'
-                : nextStatus === 'COMPLETED'
+                : nextStatus ===
+                    'COMPLETED'
                   ? 'COMPLETED'
-                  : nextStatus === 'CANCELLED'
+                  : nextStatus ===
+                      'CANCELLED'
                     ? 'CANCELLED'
                     : 'NOT_DEPARTED',
-            ...(nextStatus === 'COMPLETED' && {
-              completedAt: new Date(),
+
+            ...(nextStatus ===
+              'COMPLETED' && {
+              completedAt:
+                new Date(),
             }),
           },
 
@@ -1734,7 +2427,9 @@ const changeTripStatus = async (
           description =
             `Hoàn thành chuyến xe. ` +
             `${completedBookingCount} vé được chuyển sang trạng thái đã hoàn thành, ` +
-            `${collectedBookingCount} vé được xác nhận đã thu tiền với tổng ${collectedAmount.toLocaleString('vi-VN')} đồng, ` +
+            `${collectedBookingCount} vé được xác nhận đã thu tiền với tổng ${collectedAmount.toLocaleString(
+              'vi-VN',
+            )} đồng, ` +
             `${noShowBookingCount} vé không đi và ` +
             `${pendingBookingCount} vé chờ xử lý nghiệp vụ.`
         }
@@ -1808,48 +2503,51 @@ const changeTripStatus = async (
     },
   )
 
-const getTripPassengerList =
-  async (
-    tripId,
-    actor = null,
-  ) => {
-    const isAdmin =
-      actor?.role === 'ADMIN'
+const getTripPassengerList = async (
+  tripId,
+  actor = null,
+) => {
+  const isAdmin =
+    actor?.role ===
+    'ADMIN'
 
-    const trip =
-      await prisma.trip.findUnique({
-        where: {
-          id: tripId,
-        },
+  const trip =
+    await prisma.trip.findUnique({
+      where: {
+        id:
+          tripId,
+      },
 
-        include:
-          tripInclude,
-      })
+      include:
+        tripInclude,
+    })
 
-    if (!trip) {
-      throw new HttpError(
-        'Không tìm thấy chuyến xe',
-        404,
-      )
-    }
+  if (!trip) {
+    throw new HttpError(
+      'Không tìm thấy chuyến xe',
+      404,
+    )
+  }
 
-    const validStatuses = [
-      'PENDING',
-      'CONFIRMED',
-      'COMPLETED',
-    ]
+  const validStatuses = [
+    'PENDING',
+    'CONFIRMED',
+    'COMPLETED',
+  ]
 
-    const [
-      bookings,
-      bookedSeats,
-      successfulPayments,
-    ] = await Promise.all([
+  const [
+    bookings,
+    bookedSeats,
+    successfulPayments,
+  ] =
+    await Promise.all([
       prisma.booking.findMany({
         where: {
           tripId,
 
           status: {
-            not: 'DELETED',
+            not:
+              'DELETED',
           },
         },
 
@@ -1857,50 +2555,121 @@ const getTripPassengerList =
           id: true,
           bookingCode: true,
           source: true,
-          passengerFullName: true,
-          passengerPhone: true,
-          passengerEmail: true,
-          customerNote: true,
-          staffNote: true,
-          pickupPoint: true,
-          dropoffPoint: true,
-          pickupLocationId: true,
-          dropoffLocationId: true,
-          pickupServicePointId: true,
-          dropoffServicePointId: true,
-          pickupServiceMode: true,
-          dropoffServiceMode: true,
-          totalAmount: true,
-          status: true,
-          paymentStatus: true,
-          cancellationReason: true,
-          noShowReason: true,
-          createdAt: true,
+
+          passengerFullName:
+            true,
+
+          passengerPhone:
+            true,
+
+          passengerEmail:
+            true,
+
+          customerNote:
+            true,
+
+          staffNote:
+            true,
+
+          /*
+           * Điểm đón/trả thực tế của vé.
+           */
+          pickupPoint:
+            true,
+
+          dropoffPoint:
+            true,
+
+          pickupLocationId:
+            true,
+
+          dropoffLocationId:
+            true,
+
+          pickupServicePointId:
+            true,
+
+          dropoffServicePointId:
+            true,
+
+          pickupServiceMode:
+            true,
+
+          dropoffServiceMode:
+            true,
+
+          pickupKind:
+            true,
+
+          dropoffKind:
+            true,
+
+          pickupRequestedAddress:
+            true,
+
+          dropoffRequestedAddress:
+            true,
+
+          totalAmount:
+            true,
+
+          status:
+            true,
+
+          paymentStatus:
+            true,
+
+          cancellationReason:
+            true,
+
+          noShowReason:
+            true,
+
+          createdAt:
+            true,
 
           items: {
             select: {
-              seatCode: true,
-              seatType: true,
-              price: true,
+              seatCode:
+                true,
+
+              seatType:
+                true,
+
+              price:
+                true,
             },
 
             orderBy: {
-              seatCode: 'asc',
+              seatCode:
+                'asc',
             },
           },
 
           payments: {
             select: {
-              paymentMethod: true,
-              status: true,
-              amount: true,
-              transactionCode: true,
-              paidAt: true,
-              createdAt: true,
+              paymentMethod:
+                true,
+
+              status:
+                true,
+
+              amount:
+                true,
+
+              transactionCode:
+                true,
+
+              paidAt:
+                true,
+
+              createdAt:
+                true,
             },
 
             orderBy: {
-              createdAt: 'desc',
+              createdAt:
+                'desc',
             },
 
             take: 1,
@@ -1908,21 +2677,25 @@ const getTripPassengerList =
         },
 
         orderBy: {
-          createdAt: 'asc',
+          createdAt:
+            'asc',
         },
       }),
 
       prisma.tripSeat.count({
         where: {
           tripId,
-          status: 'BOOKED',
+
+          status:
+            'BOOKED',
         },
       }),
 
       isAdmin
         ? prisma.payment.aggregate({
             where: {
-              status: 'SUCCESS',
+              status:
+                'SUCCESS',
 
               booking: {
                 tripId,
@@ -1930,223 +2703,310 @@ const getTripPassengerList =
             },
 
             _sum: {
-              amount: true,
+              amount:
+                true,
             },
 
-            _count: true,
+            _count:
+              true,
           })
-        : Promise.resolve(null),
+        : Promise.resolve(
+            null,
+          ),
     ])
 
-    const validBookings =
-      bookings.filter(
-        (booking) =>
-          validStatuses.includes(
-            booking.status,
-          ),
-      )
-
-    const buildServiceGroups = (side) => {
-      const groups = new Map()
-      for (const booking of validBookings) {
-        const point = side === 'pickup' ? booking.pickupPoint : booking.dropoffPoint
-        const mode = side === 'pickup' ? booking.pickupServiceMode : booking.dropoffServiceMode
-        const key = `${point || 'Chưa xác định'}::${mode || 'Chưa xác định'}`
-        const current = groups.get(key) || {
-          point: point || 'Chưa xác định',
-          serviceMode: mode || null,
-          count: 0,
-        }
-        current.count += 1
-        groups.set(key, current)
-      }
-      return [...groups.values()].sort((left, right) =>
-        right.count - left.count || left.point.localeCompare(right.point, 'vi'),
-      )
-    }
-
-    const serviceSummary = {
-      pickupGroups: buildServiceGroups('pickup'),
-      dropoffGroups: buildServiceGroups('dropoff'),
-      pickupTransferCount: validBookings.filter(
-        (booking) => booking.pickupServiceMode === 'TrungChuyenDonKhach',
-      ).length,
-      dropoffTransferCount: validBookings.filter(
-        (booking) => booking.dropoffServiceMode === 'TrungChuyenTraKhach',
-      ).length,
-    }
-
-    return {
-      trip: {
-        id:
-          trip.id,
-
-        status:
-          trip.status,
-
-        departureTime:
-          trip.departureTime,
-
-        expectedArrivalTime:
-          trip.expectedArrivalTime,
-
-        route:
-          buildTripJourneyRoute(trip),
-
-        departureLocation:
-          trip.departureLocation || trip.route?.departureLocation || null,
-
-        arrivalLocation:
-          trip.arrivalLocation || trip.route?.arrivalLocation || null,
-
-        bus:
-          trip.bus,
-      },
-
-      summary: {
-        totalBookings:
-          bookings.length,
-
-        validBookings:
-          validBookings.length,
-
-        bookedSeats,
-
-        capacity:
-          trip.bus?.capacity ??
-          0,
-      },
-
-      serviceSummary,
-
-      finance:
-        isAdmin &&
-        successfulPayments
-          ? {
-              collectedRevenue:
-                Number(
-                  successfulPayments
-                    ._sum.amount ||
-                    0,
-                ),
-
-              successfulPayments:
-                successfulPayments
-                  ._count,
-            }
-          : null,
-
-      passengers:
-        bookings.map(
-          (
-            booking,
-            index,
-          ) => ({
-            orderNumber:
-              index + 1,
-
-            id:
-              booking.id,
-
-            bookingCode:
-              booking.bookingCode,
-
-            source:
-              booking.source,
-
-            passengerFullName:
-              booking.passengerFullName,
-
-            passengerPhone:
-              booking.passengerPhone,
-
-            passengerEmail:
-              booking.passengerEmail,
-
-            seats:
-              booking.items.map(
-                (item) => ({
-                  ...item,
-
-                  price:
-                    Number(
-                      item.price ||
-                      0,
-                    ),
-                }),
-              ),
-
-            totalAmount:
-              Number(
-                booking.totalAmount ||
-                0,
-              ),
-
-            status:
-              booking.status,
-
-            paymentStatus:
-              booking.paymentStatus,
-
-            payment:
-              booking.payments[0]
-                ? {
-                    ...booking
-                      .payments[0],
-
-                    amount:
-                      Number(
-                        booking
-                          .payments[0]
-                          .amount ||
-                          0,
-                      ),
-                  }
-                : null,
-
-            customerNote:
-              booking.customerNote,
-
-            staffNote:
-              booking.staffNote,
-
-            pickupPoint:
-              booking.pickupPoint,
-
-            dropoffPoint:
-              booking.dropoffPoint,
-
-            pickupLocationId:
-              booking.pickupLocationId,
-
-            dropoffLocationId:
-              booking.dropoffLocationId,
-
-            pickupServicePointId:
-              booking.pickupServicePointId,
-
-            dropoffServicePointId:
-              booking.dropoffServicePointId,
-
-            pickupServiceMode:
-              booking.pickupServiceMode,
-
-            dropoffServiceMode:
-              booking.dropoffServiceMode,
-
-            cancellationReason:
-              booking
-                .cancellationReason,
-
-            noShowReason:
-              booking.noShowReason,
-
-            createdAt:
-              booking.createdAt,
-          }),
+  const validBookings =
+    bookings.filter(
+      (booking) =>
+        validStatuses.includes(
+          booking.status,
         ),
+    )
+
+  const buildServiceGroups = (
+    side,
+  ) => {
+    const groups =
+      new Map()
+
+    for (
+      const booking of
+      validBookings
+    ) {
+      const point =
+        side ===
+        'pickup'
+          ? booking.pickupPoint
+          : booking.dropoffPoint
+
+      const mode =
+        side ===
+        'pickup'
+          ? booking.pickupServiceMode
+          : booking.dropoffServiceMode
+
+      const key =
+        `${point || 'Chưa xác định'}::${mode || 'Chưa xác định'}`
+
+      const current =
+        groups.get(
+          key,
+        ) || {
+          point:
+            point ||
+            'Chưa xác định',
+
+          serviceMode:
+            mode ||
+            null,
+
+          count:
+            0,
+        }
+
+      current.count +=
+        1
+
+      groups.set(
+        key,
+        current,
+      )
     }
+
+    return [
+      ...groups.values(),
+    ].sort(
+      (
+        left,
+        right,
+      ) =>
+        right.count -
+          left.count ||
+        left.point.localeCompare(
+          right.point,
+          'vi',
+        ),
+    )
   }
+
+  const serviceSummary = {
+    pickupGroups:
+      buildServiceGroups(
+        'pickup',
+      ),
+
+    dropoffGroups:
+      buildServiceGroups(
+        'dropoff',
+      ),
+
+    pickupTransferCount:
+      validBookings.filter(
+        (booking) =>
+          booking.pickupServiceMode ===
+          'TrungChuyenDonKhach',
+      ).length,
+
+    dropoffTransferCount:
+      validBookings.filter(
+        (booking) =>
+          booking.dropoffServiceMode ===
+          'TrungChuyenTraKhach',
+      ).length,
+  }
+
+  return {
+    trip: {
+      id:
+        trip.id,
+
+      status:
+        trip.status,
+
+      departureTime:
+        trip.departureTime,
+
+      expectedArrivalTime:
+        trip.expectedArrivalTime,
+
+      route:
+        buildTripJourneyRoute(
+          trip,
+        ),
+
+      departureLocation:
+        trip.departureLocation ||
+        trip.route
+          ?.departureLocation ||
+        null,
+
+      arrivalLocation:
+        trip.arrivalLocation ||
+        trip.route
+          ?.arrivalLocation ||
+        null,
+
+      bus:
+        trip.bus,
+    },
+
+    summary: {
+      totalBookings:
+        bookings.length,
+
+      validBookings:
+        validBookings.length,
+
+      bookedSeats,
+
+      capacity:
+        trip.bus?.capacity ??
+        0,
+    },
+
+    serviceSummary,
+
+    finance:
+      isAdmin &&
+      successfulPayments
+        ? {
+            collectedRevenue:
+              Number(
+                successfulPayments
+                  ._sum.amount ||
+                  0,
+              ),
+
+            successfulPayments:
+              successfulPayments
+                ._count,
+          }
+        : null,
+
+    passengers:
+      bookings.map(
+        (
+          booking,
+          index,
+        ) => ({
+          orderNumber:
+            index +
+            1,
+
+          id:
+            booking.id,
+
+          bookingCode:
+            booking.bookingCode,
+
+          source:
+            booking.source,
+
+          passengerFullName:
+            booking.passengerFullName,
+
+          passengerPhone:
+            booking.passengerPhone,
+
+          passengerEmail:
+            booking.passengerEmail,
+
+          seats:
+            booking.items.map(
+              (item) => ({
+                ...item,
+
+                price:
+                  Number(
+                    item.price ||
+                      0,
+                  ),
+              }),
+            ),
+
+          totalAmount:
+            Number(
+              booking.totalAmount ||
+                0,
+            ),
+
+          status:
+            booking.status,
+
+          paymentStatus:
+            booking.paymentStatus,
+
+          payment:
+            booking
+              .payments[0]
+              ? {
+                  ...booking
+                    .payments[0],
+
+                  amount:
+                    Number(
+                      booking
+                        .payments[0]
+                        .amount ||
+                        0,
+                    ),
+                }
+              : null,
+
+          customerNote:
+            booking.customerNote,
+
+          staffNote:
+            booking.staffNote,
+
+          pickupPoint:
+            booking.pickupPoint,
+
+          dropoffPoint:
+            booking.dropoffPoint,
+
+          pickupLocationId:
+            booking.pickupLocationId,
+
+          dropoffLocationId:
+            booking.dropoffLocationId,
+
+          pickupServicePointId:
+            booking.pickupServicePointId,
+
+          dropoffServicePointId:
+            booking.dropoffServicePointId,
+
+          pickupServiceMode:
+            booking.pickupServiceMode,
+
+          dropoffServiceMode:
+            booking.dropoffServiceMode,
+
+          pickupKind:
+            booking.pickupKind,
+
+          dropoffKind:
+            booking.dropoffKind,
+
+          pickupRequestedAddress:
+            booking.pickupRequestedAddress,
+
+          dropoffRequestedAddress:
+            booking.dropoffRequestedAddress,
+
+          cancellationReason:
+            booking.cancellationReason,
+
+          noShowReason:
+            booking.noShowReason,
+
+          createdAt:
+            booking.createdAt,
+        }),
+      ),
+  }
+}
 
 const cancelTrip = (
   tripId,

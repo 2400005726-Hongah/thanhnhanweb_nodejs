@@ -444,6 +444,22 @@ const getNews = async (params = {}) =>
 const getNewsDetail = async (id) =>
   unwrap(await authApiClient.get(`/admin/news/${id}`))
 
+const uploadNewsImage = async (file) =>
+  unwrap(
+    await authApiClient.post('/admin/news/images', file, {
+      headers: { 'Content-Type': file.type },
+      timeout: 30_000,
+    }),
+  )
+
+const deleteUploadedNewsImage = async (path) =>
+  unwrap(
+    await authApiClient.delete('/admin/news/images', {
+      data: { path },
+      timeout: 15_000,
+    }),
+  )
+
 const createNews = async (payload) =>
   unwrap(await authApiClient.post('/admin/news', payload))
 
@@ -480,6 +496,7 @@ export {
   createLocation,
   createManagedBooking,
   createNews,
+  deleteUploadedNewsImage,
   createRoute,
   createTrip,
   createUser,
@@ -523,6 +540,7 @@ export {
   updateCustomerStatus,
   updateLocation,
   updateNews,
+  uploadNewsImage,
   updateNewsStatus,
   updateRoute,
   updateTrip,

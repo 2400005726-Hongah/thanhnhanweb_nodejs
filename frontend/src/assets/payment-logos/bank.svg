@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="60" viewBox="0 0 120 60">
+<rect width="120" height="60" rx="10" fill="white"/>
+<rect x="1" y="1" width="118" height="58" rx="9" fill="none" stroke="#0a6cb5" stroke-width="2"/>
+<text x="60" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#0a6cb5">BANK</text>
+<text x="60" y="45" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="#667085">NGÂN HÀNG</text>
+</svg>

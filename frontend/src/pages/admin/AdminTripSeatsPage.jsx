@@ -26,7 +26,9 @@ import {
 import {
   formatDateTime,
 } from '../../utils/formatDateTime.js'
-import { formatLicensePlate } from '../../utils/normalizers.js'
+import {
+  formatLicensePlate,
+} from '../../utils/normalizers.js'
 
 const TRIP_STATUS_LABELS = {
   OPEN: 'Đang mở bán',
@@ -36,93 +38,64 @@ const TRIP_STATUS_LABELS = {
   CANCELLED: 'Đã hủy',
 }
 
-const getTripStatusClass = (
-  status,
-) => {
-  if (
-    status === 'OPEN'
-  ) {
-    return 'status-badge status-badge--active'
+const getTripStatusStyle = (status) => {
+  const colors = {
+    OPEN: '#16864b',
+    CLOSED: '#9a6700',
+    DEPARTED: '#b45309',
+    COMPLETED: '#64748b',
+    CANCELLED: '#dc2626',
   }
 
-  if (
-    status === 'CLOSED'
-  ) {
-    return 'status-badge status-badge--pending'
+  return {
+    color: colors[status] || '#64748b',
+    background: 'transparent',
+    border: 0,
+    boxShadow: 'none',
+    padding: 0,
+    margin: 0,
+    fontSize: '12px',
+    fontWeight: 700,
+    lineHeight: 1.4,
+    whiteSpace: 'nowrap',
   }
-
-  if (
-    status === 'CANCELLED'
-  ) {
-    return 'status-badge status-badge--inactive'
-  }
-
-  return 'status-badge status-badge--completed'
 }
 
 function AdminTripSeatsPage() {
-  const {
-    tripId,
-  } = useParams()
+  const { tripId } = useParams()
 
-  const [
-    data,
-    setData,
-  ] = useState(null)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError('')
 
-  const [
-    error,
-    setError,
-  ] = useState('')
-
-  const load = useCallback(
-    async () => {
-      setLoading(true)
-      setError('')
-
-      try {
-        setData(
-          await getTripSeatMap(
-            tripId,
-          ),
-        )
-      } catch (
-        requestError
-      ) {
-        setError(
-          getApiErrorMessage(
-            requestError,
-          ),
-        )
-      } finally {
-        setLoading(false)
-      }
-    },
-    [tripId],
-  )
+    try {
+      setData(
+        await getTripSeatMap(tripId),
+      )
+    } catch (requestError) {
+      setError(
+        getApiErrorMessage(requestError),
+      )
+    } finally {
+      setLoading(false)
+    }
+  }, [tripId])
 
   useEffect(() => {
     load()
   }, [load])
 
-  if (
-    loading &&
-    !data
-  ) {
+  if (loading && !data) {
     return (
       <LoadingState label="Đang tải sơ đồ ghế chuyến xe..." />
     )
   }
 
-  if (
-    error &&
-    !data
-  ) {
+  if (error && !data) {
     return (
       <ErrorState
         message={error}
@@ -133,6 +106,18 @@ function AdminTripSeatsPage() {
 
   const trip = data.trip
   const summary = data.summary
+
+  const licensePlate =
+    trip.bus?.licensePlate
+      ? formatLicensePlate(
+          trip.bus.licensePlate,
+        )
+      : 'Chưa có biển số'
+
+  const busType =
+    getBusTypeLabel(
+      trip.bus?.busType,
+    )
 
   return (
     <>
@@ -183,7 +168,7 @@ function AdminTripSeatsPage() {
           </div>
 
           <span
-            className={getTripStatusClass(
+            style={getTripStatusStyle(
               trip.status,
             )}
           >
@@ -208,24 +193,15 @@ function AdminTripSeatsPage() {
             <span>Xe</span>
 
             <strong>
-              {trip.bus?.busName ||
-                'Chưa cập nhật'}
+              {licensePlate}
             </strong>
-
-            <small>
-              {trip.bus?.licensePlate
-                ? formatLicensePlate(trip.bus.licensePlate)
-                : 'Chưa có biển số'}
-            </small>
           </div>
 
           <div className="admin-field">
             <span>Loại xe</span>
 
             <strong>
-              {getBusTypeLabel(
-                trip.bus?.busType,
-              )}
+              {busType}
             </strong>
           </div>
 
@@ -244,22 +220,30 @@ function AdminTripSeatsPage() {
       <div className="admin-stat-grid">
         <article className="admin-stat-card">
           <span>Tổng vị trí</span>
-          <strong>{summary.total}</strong>
+          <strong>
+            {summary.total}
+          </strong>
         </article>
 
         <article className="admin-stat-card admin-stat-card--money">
           <span>Còn trống</span>
-          <strong>{summary.available}</strong>
+          <strong>
+            {summary.available}
+          </strong>
         </article>
 
         <article className="admin-stat-card">
           <span>Đang giữ</span>
-          <strong>{summary.held}</strong>
+          <strong>
+            {summary.held}
+          </strong>
         </article>
 
         <article className="admin-stat-card admin-stat-card--refund">
           <span>Đã đặt</span>
-          <strong>{summary.booked}</strong>
+          <strong>
+            {summary.booked}
+          </strong>
         </article>
       </div>
 
@@ -279,9 +263,7 @@ function AdminTripSeatsPage() {
         </div>
 
         <AdminTripSeatMap
-          busType={
-            trip.bus?.busType
-          }
+          busType={trip.bus?.busType}
           floors={data.floors}
         />
       </section>

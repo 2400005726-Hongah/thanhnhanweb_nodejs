@@ -1,266 +1,235 @@
+
 .booking-step3-container {
-  max-width: 980px;
-  padding-top: 24px;
+  max-width: 1180px;
+  padding-top: 22px;
   padding-bottom: 46px;
 }
 
-.booking-step3-container > .alert-info {
-  margin: 14px auto 18px;
-  border-color: #b9e6f3;
+.booking-step3-hold-note {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 16px;
+  padding: 9px 12px;
+  border: 1px solid #b9e6f3;
+  border-radius: 6px;
   background: #eafaff;
   color: #245566;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .booking-step3-layout {
-  width: min(100%, 860px);
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  align-items: start;
+}
+
+.booking-step3-form-card,
+.booking-step3-ticket-card {
+  border: 1px solid #dce2e8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15,23,42,.045);
 }
 
 .booking-step3-form-card {
-  padding: 26px;
-  border: 1px solid #e0e5eb;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, .06);
+  padding: 22px;
 }
 
-.booking-step3-form-card > h1 {
-  margin: 0 0 22px;
-  color: #1d2430;
-  font-size: clamp(22px, 3vw, 30px);
-  font-weight: 800;
-  letter-spacing: -.02em;
+.booking-step3-form-heading {
+  margin-bottom: 18px;
 }
 
-.booking-step3-form-card .form-label {
-  margin-bottom: 7px;
-  color: #303846;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.booking-step3-form-card .form-control {
-  min-height: 43px;
-  border-color: #d8dee7;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.booking-step3-form-card textarea.form-control {
-  min-height: 92px;
-  resize: vertical;
-}
-
-.booking-step3-itinerary {
-  overflow: hidden;
-  margin-top: 24px;
-  border: 1px solid #e1e6ec;
-  border-radius: 12px;
-  background: #f8fafc;
-}
-
-.booking-step3-itinerary-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #e5e9ef;
-  background: #fff;
-}
-
-.booking-step3-itinerary-eyebrow {
+.booking-step3-form-heading > span {
   display: block;
-  margin-bottom: 5px;
-  color: #c52232;
-  font-size: 11px;
-  font-weight: 800;
+  margin-bottom: 3px;
+  color: #c50416;
+  font-size: 10px;
+  font-weight: 900;
   letter-spacing: .08em;
 }
 
-.booking-step3-itinerary-header h2 {
+.booking-step3-form-heading h1 {
   margin: 0;
-  color: #202733;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.35;
-}
-
-.booking-step3-itinerary-price {
-  flex: 0 0 auto;
-  display: grid;
-  gap: 2px;
-  text-align: right;
-}
-
-.booking-step3-itinerary-price span {
-  color: #7a8492;
-  font-size: 11px;
-}
-
-.booking-step3-itinerary-price strong {
-  color: #d92738;
+  color: #20262f;
   font-size: 22px;
+  font-weight: 850;
 }
 
-.booking-step3-itinerary-meta {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr;
-  gap: 0;
-  border-bottom: 1px solid #e5e9ef;
-  background: #fff;
-}
-
-.booking-step3-itinerary-meta > div {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  min-width: 0;
-  padding: 15px 18px;
-}
-
-.booking-step3-itinerary-meta > div + div {
-  border-left: 1px solid #edf0f4;
-}
-
-.booking-step3-itinerary-meta span,
-.booking-step3-service-card span {
-  color: #7b8593;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.booking-step3-itinerary-meta strong {
-  color: #26303d;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.booking-step3-itinerary-meta small {
-  color: #6f7886;
-  font-size: 11px;
-}
-
-.booking-step3-service-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 16px;
-}
-
-.booking-step3-service-card {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid #dfe5ec;
-  border-radius: 10px;
-  background: #fff;
-}
-
-.booking-step3-service-badge {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: .04em;
-}
-
-.booking-step3-service-card.is-pickup .booking-step3-service-badge {
-  background: #e8f8ef;
-  color: #148447;
-}
-
-.booking-step3-service-card.is-dropoff .booking-step3-service-badge {
-  background: #fff0f1;
-  color: #d52e3d;
-}
-
-.booking-step3-service-card h3 {
-  margin: 2px 0 4px;
-  color: #222b37;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.35;
-}
-
-.booking-step3-service-card p {
-  margin: 0 0 5px;
-  color: #525e6e;
+.booking-step3-form-heading p {
+  margin: 5px 0 0;
+  color: #7a8491;
   font-size: 12px;
-  font-weight: 700;
 }
 
-.booking-step3-service-card small {
-  display: block;
-  color: #7b8491;
-  font-size: 11px;
-  line-height: 1.45;
+.booking-step3-fields {
+  display: grid;
+  gap: 14px;
 }
 
-.booking-step3-service-card b {
-  display: inline-block;
-  margin-top: 7px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #f0f3f7;
-  color: #3a4452;
-  font-size: 11px;
+.booking-step3-fields label {
+  display: grid;
+  gap: 5px;
+  color: #343c47;
+  font-size: 12px;
+  font-weight: 750;
 }
 
-.booking-step3-service-card.is-pickup b {
-  background: #ebf8f1;
-  color: #148447;
+.booking-step3-fields label > span small {
+  color: #89929d;
+  font-weight: 500;
 }
 
-.booking-step3-service-card.is-dropoff b {
-  background: #fff0f1;
-  color: #d52e3d;
+.booking-step3-fields .form-control {
+  min-height: 42px;
+  border-color: #d7dde5;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.booking-step3-fields textarea.form-control {
+  min-height: 96px;
+  resize: vertical;
 }
 
 .booking-step3-actions {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0f3;
+}
+
+.booking-step3-actions .btn {
+  min-height: 38px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 750;
 }
 
 .booking-step3-actions .btn-primary {
-  min-width: 210px;
+  min-width: 185px;
+  border-color: #c50416;
+  background: #c50416;
 }
 
-@media (max-width: 760px) {
-  .booking-step3-form-card {
-    padding: 18px;
-  }
+.booking-step3-ticket-card {
+  position: sticky;
+  top: 92px;
+  overflow: hidden;
+}
 
-  .booking-step3-itinerary-header {
-    display: grid;
-  }
+.booking-step3-ticket-head {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid #e6e9ed;
+  background: #fafbfc;
+}
 
-  .booking-step3-itinerary-price {
-    text-align: left;
-  }
+.booking-step3-ticket-head > div:first-child > span {
+  color: #c50416;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
 
-  .booking-step3-itinerary-meta,
-  .booking-step3-service-grid {
+.booking-step3-ticket-head h2 {
+  margin: 3px 0 0;
+  color: #222a34;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 850;
+}
+
+.booking-step3-ticket-price {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.booking-step3-ticket-price small,
+.booking-step3-ticket-row > span,
+.booking-step3-ticket-service > span,
+.booking-step3-ticket-total > span {
+  color: #7a8491;
+  font-size: 10px;
+}
+
+.booking-step3-ticket-price strong {
+  color: #c50416;
+  font-size: 19px;
+}
+
+.booking-step3-ticket-row,
+.booking-step3-ticket-service {
+  display: grid;
+  gap: 3px;
+  padding: 11px 16px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.booking-step3-ticket-row strong,
+.booking-step3-ticket-service strong {
+  color: #26303a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.booking-step3-ticket-row small,
+.booking-step3-ticket-service small {
+  color: #737d89;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.booking-step3-ticket-service.is-pickup strong,
+.booking-step3-ticket-service.is-pickup b {
+  color: #13854b;
+}
+
+.booking-step3-ticket-service.is-dropoff strong,
+.booking-step3-ticket-service.is-dropoff b {
+  color: #c50416;
+}
+
+.booking-step3-ticket-service b {
+  width: fit-content;
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.booking-step3-ticket-total {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.booking-step3-ticket-total strong {
+  color: #c50416;
+  font-size: 20px;
+}
+
+@media (max-width: 920px) {
+  .booking-step3-layout {
     grid-template-columns: 1fr;
   }
 
-  .booking-step3-itinerary-meta > div + div {
-    border-top: 1px solid #edf0f4;
-    border-left: 0;
+  .booking-step3-ticket-card {
+    position: static;
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 560px) {
+  .booking-step3-form-card {
+    padding: 16px;
+  }
+
   .booking-step3-actions {
-    align-items: stretch;
     flex-direction: column-reverse;
   }
 

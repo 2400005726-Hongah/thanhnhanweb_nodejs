@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 
-import BrandLogo from '../../components/common/BrandLogo.jsx'
+import heroBusImage from '../../assets/anhtrangchu.jpg'
 import { useAuth } from '../../contexts/authContext.js'
 import { getApiErrorMessage } from '../../services/apiClient.js'
 import { formatPhoneInput, normalizeEmail } from '../../utils/normalizers.js'
@@ -17,6 +17,7 @@ function AdminLoginPage() {
   const [searchParams] = useSearchParams()
   const [form, setForm] = useState({ identifier: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -60,74 +61,100 @@ function AdminLoginPage() {
   }
 
   return (
-    <div className="admin-login-page">
-      <div className="admin-login-card">
-        <BrandLogo variant="login" />
-        <span className="eyebrow">KHU VỰC QUẢN TRỊ</span>
-        <h1>Đăng nhập Nhà xe Thành Nhân</h1>
-        <p>
-          Chỉ dành cho Chủ xe và Nhân viên đã được Chủ xe cấp tài khoản.
-        </p>
+    <main
+      className="admin-login-page"
+      style={{ '--admin-login-bg-image': `url(${heroBusImage})` }}
+    >
+      <div className="admin-login-page__overlay" />
+      <section className="admin-login-shell">
+        <div className="admin-login-visual">
+          <img className="admin-login-visual__image" src={heroBusImage} alt="Xe khách Thành Nhân" />
+          <div className="admin-login-visual__overlay" />
 
-        <form onSubmit={submit}>
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
+          <div className="admin-login-visual__mark" aria-hidden="true">TN</div>
+
+          <div className="admin-login-visual__headline">
+            <strong>HỆ THỐNG QUẢN LÝ NHÀ XE</strong>
+            <h2>THÀNH NHÂN</h2>
+            <p>An toàn - Chu đáo - Thân thiện</p>
+          </div>
+
+          <div className="admin-login-visual__caption">
+            <span>KHU VỰC NỘI BỘ</span>
+            <strong>Dành cho Chủ xe và Nhân viên</strong>
+          </div>
+        </div>
+
+        <div className="admin-login-panel">
+          <div className="admin-login-panel__inner">
+            <div className="admin-login-heading">
+              <span>KHU VỰC QUẢN TRỊ</span>
+              <h1>Đăng nhập</h1>
+              <p>Nhập tài khoản được cấp để truy cập hệ thống quản lý Nhà xe Thành Nhân.</p>
             </div>
-          )}
 
-          <label className="form-label" htmlFor="adminIdentifier">
-            Email hoặc số điện thoại
-          </label>
-          <input
-            autoComplete="username"
-            autoFocus
-            className="form-control mb-3"
-            id="adminIdentifier"
-            name="identifier"
-            onBlur={(event) => {
-              if (event.target.value.includes('@')) {
-                setForm((current) => ({
-                  ...current,
-                  identifier: normalizeEmail(event.target.value),
-                }))
-              }
-            }}
-            onChange={update}
-            placeholder="Email hoặc 0912 345 678"
-            required
-            value={form.identifier}
-          />
+            <form className="admin-login-form" onSubmit={submit}>
+              {error && <div className="alert alert-danger admin-login-error" role="alert">{error}</div>}
 
-          <label className="form-label" htmlFor="adminPassword">
-            Mật khẩu
-          </label>
-          <input
-            autoComplete="current-password"
-            className="form-control mb-3"
-            id="adminPassword"
-            name="password"
-            onChange={update}
-            required
-            type="password"
-            value={form.password}
-          />
+              <label className="admin-login-field" htmlFor="adminIdentifier">
+                <span>Email hoặc số điện thoại</span>
+                <input
+                  autoComplete="username"
+                  autoFocus
+                  id="adminIdentifier"
+                  name="identifier"
+                  onBlur={(event) => {
+                    if (event.target.value.includes('@')) {
+                      setForm((current) => ({
+                        ...current,
+                        identifier: normalizeEmail(event.target.value),
+                      }))
+                    }
+                  }}
+                  onChange={update}
+                  placeholder="Email hoặc 0912 345 678"
+                  required
+                  value={form.identifier}
+                />
+              </label>
 
-          <button
-            className="btn btn-primary w-100"
-            disabled={loading}
-            type="submit"
-          >
-            {loading ? 'Đang đăng nhập...' : 'Đăng nhập quản trị'}
-          </button>
-        </form>
+              <label className="admin-login-field" htmlFor="adminPassword">
+                <span>Mật khẩu</span>
+                <div className="admin-login-password">
+                  <input
+                    autoComplete="current-password"
+                    id="adminPassword"
+                    name="password"
+                    onChange={update}
+                    placeholder="Nhập mật khẩu"
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                  />
+                  <button
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    onClick={() => setShowPassword((current) => !current)}
+                    type="button"
+                  >
+                    {showPassword ? 'Ẩn' : 'Hiện'}
+                  </button>
+                </div>
+              </label>
 
-        <small className="admin-login-note">
-          Tài khoản Nhân viên/Chủ xe được tạo và quản lý trong mục Tài khoản
-          của Chủ xe; không có đăng ký công khai.
-        </small>
-      </div>
-    </div>
+              <button className="admin-login-submit" disabled={loading} type="submit">
+                <span>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
+                {!loading && <b aria-hidden="true">→</b>}
+              </button>
+            </form>
+
+            <div className="admin-login-footer">
+              <a href="/">← Về website</a>
+              <span>Chỉ dành cho tài khoản nội bộ</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }
 

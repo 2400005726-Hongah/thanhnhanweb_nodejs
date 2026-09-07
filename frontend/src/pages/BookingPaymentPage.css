@@ -1,5 +1,7 @@
+
 .booking-payment-container {
-  max-width: 1080px;
+  max-width: 1180px;
+  padding-top: 22px;
   padding-bottom: 46px;
 }
 
@@ -7,168 +9,233 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin: 1rem 0 1.25rem;
-  padding: 1rem 1.15rem;
-  border: 1px solid #f0c36a;
-  border-radius: 12px;
+  gap: 14px;
+  margin: 12px 0 16px;
+  padding: 9px 13px;
+  border: 1px solid #efd083;
+  border-radius: 6px;
   background: #fff8df;
 }
 
 .booking-payment-hold-banner > div {
   display: grid;
-  gap: .25rem;
+  gap: 2px;
 }
 
 .booking-payment-hold-banner span {
   color: #8a6100;
-  font-size: .72rem;
-  font-weight: 800;
+  font-size: 9px;
+  font-weight: 900;
 }
 
 .booking-payment-hold-banner strong {
   color: #493300;
+  font-size: 12px;
 }
 
 .booking-payment-hold-banner b {
-  min-width: 90px;
   color: #a95a00;
-  font-size: 1.5rem;
-  text-align: center;
+  font-size: 18px;
 }
 
 .booking-payment-hold-banner b.is-urgent {
-  color: #d7262e;
+  color: #c50416;
 }
 
 .booking-payment-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
   align-items: start;
 }
 
 .booking-payment-card,
 .booking-payment-summary,
 .booking-payment-conflict-card {
-  border: 1px solid #dce3ea;
-  border-radius: 14px;
+  border: 1px solid #dce2e8;
+  border-radius: 8px;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+  box-shadow: 0 3px 12px rgba(15,23,42,.045);
 }
 
 .booking-payment-card {
-  padding: 1.5rem;
+  padding: 22px;
+}
+
+.booking-payment-card > .eyebrow {
+  color: #c50416;
+  font-size: 10px;
+  font-weight: 900;
 }
 
 .booking-payment-card h1 {
-  margin: .25rem 0 .4rem;
-  color: #222a36;
-  font-size: 1.5rem;
+  margin: 3px 0 5px;
+  color: #20262f;
+  font-size: 22px;
 }
 
 .booking-payment-card > p {
-  margin-bottom: 1.4rem;
-  color: #687386;
+  margin: 0 0 16px;
+  color: #7a8491;
+  font-size: 12px;
 }
 
-.booking-payment-card .form-select {
-  min-height: 44px;
-  border-color: #d9dfe7;
-  border-radius: 9px;
+.booking-payment-methods {
+  overflow: hidden;
+  border: 1px solid #dfe4ea;
+  border-radius: 7px;
+}
+
+.booking-payment-methods-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e9ed;
+  background: #fafbfc;
+}
+
+.booking-payment-methods-head span {
+  color: #c50416;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.booking-payment-methods-head strong {
+  color: #525c67;
+  font-size: 10px;
+}
+
+.booking-payment-method-list {
+  display: grid;
+}
+
+.booking-payment-method-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #edf0f3;
+  background: #fff;
+  color: #343c47;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.booking-payment-method-option:last-child {
+  border-bottom: 0;
+}
+
+.booking-payment-method-option:hover {
+  background: #fafbfc;
+}
+
+.booking-payment-method-option.is-selected {
+  background: #fff7f8;
+  color: #a90b19;
+}
+
+.booking-payment-method-option input {
+  width: 15px;
+  height: 15px;
+  accent-color: #c50416;
 }
 
 .booking-payment-note {
-  margin-top: .8rem;
-  padding: .8rem 1rem;
-  border-radius: 9px;
-  background: #f6f8fb;
-  color: #566176;
-  font-size: .85rem;
-  line-height: 1.5;
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: 5px;
+  background: #f5f7f9;
+  color: #67717d;
+  font-size: 11px;
+}
+
+.booking-payment-note.is-pay-at-bus {
+  border: 1px solid #d8e9df;
+  background: #f1faf4;
+  color: #246341;
 }
 
 .booking-payment-qr-panel {
-  margin-top: 18px;
-  padding: 18px;
-  border: 1px solid #e2e6ec;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #fff 0%, #fafbfc 100%);
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #dfe4ea;
+  border-radius: 7px;
+  background: #fff;
 }
 
 .booking-payment-qr-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: start;
   justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #eceff3;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf0f3;
 }
 
 .booking-payment-qr-heading span {
   display: block;
-  margin-bottom: 3px;
-  color: #b51e2d;
-  font-size: 10px;
+  color: #c50416;
+  font-size: 9px;
   font-weight: 900;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
 }
 
 .booking-payment-qr-heading h2 {
-  margin: 0;
-  color: #202733;
-  font-size: 18px;
+  margin: 2px 0 0;
+  color: #222a34;
+  font-size: 16px;
 }
 
 .booking-payment-qr-heading b {
-  padding: 5px 9px;
-  border-radius: 7px;
+  padding: 4px 7px;
+  border-radius: 4px;
   background: #fff4d7;
   color: #9a6500;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .booking-payment-qr-content {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 165px minmax(0, 1fr);
+  gap: 16px;
   align-items: center;
-  padding: 18px 0;
+  padding: 14px 0;
 }
 
 .booking-payment-qr-image {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .booking-payment-qr-image img {
-  width: 178px;
+  width: 155px;
   max-width: 100%;
   aspect-ratio: 1;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid #dfe4ea;
-  border-radius: 12px;
+  border-radius: 5px;
   background: #fff;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
 }
 
 .booking-payment-qr-image small {
   color: #8a94a3;
-  font-size: 10px;
+  font-size: 9px;
   text-align: center;
 }
 
 .booking-payment-qr-info {
   display: grid;
-  gap: 0;
-  min-width: 0;
 }
 
 .booking-payment-qr-info > div {
   display: grid;
-  gap: 3px;
-  padding: 9px 0;
+  gap: 2px;
+  padding: 7px 0;
   border-bottom: 1px dashed #e3e7ed;
 }
 
@@ -178,76 +245,101 @@
 
 .booking-payment-qr-info span {
   color: #7d8795;
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .booking-payment-qr-info strong {
   overflow-wrap: anywhere;
   color: #252d39;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .booking-payment-qr-info strong.is-amount {
-  color: #d92738;
-  font-size: 20px;
+  color: #c50416;
+  font-size: 18px;
 }
 
-.booking-payment-qr-warning {
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  border: 1px solid #f3d98c;
-  border-radius: 8px;
-  background: #fff9e8;
-  color: #725b19;
-  font-size: 11px;
-  line-height: 1.5;
+.booking-payment-qr-guide {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.booking-payment-qr-guide span {
+  padding: 7px;
+  border-radius: 4px;
+  background: #f6f8fa;
+  color: #606b77;
+  font-size: 9px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .booking-payment-confirm-transfer {
-  min-height: 46px;
-  font-weight: 800;
+  min-height: 42px;
+  border-color: #f2b700 !important;
+  background: #f2c400 !important;
+  color: #3d3300 !important;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .booking-payment-actions {
   display: flex;
   justify-content: space-between;
-  gap: .75rem;
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #e7ebf0;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f3;
+}
+
+.booking-payment-actions .btn {
+  min-height: 36px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.booking-payment-actions .btn-primary {
+  border-color: #c50416;
+  background: #c50416;
 }
 
 .booking-payment-summary {
   position: sticky;
-  top: 95px;
-  padding: 1.15rem;
+  top: 92px;
+  padding: 15px;
 }
 
 .booking-payment-summary h2 {
-  margin: 0 0 .7rem;
+  margin: 0 0 6px;
   color: #252c38;
-  font-size: 1.15rem;
+  font-size: 16px;
 }
 
 .booking-payment-summary > div {
   display: grid;
-  gap: .18rem;
-  padding: .72rem 0;
+  gap: 2px;
+  padding: 9px 0;
   border-bottom: 1px solid #edf0f3;
 }
 
 .booking-payment-summary span {
   color: #7a8493;
-  font-size: .72rem;
+  font-size: 9px;
 }
 
 .booking-payment-summary strong {
   color: #172033;
-  font-size: .88rem;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .booking-payment-summary small {
   color: #667085;
+  font-size: 9px;
+  line-height: 1.4;
 }
 
 .booking-payment-summary .is-pickup strong {
@@ -255,7 +347,7 @@
 }
 
 .booking-payment-summary .is-dropoff strong {
-  color: #d5333e;
+  color: #c50416;
 }
 
 .booking-payment-summary .booking-payment-total {
@@ -266,26 +358,18 @@
 }
 
 .booking-payment-summary .booking-payment-total strong {
-  color: #d7262e;
-  font-size: 1.25rem;
+  color: #c50416;
+  font-size: 19px;
 }
 
 .booking-payment-conflict-card {
   max-width: 700px;
-  margin: 1.5rem auto;
-  padding: 2rem;
+  margin: 18px auto;
+  padding: 24px;
   text-align: center;
 }
 
-.booking-payment-conflict-card h1 {
-  font-size: 1.4rem;
-}
-
-.booking-payment-conflict-card p {
-  color: #667085;
-}
-
-@media (max-width: 900px) {
+@media (max-width: 920px) {
   .booking-payment-layout {
     grid-template-columns: 1fr;
   }
@@ -297,15 +381,15 @@
 
 @media (max-width: 640px) {
   .booking-payment-card {
-    padding: 18px;
+    padding: 16px;
   }
 
-  .booking-payment-qr-content {
+  .booking-payment-qr-content,
+  .booking-payment-qr-guide {
     grid-template-columns: 1fr;
   }
 
   .booking-payment-actions {
-    align-items: stretch;
     flex-direction: column-reverse;
   }
 
@@ -314,21 +398,211 @@
   }
 }
 
-.booking-payment-conflict-actions {
-  display: flex;
-  justify-content: center;
-  gap: .75rem;
-  flex-wrap: wrap;
-  margin-top: 1.1rem;
+
+/* ==========================================================
+   PAYMENT GATEWAY DETAIL UI
+   ========================================================== */
+.booking-payment-method-option {
+  min-height: 58px;
+  gap: 10px;
 }
 
-@media (max-width: 640px) {
-  .booking-payment-conflict-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
+.booking-payment-method-logo-wrap {
+  width: 42px;
+  height: 34px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e2e6ea;
+  border-radius: 6px;
+  background: #fff;
+}
 
-  .booking-payment-conflict-actions .btn {
-    width: 100%;
-  }
+.booking-payment-method-logo-wrap img {
+  width: 34px;
+  max-height: 24px;
+  object-fit: contain;
+}
+
+.booking-payment-method-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.booking-payment-method-copy strong {
+  color: #2d3540;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.booking-payment-method-copy small {
+  color: #7a8490;
+  font-size: 9.5px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.booking-payment-method-option.is-selected .booking-payment-method-copy strong {
+  color: #a90b19;
+}
+
+.booking-payment-qr-brand-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.booking-payment-qr-brand-title > img {
+  width: 54px;
+  height: 38px;
+  padding: 5px;
+  object-fit: contain;
+  border: 1px solid #e3e7eb;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.booking-payment-qr-brand-title p {
+  margin: 3px 0 0;
+  color: #7b8590;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.booking-payment-qr-timer {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.booking-payment-qr-timer small {
+  color: #7f8994;
+  font-size: 9px;
+}
+
+.booking-payment-qr-frame {
+  position: relative;
+  width: 165px;
+  height: 165px;
+}
+
+.booking-payment-qr-frame > img:first-child {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.booking-payment-qr-center-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px !important;
+  height: 30px !important;
+  transform: translate(-50%, -50%);
+  padding: 4px !important;
+  border: 2px solid #fff !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  object-fit: contain !important;
+}
+
+.booking-payment-qr-info strong.is-reference {
+  font-family: Consolas, 'Courier New', monospace;
+  letter-spacing: .02em;
+}
+
+.booking-payment-qr-info strong.is-pending {
+  color: #b36d00;
+}
+
+.booking-payment-qr-guide-title {
+  margin: 2px 0 7px;
+  color: #323a45;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.booking-payment-qr-guide > div {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: start;
+  gap: 6px;
+  min-height: 54px;
+  padding: 8px;
+  border: 1px solid #e7eaee;
+  border-radius: 5px;
+  background: #f8f9fb;
+}
+
+.booking-payment-qr-guide > div b {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #c50416;
+  color: #fff;
+  font-size: 9px;
+}
+
+.booking-payment-qr-guide > div span {
+  padding: 0;
+  background: transparent;
+  color: #58626e;
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.booking-payment-support-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-top: 1px solid #e8ebee;
+  border-bottom: 1px solid #e8ebee;
+  background: #fafbfc;
+  color: #65707c;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.booking-payment-support-note strong {
+  color: #343c46;
+  white-space: nowrap;
+}
+
+.booking-payment-pay-at-bus {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #d4e7dc;
+  border-radius: 6px;
+  background: #f1faf4;
+}
+
+.booking-payment-pay-at-bus img {
+  width: 48px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.booking-payment-pay-at-bus > div {
+  display: grid;
+  gap: 2px;
+}
+
+.booking-payment-pay-at-bus strong {
+  color: #175d3a;
+  font-size: 11px;
+}
+
+.booking-payment-pay-at-bus span {
+  color: #557263;
+  font-size: 9.5px;
+  line-height: 1.4;
 }

@@ -22,12 +22,6 @@ const servicePointInclude = {
       defaultArea: true,
     },
   },
-  _count: {
-    select: {
-      pickupBookings: true,
-      dropoffBookings: true,
-    },
-  },
 }
 
 const getUsedBookingCount = (point) =>
@@ -102,10 +96,7 @@ const getTripServicePointsWithDatabase = async (
 
   return {
     trip,
-    servicePoints: servicePoints.map((point) => ({
-      ...point,
-      usedBookingCount: getUsedBookingCount(point),
-    })),
+    servicePoints,
   }
 }
 

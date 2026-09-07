@@ -1,0 +1,485 @@
+.passenger-list-print{
+  width:100%;
+  padding:18px;
+  color:#1f2937;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-header{
+  margin-bottom:16px;
+  text-align:center;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-header h1{
+  margin:0 0 6px;
+  color:#111827;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+  font-size:26px;
+  font-style:normal;
+  font-weight:800;
+  letter-spacing:1.5px;
+  line-height:1.2;
+}
+
+.passenger-print-header h2{
+  margin:0 0 7px;
+  color:#111827;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+  font-size:16px;
+  font-style:normal;
+  font-weight:700;
+  letter-spacing:0;
+  line-height:1.25;
+}
+
+.passenger-print-header p{
+  margin:3px 0;
+  color:#374151;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+  font-size:13px;
+  font-style:normal;
+  font-weight:400;
+  line-height:1.35;
+}
+
+.passenger-print-header p strong{
+  color:#111827;
+  font-weight:700;
+}
+
+.passenger-print-header .route-name{
+  text-transform:none;
+}
+
+.passenger-print-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  margin:0 auto 14px;
+  overflow:hidden;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  background:#fff;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-summary>div{
+  min-width:0;
+  padding:10px 14px;
+  border-right:1px solid #e5e7eb;
+}
+
+.passenger-print-summary>div:last-child{
+  border-right:0;
+}
+
+.passenger-print-summary span,
+.passenger-print-summary strong{
+  display:block;
+}
+
+.passenger-print-summary span{
+  margin-bottom:4px;
+  color:#6b7280;
+  font-size:11px;
+  font-weight:500;
+}
+
+.passenger-print-summary strong{
+  color:#111827;
+  font-size:14px;
+  font-weight:700;
+}
+
+.passenger-print-table-wrap{
+  width:100%;
+  overflow:auto;
+  border:1px solid #9ca3af;
+  border-radius:8px;
+  background:#fff;
+}
+
+.passenger-print-table{
+  width:100%;
+  min-width:1050px;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:#fff;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-table th,
+.passenger-print-table td{
+  padding:8px 7px;
+  vertical-align:middle;
+  border:1px solid #9ca3af;
+  color:#1f2937;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+  font-size:11px;
+  font-style:normal;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+
+.passenger-print-table th{
+  height:40px;
+  background:#f8fafc;
+  color:#374151;
+  font-size:10px;
+  font-weight:700;
+  text-align:left;
+}
+
+.passenger-print-table td{
+  min-height:46px;
+}
+
+.passenger-print-table td strong{
+  font-weight:600;
+}
+
+.passenger-print-table td small,
+.passenger-print-table td span{
+  display:block;
+}
+
+.passenger-print-table td small{
+  margin-top:2px;
+  color:#6b7280;
+  font-size:9px;
+  font-weight:400;
+}
+
+.seat-code-print{
+  display:inline-block!important;
+  padding:2px 5px;
+  border:1px solid #9ca3af;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:700;
+  white-space:normal;
+}
+
+.payment-status-print{
+  display:inline-block!important;
+  padding:2px 4px;
+  border:1px solid #9ca3af;
+  border-radius:3px;
+  font-size:9px;
+  font-weight:700;
+}
+
+.passenger-print-empty{
+  padding:30px;
+  text-align:center;
+  border:1px dashed #9ca3af;
+  color:#6b7280;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-signatures{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:80px;
+  margin-top:26px;
+  padding-top:20px;
+  border-top:3px solid #27272a;
+  text-align:center;
+  font-family:Arial,"Helvetica Neue",sans-serif;
+}
+
+.passenger-print-signatures div{
+  min-height:110px;
+}
+
+.passenger-print-signatures strong,
+.passenger-print-signatures span{
+  display:block;
+}
+
+.passenger-print-signatures strong{
+  margin-bottom:46px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.passenger-print-signatures span{
+  color:#4b5563;
+  font-size:10px;
+}
+
+@media(max-width:900px){
+  .passenger-print-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media print{
+  @page{
+    size:A4 landscape;
+    margin:7mm;
+  }
+
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+
+  body *{
+    visibility:hidden!important;
+  }
+
+  .passenger-list-print,
+  .passenger-list-print *{
+    visibility:visible!important;
+  }
+
+  .passenger-list-no-print{
+    display:none!important;
+  }
+
+  .passenger-list-print{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    color:#000!important;
+    background:#fff!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    font-family:Arial,"Helvetica Neue",sans-serif!important;
+  }
+
+  .passenger-print-header,
+  .passenger-print-header *,
+  .passenger-print-summary,
+  .passenger-print-summary *,
+  .passenger-print-table,
+  .passenger-print-table *,
+  .passenger-print-signatures,
+  .passenger-print-signatures *{
+    font-family:Arial,"Helvetica Neue",sans-serif!important;
+  }
+
+  .passenger-print-header{
+    margin:0 0 5mm!important;
+  }
+
+  .passenger-print-header h1{
+    margin:0 0 1.5mm!important;
+    font-size:19pt!important;
+    font-style:normal!important;
+    font-weight:800!important;
+    letter-spacing:1.5pt!important;
+    line-height:1.1!important;
+  }
+
+  .passenger-print-header h2{
+    margin:0 0 1.5mm!important;
+    font-size:11pt!important;
+    font-style:normal!important;
+    font-weight:700!important;
+    letter-spacing:0!important;
+    line-height:1.15!important;
+  }
+
+  .passenger-print-header p{
+    margin:.8mm 0!important;
+    font-size:8.5pt!important;
+    font-style:normal!important;
+    font-weight:400!important;
+    line-height:1.15!important;
+  }
+
+  .passenger-print-header p strong{
+    font-weight:700!important;
+  }
+
+  .passenger-print-summary{
+    grid-template-columns:repeat(4,1fr)!important;
+    margin-bottom:4mm!important;
+    border:.7pt solid #555!important;
+    border-radius:3mm!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .passenger-print-summary>div{
+    padding:2.2mm 4mm!important;
+    border-right:.5pt solid #bbb!important;
+  }
+
+  .passenger-print-summary>div:last-child{
+    border-right:0!important;
+  }
+
+  .passenger-print-summary span{
+    margin:0 0 .5mm!important;
+    font-size:6.8pt!important;
+    font-weight:500!important;
+  }
+
+  .passenger-print-summary strong{
+    font-size:8.5pt!important;
+    font-weight:700!important;
+  }
+
+  .passenger-print-table-wrap{
+    overflow:visible!important;
+    border:.8pt solid #444!important;
+    border-radius:2mm!important;
+  }
+
+  .passenger-print-table{
+    width:100%!important;
+    min-width:0!important;
+    table-layout:fixed!important;
+    border-collapse:collapse!important;
+  }
+
+  .passenger-print-table thead{
+    display:table-header-group;
+  }
+
+  .passenger-print-table tr{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .passenger-print-table th,
+  .passenger-print-table td{
+    padding:1.5mm 1.15mm!important;
+    border:.6pt solid #555!important;
+    color:#000!important;
+    background:#fff!important;
+    font-family:Arial,"Helvetica Neue",sans-serif!important;
+    font-size:6.2pt!important;
+    font-style:normal!important;
+    line-height:1.18!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  .passenger-print-table th{
+    height:9mm!important;
+    font-size:5.9pt!important;
+    font-weight:700!important;
+    background:#f5f5f5!important;
+  }
+
+  .passenger-print-table td{
+    height:10.5mm!important;
+  }
+
+  .passenger-print-table td small{
+    margin-top:.6mm!important;
+    color:#000!important;
+    font-size:5.3pt!important;
+  }
+
+  .seat-code-print{
+    padding:.35mm .9mm!important;
+    border:.6pt solid #666!important;
+    font-size:5.4pt!important;
+  }
+
+  .payment-status-print{
+    padding:.3mm .8mm!important;
+    border:.6pt solid #666!important;
+    font-size:5.3pt!important;
+  }
+
+  .passenger-print-signatures{
+    gap:35mm!important;
+    margin-top:7mm!important;
+    padding-top:6mm!important;
+    border-top:2pt solid #333!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .passenger-print-signatures div{
+    min-height:28mm!important;
+  }
+
+  .passenger-print-signatures strong{
+    margin-bottom:13mm!important;
+    font-size:7pt!important;
+    font-weight:700!important;
+  }
+
+  .passenger-print-signatures span{
+    color:#000!important;
+    font-size:6pt!important;
+  }
+}
+/* ===== FIX MÀU NÚT ĐẶT VÉ - GHI ĐÈ XUNG ĐỘT CSS ===== */
+
+.admin-trip-mvc-actions--booking .is-counter{
+  background:#16864b!important;
+  border:1px solid #16864b!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+
+.admin-trip-mvc-actions--booking .is-counter:hover{
+  background:#0f6e3c!important;
+  border-color:#0f6e3c!important;
+  color:#fff!important;
+}
+
+.admin-trip-mvc-actions--booking .is-hotline{
+  background:#fff!important;
+  border:1px solid #c50416!important;
+  color:#c50416!important;
+  box-shadow:none!important;
+}
+
+.admin-trip-mvc-actions--booking .is-hotline:hover{
+  background:#c50416!important;
+  border-color:#c50416!important;
+  color:#fff!important;
+}
+
+/* Ép chữ/icon bên trong theo màu của nút */
+.admin-trip-mvc-actions--booking .is-counter *,
+.admin-trip-mvc-actions--booking .is-counter svg{
+  color:#fff!important;
+  fill:currentColor!important;
+}
+
+.admin-trip-mvc-actions--booking .is-hotline *,
+.admin-trip-mvc-actions--booking .is-hotline svg{
+  color:inherit!important;
+  fill:currentColor!important;
+}
+
+/* Hai nút cùng kích thước, không còn ô đỏ to bất thường */
+.admin-trip-mvc-actions--booking{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:5px!important;
+  min-width:76px!important;
+  max-width:82px!important;
+}
+
+.admin-trip-mvc-actions--booking a,
+.admin-trip-mvc-actions--booking button{
+  width:100%!important;
+  min-width:0!important;
+  min-height:29px!important;
+  padding:5px 7px!important;
+  font-size:10.5px!important;
+  font-weight:800!important;
+  line-height:1.15!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}

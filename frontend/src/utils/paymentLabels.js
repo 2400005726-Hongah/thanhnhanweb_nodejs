@@ -28,7 +28,6 @@ const PAYMENT_METHODS_BY_SOURCE = Object.freeze({
     'ZALOPAY',
     'VNPAY',
     'PAY_AT_BUS',
-    'SIMULATED',
   ]),
   HOTLINE: Object.freeze([
     'BANK_TRANSFER',
@@ -37,7 +36,6 @@ const PAYMENT_METHODS_BY_SOURCE = Object.freeze({
     'ZALOPAY',
     'VNPAY',
     'PAY_AT_BUS',
-    'SIMULATED',
   ]),
   COUNTER: Object.freeze([
     'CASH_COUNTER',

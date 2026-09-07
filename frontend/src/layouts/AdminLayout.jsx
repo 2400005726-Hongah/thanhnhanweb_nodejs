@@ -17,6 +17,7 @@ import {
   ROLE_LABELS,
 } from '../utils/adminPermissions.js'
 
+
 const menuItems = [
   {
     icon: 'dashboard',

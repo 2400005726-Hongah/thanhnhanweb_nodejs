@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { createRoot } from 'react-dom/client'
 
 import AdminPageHeader from '../../components/admin/AdminPageHeader.jsx'
 import BookingTicket from '../../components/admin/BookingTicket.jsx'
@@ -221,7 +222,6 @@ function AdminBookingsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [processingCode, setProcessingCode] = useState('')
-  const [printBooking, setPrintBooking] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [actionDialog, setActionDialog] = useState(null)
   const [currentTime, setCurrentTime] = useState(() => new Date())
@@ -252,13 +252,6 @@ function AdminBookingsPage() {
   useEffect(() => {
     load(page, appliedFilters)
   }, [appliedFilters, load, page])
-
-  useEffect(() => {
-    const clearPrintBooking = () => setPrintBooking(null)
-    window.addEventListener('afterprint', clearPrintBooking)
-    return () => window.removeEventListener('afterprint', clearPrintBooking)
-  }, [])
-
 
   useEffect(() => {
     const timerId = window.setInterval(() => {
@@ -324,12 +317,166 @@ function AdminBookingsPage() {
     }
   }
 
-  const printTicket = (booking) => {
-    setPrintBooking(booking)
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => window.print())
-    })
+  const printTicket = async (booking) => {
+  const iframe = document.createElement('iframe')
+
+  iframe.setAttribute('aria-hidden', 'true')
+
+  Object.assign(iframe.style, {
+    position: 'fixed',
+    right: '0',
+    bottom: '0',
+    width: '0',
+    height: '0',
+    border: '0',
+    visibility: 'hidden',
+  })
+
+  document.body.appendChild(iframe)
+
+  const printWindow = iframe.contentWindow
+  const printDocument = iframe.contentDocument
+
+  if (!printWindow || !printDocument) {
+    iframe.remove()
+    window.alert('Không thể tạo vùng in vé.')
+    return
   }
+
+  printDocument.open()
+
+  printDocument.write(`
+    <!DOCTYPE html>
+    <html lang="vi">
+      <head>
+        <meta charset="UTF-8" />
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        />
+
+        <title>
+          Vé ${booking.bookingCode || ''}
+        </title>
+
+        <style>
+          html,
+          body{
+            margin:0;
+            padding:0;
+            background:#fff;
+          }
+
+          body{
+            font-family:Arial,sans-serif;
+          }
+
+          #print-root{
+            margin:0;
+            padding:0;
+          }
+        </style>
+      </head>
+
+      <body>
+        <div id="print-root"></div>
+      </body>
+    </html>
+  `)
+
+  printDocument.close()
+
+  const mountNode =
+    printDocument.getElementById('print-root')
+
+  if (!mountNode) {
+    iframe.remove()
+    window.alert('Không tìm thấy vùng in vé.')
+    return
+  }
+
+  const root = createRoot(mountNode)
+
+  root.render(
+    <BookingTicket booking={booking} />,
+  )
+
+  const waitRender = () =>
+    new Promise((resolve) => {
+      printWindow.requestAnimationFrame(() => {
+        printWindow.requestAnimationFrame(
+          resolve,
+        )
+      })
+    })
+
+  const waitImages = async () => {
+    const images = Array.from(
+      printDocument.images,
+    )
+
+    await Promise.all(
+      images.map(
+        (image) =>
+          new Promise((resolve) => {
+            if (image.complete) {
+              resolve()
+              return
+            }
+
+            image.addEventListener(
+              'load',
+              resolve,
+              { once: true },
+            )
+
+            image.addEventListener(
+              'error',
+              resolve,
+              { once: true },
+            )
+          }),
+      ),
+    )
+  }
+
+  try {
+    await waitRender()
+    await waitImages()
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 150),
+    )
+
+    const cleanup = () => {
+      try {
+        root.unmount()
+      } catch {
+        // Không cần xử lý
+      }
+
+      iframe.remove()
+    }
+
+    printWindow.onafterprint = cleanup
+
+    printWindow.focus()
+    printWindow.print()
+  } catch {
+    try {
+      root.unmount()
+    } catch {
+      // Không cần xử lý
+    }
+
+    iframe.remove()
+
+    window.alert(
+      'Không thể chuẩn bị vé để in.',
+    )
+  }
+}
 
   const openActionDialog = (type, booking) => {
     setActionDialog({
@@ -563,8 +710,7 @@ function AdminBookingsPage() {
                   <th>Xuất bến</th>
                   <th>Tổng tiền</th>
                   <th>Trạng thái vé</th>
-                  <th>Thanh toán</th>
-                  <th>Phương thức</th>
+                  <th>Thanh toán</th>                 
                   <th>Thao tác</th>
                 </tr>
               </thead>
@@ -669,20 +815,31 @@ function AdminBookingsPage() {
                         </span>
                       </td>
 
-                      <td className="admin-bookings-payment-cell">
-                        <span className={`admin-bookings-payment ${paymentStatus === 'SUCCESS' ? 'is-paid' : paymentStatus === 'REFUNDED' ? 'is-refunded' : 'is-pending'}`}>
-                          {paymentStatus === 'PENDING'
-                            ? getPendingPaymentLabel(payment)
-                            : getPaymentStatusLabel(paymentStatus)}
-                        </span>
-                        {payment?.paidAt && (
-                          <small>{formatDateOnly(payment.paidAt)} {formatTimeOnly(payment.paidAt)}</small>
-                        )}
-                      </td>
+                      <td className="admin-bookings-payment-cell admin-bookings-payment-cell--combined">
+  <span
+    className={`admin-bookings-payment ${
+      paymentStatus === 'SUCCESS'
+        ? 'is-paid'
+        : paymentStatus === 'REFUNDED'
+          ? 'is-refunded'
+          : 'is-pending'
+    }`}
+  >
+    {paymentStatus === 'PENDING'
+      ? getPendingPaymentLabel(payment)
+      : getPaymentStatusLabel(paymentStatus)}
+  </span>
 
-                      <td className="admin-bookings-method-cell">
-                        {getPaymentMethodLabel(payment?.paymentMethod)}
-                      </td>
+  <strong className="admin-bookings-payment-method">
+    {getPaymentMethodLabel(payment?.paymentMethod)}
+  </strong>
+
+  <small className="admin-bookings-payment-date">
+    {payment?.paidAt
+      ? `${formatDateOnly(payment.paidAt)} ${formatTimeOnly(payment.paidAt)}`
+      : 'Chưa có thời gian thanh toán'}
+  </small>
+</td>
 
                       <td>
                         <div className="admin-bookings-actions">
@@ -881,7 +1038,6 @@ function AdminBookingsPage() {
         )
       })()}
 
-      <BookingTicket booking={printBooking} />
     </div>
   )
 }

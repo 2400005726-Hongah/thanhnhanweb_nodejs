@@ -9,27 +9,97 @@ import { formatDateTime } from '../../utils/formatDateTime.js'
 
 import './AdminTripsRoutesPage.css'
 
+const TRIP_FETCH_LIMIT = 100
+
 const provinceName = (location) =>
   location?.provinceRef?.name || location?.province || 'Chưa xác định'
 
-const getLowestPrice = (route) => {
+const normalizeText = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+
+const getLocationId = (location) => location?.id || location?.locationId || null
+
+const isSameLocation = (left, right) => {
+  const leftId = getLocationId(left)
+  const rightId = getLocationId(right)
+
+  if (leftId && rightId) return leftId === rightId
+
+  return (
+    normalizeText(left?.name) === normalizeText(right?.name) &&
+    normalizeText(provinceName(left)) === normalizeText(provinceName(right))
+  )
+}
+
+const getTripDeparture = (trip) =>
+  trip?.departureLocation || trip?.route?.departureLocation || null
+
+const getTripArrival = (trip) =>
+  trip?.arrivalLocation || trip?.route?.arrivalLocation || null
+
+const getTripDepartureTime = (trip) => {
   const candidates = [
-    route.lowestPrice,
-    route.minPrice,
-    route.minimumPrice,
-    route.lowestTicketPrice,
+    trip?.departureTime,
+    trip?.departureDateTime,
+    trip?.startTime,
+  ]
+
+  for (const value of candidates) {
+    if (!value) continue
+    const date = new Date(value)
+    if (!Number.isNaN(date.getTime())) return date
+  }
+
+  return null
+}
+
+const getTripPrices = (trip) =>
+  [
+    trip?.ticketPrice,
+    trip?.singleRoomPrice,
+    trip?.doubleRoomPrice,
+    trip?.price,
   ]
     .map(Number)
-    .filter((value) => Number.isFinite(value) && value >= 0)
+    .filter((value) => Number.isFinite(value) && value > 0)
+
+const getPositiveRoutePrice = (route) => {
+  const candidates = [
+    route?.lowestPrice,
+    route?.minPrice,
+    route?.minimumPrice,
+    route?.lowestTicketPrice,
+  ]
+    .map(Number)
+    .filter((value) => Number.isFinite(value) && value > 0)
 
   return candidates.length ? Math.min(...candidates) : null
 }
 
-const getNearestDeparture = (route) =>
-  route.nextDepartureTime ||
-  route.nearestDepartureTime ||
-  route.upcomingDepartureTime ||
+const getRouteDepartureFallback = (route) =>
+  route?.nextDepartureTime ||
+  route?.nearestDepartureTime ||
+  route?.upcomingDepartureTime ||
   null
+
+const loadAllTrips = async () => {
+  const firstPage = await getTrips({ page: 1, limit: TRIP_FETCH_LIMIT, sort: 'asc' })
+  const trips = [...(firstPage?.trips ?? [])]
+  const totalPages = Math.max(Number(firstPage?.pagination?.totalPages) || 1, 1)
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const pageData = await getTrips({ page, limit: TRIP_FETCH_LIMIT, sort: 'asc' })
+    trips.push(...(pageData?.trips ?? []))
+  }
+
+  return trips
+}
 
 function AdminRoutesSummaryPage({ embedded = false, refreshKey = 0 }) {
   const [routes, setRoutes] = useState([])
@@ -39,49 +109,54 @@ function AdminRoutesSummaryPage({ embedded = false, refreshKey = 0 }) {
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
+
     try {
-      const [data, tripData] = await Promise.all([
+      const [routeData, allTrips] = await Promise.all([
         getRouteSummary(),
-        getTrips({ page: 1, limit: 500, sort: 'asc' }).catch(() => ({ trips: [] })),
+        loadAllTrips(),
       ])
 
-      const now = Date.now()
-      const allTrips = tripData?.trips ?? []
-      const enrichedRoutes = (data?.routes ?? []).map((route) => {
+      const now = new Date()
+
+      const enrichedRoutes = (routeData?.routes ?? []).map((route) => {
         const matchingTrips = allTrips.filter((trip) => {
-          const departure = trip.departureLocation || trip.route?.departureLocation
-          const arrival = trip.arrivalLocation || trip.route?.arrivalLocation
+          if (trip?.status === 'CANCELLED') return false
+
           return (
-            departure?.id === route.departureLocation?.id &&
-            arrival?.id === route.arrivalLocation?.id &&
-            trip.status !== 'CANCELLED'
+            isSameLocation(getTripDeparture(trip), route?.departureLocation) &&
+            isSameLocation(getTripArrival(trip), route?.arrivalLocation)
           )
         })
 
-        const prices = matchingTrips.flatMap((trip) => {
-          const values = [trip.ticketPrice, trip.singleRoomPrice, trip.doubleRoomPrice]
-          return values
-            .map(Number)
-            .filter((value) => Number.isFinite(value) && value > 0)
-        })
+        const allPrices = matchingTrips.flatMap(getTripPrices)
+        const computedLowestPrice = allPrices.length ? Math.min(...allPrices) : null
 
-        const nextDepartureTime = matchingTrips
-          .filter(
-            (trip) =>
-              !['CANCELLED', 'COMPLETED'].includes(trip.status) &&
-              new Date(trip.departureTime).getTime() >= now,
-          )
-          .map((trip) => trip.departureTime)
-          .sort((left, right) => new Date(left) - new Date(right))[0] || null
+        const upcomingTrips = matchingTrips
+          .map((trip) => ({ trip, departure: getTripDepartureTime(trip) }))
+          .filter(({ trip, departure }) => {
+            if (!departure) return false
+            if (departure.getTime() < now.getTime()) return false
+            return !['CANCELLED', 'COMPLETED'].includes(trip?.status)
+          })
+          .sort((left, right) => left.departure - right.departure)
+
+        const computedNextDeparture = upcomingTrips[0]?.departure?.toISOString() || null
+
+        const computedOpenCount = matchingTrips.filter((trip) => {
+          if (trip?.status !== 'OPEN') return false
+          const departure = getTripDepartureTime(trip)
+          return departure ? departure.getTime() >= now.getTime() : true
+        }).length
 
         return {
           ...route,
-          lowestPrice:
-            route.lowestPrice ??
-            route.minPrice ??
-            (prices.length ? Math.min(...prices) : null),
-          nextDepartureTime:
-            route.nextDepartureTime ?? route.nearestDepartureTime ?? nextDepartureTime,
+          tripCount: matchingTrips.length || Number(route?.tripCount) || 0,
+          openCount:
+            matchingTrips.length > 0
+              ? computedOpenCount
+              : Number(route?.openCount) || 0,
+          lowestPrice: computedLowestPrice ?? getPositiveRoutePrice(route),
+          nextDepartureTime: computedNextDeparture ?? getRouteDepartureFallback(route),
         }
       })
 
@@ -140,35 +215,30 @@ function AdminRoutesSummaryPage({ embedded = false, refreshKey = 0 }) {
                 </tr>
               </thead>
               <tbody>
-                {routes.map((route) => {
-                  const lowestPrice = getLowestPrice(route)
-                  const nearestDeparture = getNearestDeparture(route)
-
-                  return (
-                    <tr key={route.key}>
-                      <td className="admin-route-mvc-journey">
-                        <strong className="is-departure">{route.departureLocation?.name || '—'}</strong>
-                        <span>↓</span>
-                        <strong className="is-arrival">{route.arrivalLocation?.name || '—'}</strong>
-                      </td>
-                      <td>
-                        <strong>{provinceName(route.departureLocation)} → {provinceName(route.arrivalLocation)}</strong>
-                      </td>
-                      <td className="admin-route-mvc-number"><strong>{route.tripCount ?? 0}</strong></td>
-                      <td className="admin-route-mvc-number">
-                        <span className="admin-route-open-count">{route.openCount ?? 0}</span>
-                      </td>
-                      <td className="admin-route-mvc-price">
-                        {lowestPrice == null ? '—' : formatCurrency(lowestPrice)}
-                      </td>
-                      <td className="admin-route-mvc-nearest">
-                        {nearestDeparture
-                          ? formatDateTime(nearestDeparture)
-                          : 'Chưa có chuyến sắp chạy'}
-                      </td>
-                    </tr>
-                  )
-                })}
+                {routes.map((route) => (
+                  <tr key={route.key}>
+                    <td className="admin-route-mvc-journey">
+                      <strong className="is-departure">{route.departureLocation?.name || '—'}</strong>
+                      <span>↓</span>
+                      <strong className="is-arrival">{route.arrivalLocation?.name || '—'}</strong>
+                    </td>
+                    <td>
+                      <strong>{provinceName(route.departureLocation)} → {provinceName(route.arrivalLocation)}</strong>
+                    </td>
+                    <td className="admin-route-mvc-number"><strong>{route.tripCount ?? 0}</strong></td>
+                    <td className="admin-route-mvc-number">
+                      <span className="admin-route-open-count">{route.openCount ?? 0}</span>
+                    </td>
+                    <td className="admin-route-mvc-price">
+                      {route.lowestPrice == null ? '—' : formatCurrency(route.lowestPrice)}
+                    </td>
+                    <td className="admin-route-mvc-nearest">
+                      {route.nextDepartureTime
+                        ? formatDateTime(route.nextDepartureTime)
+                        : 'Chưa có chuyến sắp chạy'}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

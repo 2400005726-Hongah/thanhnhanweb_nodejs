@@ -188,3 +188,166 @@
     justify-content: flex-start;
   }
 }
+
+/* Thư viện ảnh dùng chung theo loại xe - đặt dưới danh sách và thu gọn */
+.admin-bus-type-gallery-panel {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  padding: 11px 12px;
+}
+
+.admin-bus-type-gallery-heading {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.admin-bus-type-gallery-heading > div:first-child {
+  flex: 1;
+}
+
+.admin-bus-type-gallery-heading span {
+  font-size: 9px;
+}
+
+.admin-bus-type-gallery-heading h2 {
+  margin: 1px 0 0;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.admin-bus-type-gallery-heading small {
+  display: block;
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.admin-bus-type-gallery-heading .btn {
+  padding: 5px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.admin-bus-type-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-bus-type-tabs button {
+  border: 1px solid #d7dce3;
+  border-radius: 4px;
+  background: #fff;
+  padding: 5px 9px;
+  color: #374151;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-bus-type-tabs button.is-active {
+  border-color: #c50416;
+  background: #c50416;
+  color: #fff;
+}
+
+.admin-bus-type-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 7px;
+}
+
+.admin-bus-type-gallery-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dde2e8;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.admin-bus-type-gallery-image {
+  position: relative;
+  height: 88px;
+  background: #f3f4f6;
+}
+
+.admin-bus-type-gallery-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-bus-type-gallery-image span {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  border-radius: 9px;
+  background: rgba(17, 24, 39, .78);
+  padding: 1px 5px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-bus-type-gallery-actions {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+}
+
+.admin-bus-type-gallery-actions button {
+  min-width: 25px;
+  border: 1px solid #d7dce3;
+  border-radius: 3px;
+  background: #fff;
+  padding: 2px 5px;
+  color: #374151;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-bus-type-gallery-actions button:disabled {
+  opacity: .35;
+}
+
+.admin-bus-type-gallery-actions button.is-delete {
+  margin-left: auto;
+  border-color: #efb4b9;
+  color: #c50416;
+}
+
+.admin-bus-type-gallery-empty {
+  border: 1px dashed #d7dce3;
+  border-radius: 5px;
+  padding: 12px;
+  color: #6b7280;
+  text-align: center;
+  font-size: 10px;
+}
+
+@media (max-width: 760px) {
+  .admin-bus-type-gallery-panel {
+    padding: 10px;
+  }
+
+  .admin-bus-type-gallery-heading {
+    display: block;
+  }
+
+  .admin-bus-type-gallery-heading .btn {
+    margin-top: 7px;
+  }
+
+  .admin-bus-type-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-bus-type-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

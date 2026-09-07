@@ -384,3 +384,933 @@
   }
 }
 
+/* ==========================================================
+   TÌM CHUYẾN + CHỌN GHẾ CÙNG TRANG - GIỐNG MVC
+   ========================================================== */
+
+.search-booking-trip-list {
+  display: grid;
+  gap: 12px;
+}
+
+.search-booking-trip-card {
+  overflow: hidden;
+  border: 1px solid #d9dee5;
+  border-left: 3px solid #a90012;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(16, 24, 40, .035);
+}
+
+.search-booking-trip-card.is-expanded {
+  border-color: #d0d6dd;
+  border-left-color: #8f0010;
+}
+
+.search-booking-trip-card__main {
+  display: grid;
+  grid-template-columns: 135px minmax(0, 1fr) 205px;
+  align-items: center;
+  gap: 14px;
+  min-height: 80px;
+  padding: 10px 12px;
+}
+
+.search-booking-trip-time {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding-right: 13px;
+  border-right: 1px solid #e7e9ed;
+}
+
+.search-booking-trip-time strong {
+  color: #15904f;
+  font-size: 1.42rem;
+  line-height: 1;
+  font-weight: 850;
+}
+
+.search-booking-trip-time small {
+  color: #606975;
+  font-size: .72rem;
+}
+
+.search-booking-trip-route {
+  min-width: 0;
+}
+
+.search-booking-trip-route h2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  color: #20242a;
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 850;
+}
+
+.search-booking-trip-route h2 span {
+  color: #c50416;
+}
+
+.search-booking-trip-route > small {
+  display: block;
+  margin-top: 4px;
+  color: #89919b;
+  font-size: .72rem;
+}
+
+.search-booking-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2166d1;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.search-booking-trip-price {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.search-booking-trip-price strong {
+  color: #ed3141;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.search-booking-trip-price small {
+  color: #ed3141;
+  font-size: .68rem;
+  font-weight: 750;
+}
+
+.search-booking-choose-btn {
+  min-height: 31px;
+  margin-top: 2px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 4px;
+  background: #f2b500;
+  color: #fff;
+  font-size: .74rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.search-booking-choose-btn:hover {
+  background: #dca600;
+}
+
+.search-inline-seat-panel {
+  border-top: 1px solid #e4e7eb;
+  background: #fff;
+}
+
+.search-inline-seat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8ebee;
+  background: #fbfcfd;
+}
+
+.search-inline-seat-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #525b66;
+  font-size: .72rem;
+  font-weight: 650;
+}
+
+.search-inline-seat-legend i {
+  width: 17px;
+  height: 17px;
+  display: inline-block;
+  border-radius: 4px;
+  border: 1px solid #d7dce1;
+  background: #f4f6f8;
+}
+
+.search-inline-seat-legend i.is-selected {
+  border-color: #24a148;
+  background: #24a148;
+}
+
+.search-inline-seat-legend i.is-unavailable {
+  border-color: #7d8791;
+  background: #7d8791;
+}
+
+.search-inline-room-note {
+  margin: 10px 12px 0;
+  padding: 10px;
+  border: 1px solid #e1e5e9;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.search-inline-room-note > strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #7d0010;
+  font-size: .78rem;
+}
+
+.search-inline-room-note > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.search-inline-room-note span {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #e5e8ec;
+  border-radius: 5px;
+  background: #fafbfc;
+}
+
+.search-inline-room-note b {
+  color: #30363d;
+  font-size: .75rem;
+}
+
+.search-inline-room-note small {
+  color: #7b848e;
+  font-size: .67rem;
+}
+
+.search-inline-room-note em {
+  color: #ed3141;
+  font-size: .72rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.search-inline-seat-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 0;
+  align-items: stretch;
+}
+
+.search-inline-seat-map {
+  min-width: 0;
+  padding: 12px 14px 15px;
+}
+
+.search-inline-seat-map__title {
+  margin-bottom: 8px;
+  color: #69727d;
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.search-inline-seat-floors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(190px, 1fr));
+  gap: 18px;
+  align-items: start;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.search-inline-floor {
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid #dde2e7;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.search-inline-floor h3 {
+  width: fit-content;
+  margin: -19px auto 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #970013;
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 850;
+}
+
+.search-inline-seat-grid {
+  display: grid;
+  justify-content: center;
+  gap: 8px 12px;
+}
+
+.search-inline-seat-floors.is-room-bus .search-inline-seat-grid {
+  grid-template-columns: repeat(2, 34px);
+}
+
+.search-inline-seat-floors.is-sleeper-bus .search-inline-seat-grid {
+  grid-template-columns: repeat(3, 34px);
+}
+
+.search-inline-seat {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #d4dbe2;
+  border-radius: 6px;
+  background: #f5f7f9;
+  color: #59636e;
+  font-size: .62rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color .12s ease,
+    background .12s ease,
+    color .12s ease,
+    transform .12s ease;
+}
+
+.search-inline-seat:hover:not(:disabled) {
+  border-color: #94a0ab;
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.search-inline-seat.is-selected {
+  border-color: #24a148;
+  background: #24a148;
+  color: #fff;
+}
+
+.search-inline-seat.is-unavailable {
+  border-color: #7d8791;
+  background: #7d8791;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: .95;
+}
+
+.search-inline-booking-summary {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px 14px 15px;
+  border-left: 1px solid #e4e7eb;
+  background: #fbfcfd;
+}
+
+.search-inline-booking-summary h3 {
+  margin: 0 0 2px;
+  color: #198754;
+  font-size: .86rem;
+  font-weight: 850;
+}
+
+.search-inline-booking-summary > div {
+  display: grid;
+  gap: 2px;
+}
+
+.search-inline-booking-summary span {
+  color: #68717c;
+  font-size: .66rem;
+}
+
+.search-inline-booking-summary strong {
+  color: #30363d;
+  font-size: .75rem;
+  line-height: 1.35;
+}
+
+.search-inline-booking-summary strong.has-selection {
+  color: #15904f;
+}
+
+.search-inline-total {
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px solid #e0e4e8;
+}
+
+.search-inline-total strong {
+  color: #ed3141;
+  font-size: 1.05rem;
+}
+
+.search-inline-continue {
+  width: 100%;
+  min-height: 35px;
+  border: 0 !important;
+  border-radius: 4px;
+  background: #198754 !important;
+  color: #fff !important;
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+.search-inline-continue:hover:not(:disabled) {
+  background: #126f43 !important;
+}
+
+.search-inline-continue:disabled {
+  opacity: .55;
+}
+
+.search-inline-booking-summary > small {
+  color: #7b848e;
+  font-size: .62rem;
+  line-height: 1.45;
+}
+
+.search-inline-notice {
+  padding: 7px 8px;
+  border: 1px solid #efc2c7;
+  border-radius: 4px;
+  background: #fff4f5;
+  color: #a11e2b;
+  font-size: .68rem;
+}
+
+.search-inline-seat-loading,
+.search-inline-seat-error {
+  min-height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  color: #6b7580;
+  font-size: .78rem;
+  background: #fbfcfd;
+}
+
+@media (max-width: 991.98px) {
+  .search-booking-trip-card__main {
+    grid-template-columns: 105px minmax(0, 1fr) 175px;
+  }
+
+  .search-inline-seat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .search-inline-booking-summary {
+    border-top: 1px solid #e4e7eb;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .search-booking-trip-card__main {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .search-booking-trip-time {
+    justify-items: start;
+    padding-right: 0;
+    padding-bottom: 8px;
+    border-right: 0;
+    border-bottom: 1px solid #e7e9ed;
+  }
+
+  .search-booking-trip-price {
+    justify-items: start;
+  }
+
+  .search-inline-seat-floors {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .search-inline-room-note > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ==========================================================
+   THÔNG TIN CHI TIẾT CHUYẾN - 4 TAB
+   Hình ảnh / Tiện ích / Điểm đón trả / Chính sách hủy
+   ========================================================== */
+.search-trip-detail-panel {
+  border-top: 1px solid #e4e7eb;
+  background: #fff;
+}
+
+.search-trip-detail-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  border-bottom: 1px solid #e6e9ed;
+  background: #fff;
+}
+
+.search-trip-detail-tabs button {
+  position: relative;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: #3e4650;
+  font-size: .76rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.search-trip-detail-tabs button::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+}
+
+.search-trip-detail-tabs button:hover,
+.search-trip-detail-tabs button.is-active {
+  color: #9b0012;
+}
+
+.search-trip-detail-tabs button.is-active::after {
+  background: #9b0012;
+}
+
+.search-trip-detail-tabs button > span {
+  color: currentColor;
+  font-size: .86rem;
+}
+
+.search-trip-detail-body {
+  min-height: 210px;
+  padding: 12px 14px 16px;
+}
+
+.search-trip-detail-intro {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 9px;
+}
+
+.search-trip-detail-intro strong {
+  color: #292f36;
+  font-size: .78rem;
+}
+
+.search-trip-detail-intro span {
+  color: #7a838e;
+  font-size: .68rem;
+}
+
+/* Hình ảnh */
+.search-trip-gallery {
+  width: min(100%, 700px);
+  margin: 0 auto;
+}
+
+.search-trip-gallery__stage {
+  position: relative;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #e2e6ea;
+  border-radius: 8px;
+  background: #f7f8fa;
+}
+
+.search-trip-gallery__stage > img {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 320px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+.search-trip-gallery__arrow {
+  position: absolute;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid #e0e4e8;
+  border-radius: 50%;
+  background: rgba(255,255,255,.96);
+  color: #a80014;
+  font-size: 1.25rem;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(16,24,40,.1);
+  cursor: pointer;
+}
+
+.search-trip-gallery__arrow.is-prev { left: 10px; }
+.search-trip-gallery__arrow.is-next { right: 10px; }
+
+.search-trip-gallery__counter {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(31,35,40,.72);
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 800;
+}
+
+.search-trip-gallery__thumb-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.search-trip-gallery__thumbs {
+  --thumb-gap: 7px;
+  --thumb-width: 74px;
+  flex: 0 1 479px;
+  width: min(100%, 479px);
+  min-width: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--thumb-width);
+  gap: var(--thumb-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.search-trip-gallery__thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.search-trip-gallery__thumbs button {
+  width: 74px;
+  height: 48px;
+  min-width: 74px;
+  padding: 2px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  border: 1px solid #dbe0e5;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.search-trip-gallery__thumbs button.is-active {
+  border-color: #b30016;
+  box-shadow: 0 0 0 1px #b30016;
+}
+
+.search-trip-gallery__thumbs img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 3px;
+  background: #f7f8fa;
+}
+
+.search-trip-gallery__thumb-arrow {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #dde2e7;
+  border-radius: 50%;
+  background: #fff;
+  color: #a80014;
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: 0 2px 7px rgba(16,24,40,.08);
+  cursor: pointer;
+}
+
+.search-trip-gallery__thumb-arrow:hover {
+  border-color: #c9cfd6;
+  background: #fafafa;
+}
+
+
+/* Tiện ích */
+.search-trip-amenities__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.search-trip-amenities__grid article {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  background: #fbfcfd;
+}
+
+.search-trip-amenities__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: #fff3f4;
+  color: #b30016;
+  font-size: .9rem;
+  font-weight: 900;
+}
+
+.search-trip-amenities__grid article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.search-trip-amenities__grid strong {
+  color: #242a31;
+  font-size: .73rem;
+}
+
+.search-trip-amenities__grid small {
+  color: #7a838e;
+  font-size: .64rem;
+  line-height: 1.4;
+}
+
+/* Điểm đón / trả */
+.search-trip-points-note {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #f0d88d;
+  border-radius: 5px;
+  background: #fff9e8;
+  color: #756021;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+.search-trip-points-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.search-trip-points-columns section h3 {
+  margin: 0 0 6px;
+  color: #313840;
+  font-size: .76rem;
+  font-weight: 850;
+}
+
+.search-trip-points-columns section.is-pickup h3::before {
+  content: '●';
+  margin-right: 7px;
+  color: #16934e;
+}
+
+.search-trip-points-columns section.is-dropoff h3::before {
+  content: '●';
+  margin-right: 7px;
+  color: #ed3141;
+}
+
+.search-trip-points-list {
+  border-top: 1px solid #eef0f2;
+}
+
+.search-trip-point-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 8px 2px;
+  border-bottom: 1px solid #eef0f2;
+}
+
+.search-trip-point-row > strong {
+  color: #222930;
+  font-size: .72rem;
+}
+
+.search-trip-point-row > div {
+  display: grid;
+  gap: 2px;
+}
+
+.search-trip-point-row b {
+  color: #30363d;
+  font-size: .7rem;
+}
+
+.search-trip-point-row small {
+  color: #8a929c;
+  font-size: .61rem;
+  line-height: 1.35;
+}
+
+.search-trip-points-list > p {
+  margin: 0;
+  padding: 9px 2px;
+  color: #89919b;
+  font-size: .68rem;
+}
+
+.search-trip-detail-state {
+  min-height: 110px;
+  display: grid;
+  place-items: center;
+  color: #737c87;
+  font-size: .72rem;
+}
+
+.search-trip-detail-state.is-error {
+  color: #b42333;
+}
+
+/* Chính sách hủy */
+.search-trip-cancellation__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.search-trip-cancellation__grid article {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e0e4e8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.search-trip-cancellation__grid article > span {
+  color: #a90013;
+  font-size: .92rem;
+  font-weight: 900;
+}
+
+.search-trip-cancellation__grid article > div {
+  display: grid;
+  gap: 3px;
+}
+
+.search-trip-cancellation__grid strong {
+  color: #30363d;
+  font-size: .72rem;
+}
+
+.search-trip-cancellation__grid small {
+  color: #737c87;
+  font-size: .64rem;
+  line-height: 1.45;
+}
+
+.search-trip-cancellation__warning {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-left: 3px solid #a90013;
+  border-radius: 5px;
+  background: #fff4f5;
+  color: #7d2e37;
+  font-size: .64rem;
+  line-height: 1.5;
+}
+
+.search-trip-cancellation__warning strong {
+  color: #a90013;
+}
+
+.search-trip-cancellation__link {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.search-trip-cancellation__link a {
+  color: #c50416;
+  font-size: .7rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.search-trip-cancellation__link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+  .search-trip-detail-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search-trip-amenities__grid,
+  .search-trip-points-columns,
+  .search-trip-cancellation__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-trip-gallery__stage {
+    height: 220px;
+  }
+
+  .search-trip-gallery__stage > img {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    max-height: 220px;
+  }
+
+  .search-trip-gallery__thumbs {
+    --thumb-width: 64px;
+    flex-basis: 277px;
+    width: min(100%, 277px);
+    grid-auto-columns: var(--thumb-width);
+  }
+
+  .search-trip-gallery__thumbs button {
+    width: 64px;
+    min-width: 64px;
+    height: 44px;
+  }
+}
+

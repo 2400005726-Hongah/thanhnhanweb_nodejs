@@ -10,7 +10,6 @@ import { getApiErrorMessage } from '../services/apiClient.js'
 import { getTripDetail, getTripServicePoints } from '../services/publicTrip.service.js'
 import {
   clearSeatHold,
-  getOrCreateSeatHoldToken,
   getSeatHold,
   saveBookingResult,
   saveSeatHold,
@@ -31,6 +30,12 @@ import { formatDateTime } from '../utils/formatDateTime.js'
 import { getPaymentMethodLabel, getPaymentOptionsForSource } from '../utils/paymentLabels.js'
 import { formatBookingCode, formatLicensePlate } from '../utils/normalizers.js'
 import paymentQrDemo from '../assets/payment-qr-demo.svg'
+import bankLogo from '../assets/payment-logos/bank.svg'
+import bankQrLogo from '../assets/payment-logos/bank-qr.svg'
+import momoLogo from '../assets/payment-logos/momo.svg'
+import zalopayLogo from '../assets/payment-logos/zalopay.svg'
+import vnpayLogo from '../assets/payment-logos/vnpay.svg'
+import payAtBusLogo from '../assets/payment-logos/pay-at-bus.svg'
 
 import './BookingPaymentPage.css'
 
@@ -42,19 +47,99 @@ const getRemainingSeconds = (expiresAt) =>
 const formatCountdown = (seconds) =>
   `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
 
-const getSeatDraftIds = (seatDraft) =>
-  (seatDraft?.seats || []).map((seat) => seat.id).filter(Boolean)
+const PAYMENT_UI_META = Object.freeze({
+  BANK_TRANSFER: {
+    logo: bankLogo,
+    shortLabel: 'Chuyển khoản',
+    description: 'Chuyển khoản nhanh qua ứng dụng ngân hàng hoặc Internet Banking.',
+    qrTitle: 'Chuyển khoản ngân hàng',
+    qrDescription: 'Quét QR để điền nhanh thông tin chuyển khoản.',
+    steps: [
+      'Mở ứng dụng ngân hàng hoặc Internet Banking.',
+      'Quét mã QR và kiểm tra người nhận, số tiền.',
+      'Hoàn tất giao dịch rồi bấm “Tôi đã chuyển khoản”.',
+    ],
+  },
+  BANK_QR: {
+    logo: bankQrLogo,
+    shortLabel: 'QR ngân hàng',
+    description: 'Quét mã QR bằng ứng dụng ngân hàng có hỗ trợ VietQR/NAPAS.',
+    qrTitle: 'Thanh toán bằng QR ngân hàng',
+    qrDescription: 'Thông tin người nhận và số tiền được điền sẵn trên QR minh họa.',
+    steps: [
+      'Mở ứng dụng ngân hàng và chọn chức năng Quét QR.',
+      'Quét mã bên dưới, kiểm tra số tiền và nội dung.',
+      'Xác nhận thanh toán rồi quay lại website để hoàn tất.',
+    ],
+  },
+  MOMO: {
+    logo: momoLogo,
+    shortLabel: 'Ví MoMo',
+    description: 'Thanh toán bằng ví MoMo qua mã QR.',
+    qrTitle: 'Thanh toán bằng MoMo',
+    qrDescription: 'Mở MoMo và sử dụng chức năng quét mã để thanh toán.',
+    steps: [
+      'Mở ứng dụng MoMo và chọn Quét mã.',
+      'Quét QR, kiểm tra số tiền và nội dung thanh toán.',
+      'Xác nhận trên MoMo rồi bấm nút hoàn tất bên dưới.',
+    ],
+  },
+  ZALOPAY: {
+    logo: zalopayLogo,
+    shortLabel: 'ZaloPay',
+    description: 'Thanh toán nhanh bằng ví ZaloPay.',
+    qrTitle: 'Thanh toán bằng ZaloPay',
+    qrDescription: 'Quét mã QR bằng ứng dụng ZaloPay.',
+    steps: [
+      'Mở ZaloPay và chọn chức năng Quét mã.',
+      'Quét QR, kiểm tra thông tin giao dịch.',
+      'Xác nhận thanh toán rồi trở lại website.',
+    ],
+  },
+  VNPAY: {
+    logo: vnpayLogo,
+    shortLabel: 'VNPAY',
+    description: 'Quét VNPAY-QR bằng ứng dụng ngân hàng hoặc ví hỗ trợ.',
+    qrTitle: 'Thanh toán qua VNPAY',
+    qrDescription: 'Sử dụng ứng dụng ngân hàng/đối tác hỗ trợ VNPAY-QR.',
+    steps: [
+      'Mở ứng dụng ngân hàng hoặc ví có hỗ trợ VNPAY-QR.',
+      'Quét mã, kiểm tra người nhận và số tiền.',
+      'Hoàn tất giao dịch rồi xác nhận đã chuyển khoản.',
+    ],
+  },
+  PAY_AT_BUS: {
+    logo: payAtBusLogo,
+    shortLabel: 'Thanh toán tại nhà xe',
+    description: 'Đặt vé trước, thanh toán trực tiếp khi lên xe theo quy định nhà xe.',
+    qrTitle: '',
+    qrDescription: '',
+    steps: [],
+  },
+})
 
-const acquireHold = (tripId, seatDraft, holdToken) => {
-  const requestKey = `${tripId}:${holdToken}`
-  if (HOLD_REQUESTS.has(requestKey)) return HOLD_REQUESTS.get(requestKey)
+const getPaymentUiMeta = (method) =>
+  PAYMENT_UI_META[method] || {
+    logo: bankQrLogo,
+    shortLabel: getPaymentMethodLabel(method),
+    description: 'Thanh toán theo phương thức đã chọn.',
+    qrTitle: getPaymentMethodLabel(method),
+    qrDescription: 'Quét mã QR để tiếp tục thanh toán.',
+    steps: [
+      'Mở ứng dụng thanh toán phù hợp.',
+      'Quét mã QR và kiểm tra thông tin.',
+      'Hoàn tất giao dịch rồi xác nhận bên dưới.',
+    ],
+  }
+
+const acquireHold = (tripId, seatDraft) => {
+  if (HOLD_REQUESTS.has(tripId)) return HOLD_REQUESTS.get(tripId)
   const request = holdSeats(
     tripId,
     seatDraft.seats.map((seat) => seat.id),
     seatDraft.roomSelections || [],
-    holdToken,
-  ).finally(() => HOLD_REQUESTS.delete(requestKey))
-  HOLD_REQUESTS.set(requestKey, request)
+  ).finally(() => HOLD_REQUESTS.delete(tripId))
+  HOLD_REQUESTS.set(tripId, request)
   return request
 }
 
@@ -68,14 +153,14 @@ function BookingPaymentPage() {
   const [detail, setDetail] = useState(null)
   const [servicePoints, setServicePoints] = useState(null)
   const [hold, setHold] = useState(() => {
-    const existing = getSeatHold(tripId, getSeatDraftIds(seatDraft))
+    const existing = getSeatHold(tripId)
     return existing && getRemainingSeconds(existing.holdExpiresAt) > 0 ? existing : null
   })
   const [remainingSeconds, setRemainingSeconds] = useState(() => {
-    const existing = getSeatHold(tripId, getSeatDraftIds(seatDraft))
+    const existing = getSeatHold(tripId)
     return existing ? getRemainingSeconds(existing.holdExpiresAt) : 0
   })
-  const [paymentMethod, setPaymentMethod] = useState('BANK_QR')
+  const [paymentMethod, setPaymentMethod] = useState('')
   const [loading, setLoading] = useState(true)
   const [holding, setHolding] = useState(!hold)
   const [submitting, setSubmitting] = useState(false)
@@ -84,7 +169,6 @@ function BookingPaymentPage() {
   const [holdAttempt, setHoldAttempt] = useState(0)
   const [showPaymentQr, setShowPaymentQr] = useState(false)
   const initializedRef = useRef(false)
-  const bookingSubmitRef = useRef(false)
 
   const prerequisitesReady = Boolean(seatDraft && serviceSelection && passengerDraft)
 
@@ -115,26 +199,12 @@ function BookingPaymentPage() {
 
   useEffect(() => {
     if (!prerequisitesReady || hold || initializedRef.current) return
-
-    const seatIds = getSeatDraftIds(seatDraft)
-    const sharedHold = getSeatHold(tripId, seatIds)
-    if (sharedHold && getRemainingSeconds(sharedHold.holdExpiresAt) > 0) {
-      setHold(sharedHold)
-      setRemainingSeconds(getRemainingSeconds(sharedHold.holdExpiresAt))
-      setHolding(false)
-      setHoldConflict(false)
-      setError('')
-      return
-    }
-
     initializedRef.current = true
     setHolding(true)
     setHoldConflict(false)
     setError('')
 
-    const clientHoldToken = getOrCreateSeatHoldToken(tripId, seatIds)
-
-    acquireHold(tripId, seatDraft, clientHoldToken)
+    acquireHold(tripId, seatDraft)
       .then((newHold) => {
         saveSeatHold(tripId, newHold)
         setHold(newHold)
@@ -142,23 +212,11 @@ function BookingPaymentPage() {
       })
       .catch((requestError) => {
         const conflict = requestError.response?.status === 409
-
-        if (conflict) {
-          const reusedHold = getSeatHold(tripId, seatIds)
-          if (reusedHold && getRemainingSeconds(reusedHold.holdExpiresAt) > 0) {
-            setHold(reusedHold)
-            setRemainingSeconds(getRemainingSeconds(reusedHold.holdExpiresAt))
-            setHoldConflict(false)
-            setError('')
-            return
-          }
-        }
-
         setHoldConflict(conflict)
         if (!conflict) initializedRef.current = false
         setError(
-          conflict
-            ? 'Ghế/phòng đã được giữ ở một phiên hoặc tab khác, hoặc vừa được khách khác chọn. Hãy đóng các tab đặt vé trùng, kiểm tra lại vị trí hoặc quay lại Bước 1.'
+          requestError.response?.status === 409
+            ? 'Một hoặc nhiều ghế/phòng bạn đã chọn vừa được người khác giữ hoặc đặt. Vui lòng quay lại Bước 1 để chọn vị trí khác.'
             : getApiErrorMessage(requestError),
         )
       })
@@ -175,7 +233,7 @@ function BookingPaymentPage() {
 
   useEffect(() => {
     if (!hold || remainingSeconds > 0) return
-    clearSeatHold(tripId, getSeatDraftIds(seatDraft))
+    clearSeatHold(tripId)
     setHold(null)
     setError('Đã hết 10 phút giữ chỗ. Vui lòng quay lại Bước 1 và chọn lại ghế/phòng.')
     setHoldConflict(true)
@@ -205,9 +263,8 @@ function BookingPaymentPage() {
   )
 
   const releaseCurrentHold = async () => {
-    const seatIds = getSeatDraftIds(seatDraft)
-    const activeHold = hold || getSeatHold(tripId, seatIds)
-    clearSeatHold(tripId, seatIds)
+    const activeHold = hold || getSeatHold(tripId)
+    clearSeatHold(tripId)
     setHold(null)
     if (activeHold?.holdToken) {
       try {
@@ -231,18 +288,11 @@ function BookingPaymentPage() {
     await releaseCurrentHold()
     clearBookingServiceSelection(tripId)
     clearBookingFlowDrafts(tripId)
-    navigate(`/chuyen-xe/${tripId}`)
+    navigate('/tim-chuyen')
   }
 
   const completeBooking = async () => {
-    if (
-      !hold ||
-      remainingSeconds <= 0 ||
-      submitting ||
-      bookingSubmitRef.current ||
-      !detail ||
-      !serviceData
-    ) return
+    if (!hold || remainingSeconds <= 0 || submitting || !detail || !serviceData) return
 
     const serviceMessage = validateServiceSelection(serviceData, serviceSelection)
     if (serviceMessage) {
@@ -250,7 +300,6 @@ function BookingPaymentPage() {
       return
     }
 
-    bookingSubmitRef.current = true
     setSubmitting(true)
     setError('')
     try {
@@ -271,7 +320,7 @@ function BookingPaymentPage() {
         paymentMethod,
       })
 
-      clearSeatHold(tripId, getSeatDraftIds(seatDraft))
+      clearSeatHold(tripId)
       clearBookingServiceSelection(tripId)
       clearBookingFlowDrafts(tripId)
       saveBookingResult(data.booking)
@@ -292,20 +341,19 @@ function BookingPaymentPage() {
     } catch (requestError) {
       setError(getApiErrorMessage(requestError))
       if (requestError.response?.status === 409) {
-        clearSeatHold(tripId, getSeatDraftIds(seatDraft))
+        clearSeatHold(tripId)
         setHold(null)
         setShowPaymentQr(false)
         setHoldConflict(true)
       }
     } finally {
-      bookingSubmitRef.current = false
       setSubmitting(false)
     }
   }
 
   const submitPayment = async (event) => {
     event.preventDefault()
-    if (!hold || remainingSeconds <= 0 || submitting || !detail || !serviceData) return
+    if (!paymentMethod || !hold || remainingSeconds <= 0 || submitting || !detail || !serviceData) return
 
     const serviceMessage = validateServiceSelection(serviceData, serviceSelection)
     if (serviceMessage) {
@@ -317,10 +365,7 @@ function BookingPaymentPage() {
 
     if (paymentMethod === 'PAY_AT_BUS') {
       await completeBooking()
-      return
     }
-
-    setShowPaymentQr(true)
   }
 
   const confirmTransferred = async () => {
@@ -330,7 +375,7 @@ function BookingPaymentPage() {
 
 
   if (!seatDraft) {
-    return <div className="simple-page"><div className="status-symbol">1</div><h1>Vui lòng chọn chỗ trước</h1><Link className="btn btn-primary" to={`/chuyen-xe/${tripId}`}>Bước 1 – Chọn chỗ</Link></div>
+    return <div className="simple-page"><div className="status-symbol">1</div><h1>Vui lòng chọn chỗ trước</h1><Link className="btn btn-primary" to="/tim-chuyen">Bước 1 – Chọn chỗ</Link></div>
   }
   if (!serviceSelection) {
     return <div className="simple-page"><div className="status-symbol">2</div><h1>Vui lòng chọn điểm đón/trả</h1><Link className="btn btn-primary" to={`/dat-ve/${tripId}`}>Bước 2</Link></div>
@@ -349,6 +394,7 @@ function BookingPaymentPage() {
   const isPayAtBus = paymentMethod === 'PAY_AT_BUS'
   const paymentAmount = hold?.totalAmount ?? seatDraft.totalAmount
   const paymentReference = `THANHNHAN ${passengerDraft.passenger.phone.slice(-4)} ${String(tripId).slice(0, 6).toUpperCase()}`
+  const selectedPaymentMeta = getPaymentUiMeta(paymentMethod)
 
   return (
     <div className="page-surface booking-payment-page">
@@ -369,26 +415,9 @@ function BookingPaymentPage() {
 
         {holdConflict ? (
           <div className="booking-payment-conflict-card">
-            <h1>Vị trí đang được giữ ở phiên khác</h1>
-            <p>
-              Ghế/phòng bạn chọn hiện đang được giữ hoặc đã được đặt. Nếu bạn đang mở cùng quy trình đặt vé ở tab khác,
-              hãy hoàn tất hoặc đóng tab đó trước. Hệ thống sẽ không tự ý lấy chỗ đang được giữ của khách khác.
-            </p>
-            <div className="booking-payment-conflict-actions">
-              <button
-                className="btn btn-outline-primary"
-                onClick={() => {
-                  initializedRef.current = false
-                  setHoldConflict(false)
-                  setError('')
-                  setHoldAttempt((current) => current + 1)
-                }}
-                type="button"
-              >
-                Kiểm tra lại vị trí
-              </button>
-              <Link className="btn btn-primary" to={`/chuyen-xe/${tripId}`}>← Quay lại Bước 1</Link>
-            </div>
+            <h1>Không thể tiếp tục với vị trí đã chọn</h1>
+            <p>Do Bước 1–3 chưa giữ ghế nên vị trí có thể được khách khác chọn trước. Hãy quay lại sơ đồ và chọn vị trí đang còn trống.</p>
+            <Link className="btn btn-primary" to="/tim-chuyen">← Quay lại Bước 1</Link>
           </div>
         ) : (
           <div className="booking-payment-layout">
@@ -410,87 +439,150 @@ function BookingPaymentPage() {
                 </button>
               )}
 
-              <label className="form-label" htmlFor="paymentMethod">Phương thức thanh toán</label>
-              <select
-                className="form-select"
-                id="paymentMethod"
-                onChange={(event) => {
-                  setPaymentMethod(event.target.value)
-                  setShowPaymentQr(false)
-                  setError('')
-                }}
-                value={paymentMethod}
-                disabled={!hold || expired || submitting}
-                required
-              >
-                {getPaymentOptionsForSource('ONLINE').map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
+              <div className="booking-payment-methods">
+                <div className="booking-payment-methods-head">
+                  <span>PHƯƠNG THỨC THANH TOÁN</span>
+                  <strong>Chọn một phương thức</strong>
+                </div>
 
-              <div className="booking-payment-note">
-                {isPayAtBus
-                  ? 'Vé sẽ được xác nhận và giữ ghế; quý khách thanh toán khi lên xe.'
-                  : 'Nhấn “Thanh toán” để mở QR minh họa. Vé chỉ được tạo sau khi bạn bấm “Xác nhận tôi đã chuyển khoản”.'}
+                <div className="booking-payment-method-list">
+                  {getPaymentOptionsForSource('ONLINE').map((option) => (
+                    <label
+                      className={`booking-payment-method-option ${
+                        paymentMethod === option.value ? 'is-selected' : ''
+                      }`}
+                      key={option.value}
+                    >
+                      <input
+                        checked={paymentMethod === option.value}
+                        disabled={!hold || expired || submitting}
+                        name="paymentMethod"
+                        onChange={() => {
+                          setPaymentMethod(option.value)
+                          setShowPaymentQr(option.value !== 'PAY_AT_BUS')
+                          setError('')
+                        }}
+                        type="radio"
+                        value={option.value}
+                      />
+                      <span className="booking-payment-method-logo-wrap">
+                        <img src={getPaymentUiMeta(option.value).logo} alt="" aria-hidden="true" />
+                      </span>
+                      <span className="booking-payment-method-copy">
+                        <strong>{option.label}</strong>
+                        <small>{getPaymentUiMeta(option.value).description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {showPaymentQr && !isPayAtBus && (
+              {!paymentMethod && (
+                <div className="booking-payment-note">
+                  Chọn phương thức thanh toán để tiếp tục.
+                </div>
+              )}
+
+              {paymentMethod === 'PAY_AT_BUS' && (
+                <div className="booking-payment-pay-at-bus">
+                  <img src={selectedPaymentMeta.logo} alt="" aria-hidden="true" />
+                  <div>
+                    <strong>Thanh toán trực tiếp tại nhà xe</strong>
+                    <span>Vé được tạo trước. Quý khách thanh toán khi lên xe theo hướng dẫn của nhân viên.</span>
+                  </div>
+                </div>
+              )}
+
+              {showPaymentQr && paymentMethod && !isPayAtBus && (
                 <section className="booking-payment-qr-panel" aria-live="polite">
                   <div className="booking-payment-qr-heading">
-                    <div>
-                      <span>THANH TOÁN MÔ PHỎNG</span>
-                      <h2>Quét QR để thanh toán</h2>
+                    <div className="booking-payment-qr-brand-title">
+                      <img src={selectedPaymentMeta.logo} alt="" aria-hidden="true" />
+                      <div>
+                        <span>THANH TOÁN QR</span>
+                        <h2>{selectedPaymentMeta.qrTitle}</h2>
+                        <p>{selectedPaymentMeta.qrDescription}</p>
+                      </div>
                     </div>
-                    <b>{formatCountdown(remainingSeconds)}</b>
+                    <div className="booking-payment-qr-timer">
+                      <small>Thời gian còn lại</small>
+                      <b>{formatCountdown(remainingSeconds)}</b>
+                    </div>
                   </div>
 
                   <div className="booking-payment-qr-content">
                     <div className="booking-payment-qr-image">
-                      <img src={paymentQrDemo} alt="QR thanh toán minh họa Nhà xe Thành Nhân" />
-                      <small>QR minh họa · Không dùng để chuyển tiền thật</small>
+                      <div className="booking-payment-qr-frame">
+                        <img src={paymentQrDemo} alt={`QR minh họa ${getPaymentMethodLabel(paymentMethod)}`} />
+                        <img className="booking-payment-qr-center-logo" src={selectedPaymentMeta.logo} alt="" aria-hidden="true" />
+                      </div>
+                      <small>QR minh họa – chưa kết nối cổng thanh toán thật</small>
                     </div>
 
                     <div className="booking-payment-qr-info">
-                      <div><span>Phương thức</span><strong>{getPaymentMethodLabel(paymentMethod)}</strong></div>
+                      <div><span>Cổng thanh toán</span><strong>{getPaymentMethodLabel(paymentMethod)}</strong></div>
                       <div><span>Người nhận</span><strong>NHÀ XE THÀNH NHÂN</strong></div>
-                      <div><span>Số tiền</span><strong className="is-amount">{formatCurrency(paymentAmount)}</strong></div>
-                      <div><span>Nội dung</span><strong>{paymentReference}</strong></div>
+                      <div><span>Số tiền cần thanh toán</span><strong className="is-amount">{formatCurrency(paymentAmount)}</strong></div>
+                      <div><span>Nội dung chuyển khoản</span><strong className="is-reference">{paymentReference}</strong></div>
+                      <div><span>Trạng thái</span><strong className="is-pending">Chưa xác nhận thanh toán</strong></div>
                     </div>
                   </div>
 
-                  <div className="booking-payment-qr-warning">
-                    Đây là QR minh họa phục vụ đồ án. Sau khi mô phỏng chuyển khoản, bấm nút xác nhận bên dưới để hoàn tất đặt vé.
+                  <div className="booking-payment-qr-guide-title">Hướng dẫn thanh toán</div>
+                  <div className="booking-payment-qr-guide">
+                    {selectedPaymentMeta.steps.map((step, index) => (
+                      <div key={step}>
+                        <b>{index + 1}</b>
+                        <span>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="booking-payment-support-note">
+                    <strong>Không quét được QR?</strong>
+                    <span>Bạn có thể nhập thủ công người nhận, số tiền và nội dung chuyển khoản hiển thị bên cạnh mã QR.</span>
                   </div>
 
                   <button
-                    className="btn btn-success btn-lg w-100 booking-payment-confirm-transfer"
+                    className="btn btn-warning btn-lg w-100 booking-payment-confirm-transfer"
                     disabled={!hold || expired || submitting || holding}
                     onClick={confirmTransferred}
                     type="button"
                   >
-                    {submitting ? 'Đang xác nhận và tạo vé...' : '✓ Xác nhận tôi đã chuyển khoản'}
+                    {submitting ? 'Đang xác nhận và tạo vé...' : 'TÔI ĐÃ CHUYỂN KHOẢN'}
                   </button>
                 </section>
               )}
 
               <div className="booking-payment-actions">
-                <button className="btn btn-outline-secondary" disabled={submitting} onClick={backToPassenger} type="button">← Quay lại Bước 3</button>
-                {!showPaymentQr && (
-                  <button className="btn btn-primary btn-lg" disabled={!hold || expired || submitting || holding} type="submit">
-                    {submitting
-                      ? 'Đang xử lý...'
-                      : isPayAtBus
-                        ? 'Xác nhận đặt vé'
-                        : 'Thanh toán'}
-                  </button>
-                )}
-                {showPaymentQr && !isPayAtBus && (
-                  <button className="btn btn-outline-primary" disabled={submitting} onClick={() => setShowPaymentQr(false)} type="button">
-                    Đổi phương thức thanh toán
+                <button
+                  className="btn btn-outline-secondary"
+                  disabled={submitting}
+                  onClick={backToPassenger}
+                  type="button"
+                >
+                  ← Quay lại Bước 3
+                </button>
+
+                {isPayAtBus && (
+                  <button
+                    className="btn btn-primary"
+                    disabled={!hold || expired || submitting || holding}
+                    type="submit"
+                  >
+                    {submitting ? 'Đang xử lý...' : 'Xác nhận đặt vé'}
                   </button>
                 )}
               </div>
-              <button className="btn btn-link text-danger w-100 mt-2" disabled={submitting} onClick={cancelFlow} type="button">Hủy quy trình đặt vé</button>
+
+              <button
+                className="btn btn-link text-danger w-100 mt-2"
+                disabled={submitting}
+                onClick={cancelFlow}
+                type="button"
+              >
+                Hủy quy trình đặt vé
+              </button>
             </form>
 
             <aside className="booking-payment-summary">
